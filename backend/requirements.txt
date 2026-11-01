@@ -1,0 +1,10 @@
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+sqlalchemy>=2,<3
+psycopg[binary]>=3.2,<4
+langgraph>=1,<2
+langchain-openai>=1,<2
+python-multipart>=0.0.20
+httpx>=0.28
+pytest>=8
+pymupdf>=1.24

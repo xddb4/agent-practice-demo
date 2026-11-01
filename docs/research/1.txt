@@ -1,0 +1,867 @@
+A Case Study on Student Learning Behaviors in “Computer
+Organization and Design”: From the Perspective of Enhancing
+Research Literacy
+Xiaochun Yang
+Shanghai AchieveFun Info Tech Co.,
+Ltd.
+Shanghai, China
+jane@janeyoungtech.com
+Ke Zhang∗
+SKLP, Institute of Computing
+Technology
+Chinese Academy of
+Sciences/University of Chinese
+Academy of Sciences
+Beijing, China
+zhangke@ict.ac.cn
+Si Zhang
+SKLP, Institute of Computing
+Technology
+Chinese Academy of
+Sciences/University of Chinese
+Academy of Sciences
+Beijing, China
+zhangsi@ict.ac.cn
+Shiqi Liu
+SKLP, Institute of Computing
+Technology
+Chinese Academy of
+Sciences/University of Chinese
+Academy of Sciences
+Beijing, China
+liushiqi@ict.ac.cn
+Dong Li
+SKLP, Institute of Computing
+Technology
+Chinese Academy of
+Sciences/University of Chinese
+Academy of Sciences
+Beijing, China
+lidong@ict.ac.cn
+Dingwen Tao
+SKLP, Institute of Computing
+Technology
+Chinese Academy of
+Sciences/University of Chinese
+Academy of Sciences
+Beijing, China
+taodingwen@ict.ac.cn
+Abstract
+“Computer Organization and Design” is a core foundational course
+for computer science majors. With its abstract content, complex
+structure, and close integration of theory and practice, students
+often face challenges such as difficulty understanding concepts,
+insufficient knowledge transfer, low efficiency in experimental de-
+bugging, and inconsistent engagement with the course. This paper
+explores the impact of student learning behaviors on learning out-
+comes, focusing on both the theoretical and practical aspects of
+the course. Based on educational theories and the characteristics
+of the computing discipline, this paper constructs a framework
+for analyzing learning behaviors to examine students’ cognitive
+levels, thinking patterns, personality traits, and behavioral char-
+acteristics. By collecting survey feedback, student learning out-
+comes, and interview data, learning behavior indicators were de-
+veloped, and a mixed-methods approach was used to study student
+learning behaviors. The results indicate that high engagement in
+higher-order cognitive training, computational thinking training,
+hardware thinking training, critical thinking training, and positive
+personality traits are all significantly correlated with course grades,
+practical performance, and research literacy. The study also found
+that some students exhibited issues such as fragmented conceptual
+understanding, inappropriate application of artificial intelligence,
+insufficient practical training time, and low-quality reflection. This
+∗Corresponding Author.
+This work is licensed under a Creative Commons Attribution 4.0 International License.
+ACM-TURC ’26, Hangzhou, China
+© 2026 Copyright held by the owner/author(s).
+ACM ISBN 979-8-4007-2687-3/26/07
+https://doi.org/10.1145/3833142.3833159
+paper provides a reference for course improvement, digital practice
+platform design, formative assessment, and personalized learning.
+CCS Concepts
+• Social and professional topics →Computational thinking.
+Keywords
+Computer Organization and Design, Learning behavior analysis,
+Research literacy, Computational thinking, Hardware thinking, Crit-
+ical thinking
+ACM Reference Format:
+Xiaochun Yang, Ke Zhang, Si Zhang, Shiqi Liu, Dong Li, and Dingwen
+Tao. 2026. A Case Study on Student Learning Behaviors in “Computer
+Organization and Design”: From the Perspective of Enhancing Research
+Literacy. In ACM Turing Award Celebration Conference - China 2026 (ACM-
+TURC ’26), July 11–12, 2026, Hangzhou, China. ACM, New York, NY, USA,
+7 pages. https://doi.org/10.1145/3833142.3833159
+1
+Problem Statement
+“Computer Organization and Design” is a core undergraduate com-
+puter science course that connects prior and subsequent learning.
+It covers digital logic, data representation, arithmetic and control
+units, memory systems, instruction sets, and CPU architecture, pro-
+viding a foundation for understanding computer operation from
+hardware to system level and for later courses such as Operating
+Systems, Computer Architecture, Embedded Systems, and Com-
+piler Principles. It also helps develop systems thinking, engineering
+awareness, and problem-analysis ability. The course is challeng-
+ing because it contains abstract concepts, a complex structure, and
+strong integration of theory and practice. Topics such as timing con-
+trol, micro-operations, pipelining, and memory hierarchy involve
+1
+108
+ACM-TURC ’26, July 11–12, 2026, Hangzhou, China
+Yang et al.
+multi-level mechanisms, making it difficult for students to build a
+coherent understanding. Students must master both low-level hard-
+ware logic and system-level coordination, while laboratory work
+requires circuit design, fault diagnosis, result analysis, and report
+writing, placing high demands on knowledge transfer, practical
+skills, and reflection. In the AI era and new engineering context, the
+course goal has expanded from knowledge delivery to cultivating
+computational thinking, engineering thinking, critical thinking,
+hardware systems thinking, and early research literacy[7]. Scien-
+tific literacy includes identifying problems, analyzing issues, testing
+hypotheses, interpreting results, and refining solutions. Since de-
+bugging, performance comparison, design optimization, and error
+analysis already involve research elements, studying student be-
+havior in theory and practice can improve teaching and support
+the development of scientific literacy. Platform-generated learning
+data also enables behavior analysis and personalized intervention.
+Despite ongoing reform, problems remain: fragmented knowledge,
+weak theory–practice integration, uneven engagement, misuse of
+AI tools, and result-oriented assessment. Based on this, this paper
+focuses on three research questions: RQ1: Is student engagement
+in higher-order cognitive practice tasks positively correlated with
+course grades and subsequent research literacy performance in
+advanced experiments? RQ2: Is student engagement in computa-
+tional thinking, hardware thinking, and critical thinking training
+tasks positively correlated with learning outcomes and research
+literacy? RQ3: Are positive student personality traits and habits
+positively correlated with learning outcomes and research literacy
+performance?
+2
+Background and related work
+This study is grounded in scholarship on learning behavior analy-
+sis, online learning, computer science education, and the teaching
+of “Computer Organization and Design.” With the growth of dig-
+ital education, learning behavior analysis has become central to
+learning sciences and higher education because it uses platform,
+experimental, and interaction data to identify patterns relevant
+to teaching improvement and competency development [13, 26].
+This perspective is especially valuable in computer systems courses,
+where students must understand abstract topics such as processor
+organization, memory hierarchy, and performance optimization,
+while also developing research literacy through experimentation,
+analysis, and academic communication.
+The theoretical basis of this study is multidisciplinary. Construc-
+tivism argues that knowledge is actively built through exploration,
+interaction, and reflection [22, 28]; thus, behaviors such as simula-
+tion, debugging, and optimization can be interpreted as external
+manifestations of internal cognition. Self-regulated learning the-
+ory further highlights goal setting, strategy use, monitoring, and
+reflection as key drivers of learning outcomes [23, 36], often re-
+flected in indicators such as task initiation, pacing, resource use,
+and revision frequency [31]. Deep learning theory distinguishes
+meaningful understanding and transfer from surface memoriza-
+tion [19], with deeper engagement typically linked to stronger
+outcomes [8]. Social constructivism and situated learning also em-
+phasize the role of collaboration, engagement, and feedback within
+communities of practice [17, 28], making interactional behaviors
+an important analytic dimension [32]. Collectively, these theories
+suggest that competency development is dynamic and partially
+observable through behavioral data [6, 15].
+Prior research has shown that online learning behaviors such
+as login frequency, resource access, assignment submission, and
+forum participation are associated with grades, persistence, and
+engagement [25, 26, 34]. Methodologically, the field has progressed
+from descriptive statistics to clustering, sequence analysis, social
+network analysis, and process mining [16, 20]. In computer science
+education, research has increasingly used learning management
+systems and programming platforms to model learners, predict risk,
+and support intervention [3, 18, 25, 29]. Chinese studies have simi-
+larly examined blended and online environments using classroom,
+MOOC, and Online Judge data [9, 33]. However, many studies still
+rely on surface-level frequency indicators and insufficiently capture
+code quality, problem-solving processes, higher-order cognition, or
+research-oriented competencies [13, 15].
+Research on “Computer Organization and Design” has mainly
+focused on curriculum design, laboratory reform, blended teaching,
+and assessment. Internationally, Computer Science Curricula 2013
+emphasizes abstract thinking, hardware–software coordination,
+and system design [2], while many institutions employ simula-
+tors, FPGA-based labs, visual tools, and project-based learning [21].
+Active learning and flipped classrooms have also been shown to im-
+prove understanding of abstract hardware concepts [24]. In China,
+related studies have emphasized integrated knowledge structures,
+design-oriented experiments, and blended models combining online
+learning, seminars, and laboratory practice [5, 12, 27].
+Despite these advances, important gaps remain. Existing studies
+of learning behavior rarely target “Computer Organization and
+Design,” a course that uniquely integrates hardware theory and ex-
+perimental practice. Moreover, prior work has paid limited attention
+to research literacy, reflective activity, theory–practice integration,
+and higher-order cognition. To address these gaps, this study pro-
+poses a course-specific learning behavior analysis framework based
+on multi-source data, including platform records, questionnaires,
+observations, interviews, grades, and lab reports. It examines practi-
+cal engagement, interaction, reflection, individual traits, and behav-
+ioral habits, with particular emphasis on higher-order cognition,
+computational thinking, hardware thinking, and critical thinking,
+to clarify their relationships with learning outcomes and inform
+instructional improvement.
+3
+Research Methods
+3.1
+Research Participants and Data Sources
+This study examines 110 undergraduate computer science majors at
+a particular university who were enrolled in the course “Computer
+Organization and Design” [14, 35]. The research covers two main
+components of the course: theoretical instruction and laboratory
+practice. To enhance the reliability of the research findings, this
+study collected data from multiple sources to create a comprehen-
+sive profile of the learning process. First, questionnaire survey data.
+A questionnaire was designed around dimensions such as students’
+cognitive engagement, learning strategies, preparation for experi-
+ments, reflection habits, use of AI tools, willingness to participate
+in classroom interactions, self-efficacy, and self-assessments of re-
+search literacy to understand students’ subjective perceptions and
+2
+109
+A Case Study on Student Learning Behaviors in “Computer Organization and Design”
+ACM-TURC ’26, July 11–12, 2026, Hangzhou, China
+behavioral tendencies regarding their learning. The questionnaire
+included both Likert-scale items and several open-ended questions
+to gather descriptive information about students’ difficulties with
+conceptual understanding, obstacles to experimental debugging,
+and needs for learning support. Second, grade and lab report data.
+This includes grades from each stage, as well as performance evalu-
+ations from later, more advanced comprehensive experiments. To
+better align with the analysis of research literacy, this study focuses
+on aspects such as the depth of problem analysis, explanations
+of fault localization, the rationality of interpretations of results,
+and the quality of scheme comparisons and reflections in lab re-
+ports. Third, interview data. By interviewing course instructors
+and laboratory instructors, the study obtained their assessments
+of typical student behaviors and teaching challenges to enhance
+the contextual understanding of the results. In summary, this study
+employs a combined data collection approach of “subjective per-
+ception—learning outputs—interview interpretations” to depict the
+learning behaviors of students in the “Computer Organization and
+Design” course from as many perspectives as possible.
+3.2
+Design of Student Learning Behavior
+Indicators
+Given that the “Computer Organization and Design” course com-
+bines both theoretical study and practical laboratory work, this
+paper focuses on three aspects when designing student learning
+behavior indicators: higher-order cognitive levels, thinking skills,
+and personal habits.
+Figure 1: A Conceptual Framework for Learning Behavior
+that incorporates Bloom’s Taxonomy, Thinking Competen-
+cies, and Learner Characteristics
+Figure 1 illustrates the research framework related to learning
+behavior.
+3.2.1
+Cognitive Level Indicators. Bloom’s taxonomy of higher-order
+cognitive levels[4] includes analysis, evaluation, and creation. The
+practical sessions for “Computer Organization and Design” are not
+limited to the lower-level “remembering and understanding” but
+cover the higher-order objectives in Bloom’s cognitive theory: (1)
+Application: Students apply theoretical knowledge to Verilog model-
+ing, processor implementation, peripheral interfacing, and software
+development. (2)Analysis: Students must decompose instruction ex-
+ecution processes, hardware structural relationships, interface tim-
+ing, and sources of system performance.(3)Evaluation: Students as-
+sess design correctness and performance through simulation, bench-
+marks, performance counters, and debugging results.(4)Creation:
+Students will ultimately be able to independently complete system-
+level designs and functional extensions for processors, SoCs, caches,
+DMAs, and other components. Table 1 lists specific indicators for
+students’ performance on higher-order cognitive tasks in the “Com-
+puter Organization and Design” course.
+3.2.2
+Indicators of Thinking Skills. The cognitive abilities discussed
+in this paper primarily include computational thinking[11, 30], hard-
+ware (language) thinking, and critical thinking[10]. These three
+modes of thinking are not isolated from one another but are inter-
+twined and mutually reinforcing. Computational thinking encom-
+passes abstraction, decomposition, algorithms, and pattern recogni-
+tion. It emphasizes “how to transform complex systems into prob-
+lems that are understandable, implementable, and verifiable,” and
+is therefore primarily manifested in module partitioning, instruc-
+tion analysis, program design, and performance analysis. Hardware
+thinking encompasses timing and state awareness, debugging and
+verification, and parallel processing and resource trade-offs. It em-
+phasizes “how hardware systems actually operate under clock, state,
+interface, and resource constraints,” and is therefore primarily re-
+flected in CPU implementation, state machine design, handshake
+timing, integration testing and verification, and SoC scaling. Crit-
+ical thinking is a cyclical training process comprising four steps:
+observation, questioning, verification, and revision as shown in
+Figure 2. Through this process, students will develop a coherent
+methodology: not taking conclusions at face value, actively verify-
+ing hypotheses, distinguishing facts from interpretations, paying
+attention to boundary conditions, comparing alternatives, and iden-
+tifying the strength of evidence [34]. Critical thinking is the most
+fundamental component of scientific literacy. It emphasizes “how
+to continuously approach correct conclusions through the process
+of observation—questioning—verification—revision”; therefore, it
+permeates the entire experimental process and serves as the core
+method for ensuring design quality and fostering scientific literacy.
+Among these, cultivating hardware (language) thinking presents
+certain challenges and requires reinforcement through practice.
+Building on foundational computational thinking skills, this paper
+primarily focuses on enhancing students’ research literacy by cul-
+tivating their critical thinking abilities, without addressing other
+aspects of research literacy.
+Figure 2: Four steps of critical thinking
+3
+110
+ACM-TURC ’26, July 11–12, 2026, Hangzhou, China
+Yang et al.
+Table 1: Correspondence Between Learning Behavior Indicators in Computer Organization and Design Practice and Higher-
+Order Cognitive Levels
+Lab No.
+Lab Title
+Apply
+Analyze
+Evaluate
+Create
+1
+Basic Processor
+Components
+ALU and register-file design and simula-
+tion
+Arithmetic-unit structure, flag logic, and
+multi-port access
+Functional correctness and timing valid-
+ity
+Independent component implementation
+2
+Single-Cycle Processor
+Design
+ISA- and datapath-based processor imple-
+mentation
+Instruction formats, control signals, and
+five-stage relations
+Functional completeness via test pro-
+grams
+Architecture design and module integra-
+tion
+3
+Memory/Peripheral Path
+Design and Performance
+Evaluation
+Memory/peripheral access via interfaces,
+FSMs, and drivers
+Handshake timing, HW/SW co-design,
+and performance-data sources
+Execution effectiveness from perfor-
+mance counters
+SoC extension with peripherals and mon-
+itoring
+4
+RISC-V Processor
+Implementation
+Transfer of prior methods to RISC-V im-
+plementation
+RISC-V/MIPS differences in format and
+control
+Implementation correctness and opti-
+mization effects
+Processor redesign for a new ISA
+5
+Optional Lab Project
+Extended design using processor, mem-
+ory, and integration knowledge
+Pipelining, cache, DMA, and SoC mecha-
+nisms
+Performance-resource comparison across
+schemes
+Functional extension, optimization, and
+integration
+As shown in Table 2, the practical instruction in this course,
+“Computer Organization and Design,” progressively cultivates stu-
+dents’ computational, hardware and critical thinking. The “Strong”
+and “Medium” indicate the training intensity of each task across
+different dimensions of thinking.
+3.2.3
+Personality and Habit Indicators. When evaluating the “Com-
+puter Organization and Design” course, it is necessary to incorpo-
+rate personality-related learning behavior indicators such as adapt-
+able, inventive, meticulous, self-directed, and passionate[1]. These
+indicators help assess students’ learning performance and skill de-
+velopment in this course more comprehensively and scientifically,
+while also guiding them to adopt learning methods suited to the
+course’s characteristics. Table 3 presents the behavioral indicators
+directly used in classroom observations, formative assessments, and
+periodic summaries. The inclusion of adaptable indicators is primar-
+ily based on the course’s multi-layered, broad scope, which requires
+students to flexibly switch among abstract theory, logical analysis,
+and structural design. The inclusion of inventive indicators stems
+from the course’s strong emphasis on synthesis and design. Tasks
+often lack a single optimal solution; evaluating students’ ability to
+propose multiple solutions and compare their merits helps measure
+their innovative thinking and engineering design capabilities. The
+inclusion of meticulous indicators stems from the high-precision
+requirements of hardware systems regarding logical relationships
+and timing control. Therefore, attention must be paid to students’
+adherence to standards and accuracy during practical work. The
+inclusion of self-directed learning indicators is due to the course’s
+extreme difficulty, as classroom instruction cannot cover the entire
+learning process. Students’ ability to proactively prepare, orga-
+nize knowledge, conduct independent experiments, and engage in
+timely reflection will directly impact their learning outcomes. The
+inclusion of passionate indicators is intended to reflect that sus-
+tained interest is a key factor in helping students overcome learning
+difficulties, maintain engagement, and persist in exploration.
+3.3
+Research Methods
+This paper is a preliminary exploratory case study that employs a
+mixed-methods approach combining quantitative and qualitative
+methods.
+3.3.1
+Mixed-Methods Research. Because a single method cannot
+fully capture students’ personality traits and behavioral habits, this
+study adopts a mixed qualitative–quantitative approach. Qualita-
+tive analysis examines motivations, attitudes, emotions, and cogni-
+tive processes behind behavior through questionnaires, classroom
+and lab observations, and follow-up interviews. It helps explain
+differences in learning interest, self-management, collaboration, re-
+silience, concentration, peer interaction, and responses to difficulty,
+failure, and feedback. Quantitative analysis provides comparable
+evidence through indicators such as task completion time, revision
+frequency, submission counts, work quality, error rates, and respon-
+siveness to feedback, reflecting engagement, efficiency, persistence,
+reflection, and planning. Combining the two approaches improves
+both reliability and explanatory power, thereby supporting targeted
+teaching interventions.
+To gather such evidence, this study uses a questionnaire in the
+first half of the “Computer Organization and Design” course, tar-
+geting students enrolled in the theory course and/or laboratory
+seminar. The survey investigates the implementation of teaching
+and learning experiences, platform support, and course improve-
+ment needs, aiming to capture authentic student perceptions and
+practical demands. The questionnaire consists of 72 questions cover-
+ing eight dimensions: 1. Basic student and enrollment information;
+2. Course learning experience, including perceived difficulty, pace,
+and ability to follow; 3. Learning engagement, measured by study
+time for theory and laboratory tasks; 4. Experience with the ex-
+perimental platform and related tools; 5. Evaluation of classroom
+instruction and assessment sessions; 6. Difficulties in experimental
+learning, such as theory, Verilog, debugging, hardware thinking,
+Git/GitLab, CI/CD tools, and platform access; 7. Learning support
+methods and AI tool use in help-seeking, knowledge retrieval, code
+generation, debugging, and report writing; 8. Teacher–student in-
+teraction and broader learning development, including interaction
+preferences, interest changes, behavioral characteristics, satisfac-
+tion, grade expectations, career support, and suggestions.
+3.3.2
+Quantitative Analysis. This study employs quantitative an-
+alytical methods to examine student engagement in activities de-
+signed to cultivate higher-order cognitive and thinking skills. Based
+on the descriptions in Sections 3.2.1 and 3.2.2, cognitive and think-
+ing level labels are assigned to the subtasks of each practical task.
+The values for cognitive and thinking levels can be calculated based
+on the completion of these subtasks. The following formula illus-
+trates the calculation method. For each cognitive and thinking-level
+label 𝑖, the corresponding 5-point score is computed based on all
+4
+111
+A Case Study on Student Learning Behaviors in “Computer Organization and Design”
+ACM-TURC ’26, July 11–12, 2026, Hangzhou, China
+Table 2: Comprehensive Thinking Training Overview of Practical Tasks in the “Computer Organization and Design” Course
+Task Name
+Computational Thinking
+Hardware Thinking
+Critical Thinking
+Lab 1: Basic Processor Compo-
+nents
+Strong: Hardware abstraction, modular decomposition,
+and rule-based implementation through ALU and register-
+file design
+Medium: Basic timing awareness, multi-port constraints,
+and function reuse through synchronous/asynchronous
+access and flag logic
+Medium: Attention to boundary cases and evidence-
+based revision through simulation and waveform veri-
+fication
+Lab 2: Single-Cycle Processor
+Design
+Strong: System abstraction, decomposition, and algorith-
+mic thinking through five-stage modeling and instruction
+flow
+Strong: Single-cycle timing organization, module co-
+ordination, and functional verification through datap-
+ath/control implementation
+Strong: Evidence-based judgment of processor correct-
+ness through benchmark testing and waveform analysis
+Lab 3: Memory/Peripheral Path
+Design and Performance Eval-
+uation
+Strong: System abstraction, hierarchical decomposition,
+and process design through SoC construction, interfaces,
+FSMs, and performance analysis
+Strong: Timing thinking, state awareness, and system-
+level trade-offs through handshake timing, UART, coun-
+ters, and HW/SW co-debugging
+Strong: Separation of observation from interpretation
+and revision of conclusions through counter analysis and
+system debugging
+Lab 4: RISC-V Processor Imple-
+mentation
+Strong: Abstraction, comparison, and pattern recognition
+in architectural migration through RISC-V adaptation
+Medium: Control timing, structural adaptation, and ISA-
+aware resource organization through single-cycle RISC-V
+implementation
+Medium: Verification of compatibility and revision of
+prior assumptions through RISC-V/MIPS comparison
+Lab 5: Optional Lab
+Strong: Advanced abstraction, complex decomposition, al-
+gorithm design, and pattern recognition through pipelines,
+cache, DMA, accelerators, and SoC integration
+Strong:
+State
+awareness,
+debugging,
+and
+perfor-
+mance/area/bandwidth
+trade-offs
+through
+complex
+timing and system integration
+Strong: Observation-questioning-verification-revision
+through alternative comparison, performance analysis,
+and iterative optimization
+Table 3: Descriptions of Personality Traits and Behavioral Indicators
+Character Trait
+Detailed Description
+Behavioral Indicators
+Adaptable
+Adaptation to abstract, logic-intensive content and
+changing lab requirements; flexibility and respon-
+siveness
+Rapid adjustment of learning strategies, iterative revision based on feedback, and quick adaptation to changes in tools, platforms, and
+tasks
+Inventive
+Exploratory orientation and innovation aware-
+ness; active search for improved implementation
+schemes
+Personal insights beyond textbook conclusions, suggestions for experimental or design improvement, and multi-perspective consideration
+of structure and performance
+Meticulous
+Careful learning attitude, emphasis on reasoning
+and accuracy, and strong logical rigor
+Few low-level errors, careful checking of procedures and results, and high-quality reports with strong standardization and discipline
+Self-directed
+Independent learning ability, intrinsic motivation,
+proactive goal setting, and sustained effort
+Active completion of preview/review/extension tasks, persistence on difficult topics, and targeted improvement of learning methods
+Passionate
+Strong interest in computer hardware, high en-
+gagement, sustained willingness for deeper study,
+and positive peer influence
+Active participation, proactive expression of views, sustained attention to course-related knowledge, and motivating collaboration with
+peers
+tasks assigned to that label:
+𝑃𝑖= 5 ×
+Í
+𝑗∈𝑖𝑠𝑗
+Í
+𝑗∈𝑖𝑡𝑗
+,
+(1)
+where 𝑠𝑗is the obtained score of the 𝑗-th task labeled with 𝑖, and
+𝑡𝑗is the total possible score of that task. Figure 3 illustrates an
+example of how to cognitive and thinking levels.
+Figure 3: Examples of quantifying cognitive and thinking
+levels
+3.3.3
+Qualitative Analysis. Qualitative analysis methods are used
+to study students’ personalities and habits. Based on the behav-
+ioral indicators described in Section 3.2.3, this paper analyzes the
+relationship between students’ positive personality traits and their
+academic outcomes and research literacy through observations of
+student behavior and questionnaire surveys.
+4
+Analysis of Preliminary Results
+The questionnaire response rate was 96.4%, with a 100% comple-
+tion rate; there were no instances of perfunctory responses, dupli-
+cate submissions, or dropouts, indicating high data quality. Table
+4 shows that the overall reliability of the questionnaire is good.
+Preliminary analysis shows differences in students’ learning behav-
+iors, particularly evident in laboratory practice. High-performing
+students were able to flexibly apply concepts, principles, and tools,
+identify key checkpoints, and adopt systematic, hardware-oriented
+debugging strategies; in contrast, lower-performing students relied
+more on blind trial and error and lacked the ability to pinpoint errors
+and reflect on their processes. Overall, students generally lacked
+systematic reflection; they rarely reviewed experimental steps, cat-
+egorized errors, compared approaches, or proposed improvements.
+High-quality reflection was more common among students with
+stronger academic performance and research literacy. Taking Lab3
+as an example (see Table 2 in Section 3.2.2), Figure 4 shows that
+students spent relatively little time on average during the design
+phase (3.6 hours) but achieved high completion rates for functional
+block diagrams and module division, indicating that they placed sig-
+nificant emphasis on this phase. The development phase averaged
+6.9 hours, with noticeable variations in code quality: some code
+lacked comments or simulation waveform screenshots, reflecting
+insufficient training in hardware-oriented thinking among some
+students. The debugging phase took the longest on average (8.4
+hours), indicating that debugging was the most time-consuming
+5
+112
+ACM-TURC ’26, July 11–12, 2026, Hangzhou, China
+Yang et al.
+Table 4: Reliability Analysis of the Course Survey Questionnaire
+Dim.
+Dimension
+Items
+Valid
+Missing
+Cronbach’s 𝛼
+𝛼Evaluation
+McDonald’s 𝜔
+CR
+D1
+Teaching Platform/Tools Satisfaction
+9
+87
+19
+0.9041
+Excellent
+0.9259
+0.9259
+D2
+Classroom Session Evaluation
+4
+98
+8
+0.7014
+Acceptable
+0.8241
+0.8241
+D3
+WeChat Mini-Program Evaluation
+3
+55
+51
+0.6915
+Marginally Acceptable
+0.8327
+0.8327
+D4
+Overall Course Satisfaction
+4
+96
+10
+0.7902
+Acceptable
+0.8643
+0.8643
+D5
+Grade Expectation
+3
+96
+10
+0.8190
+Good
+0.8921
+0.8921
+Overall
+D1–D5 Combined
+23
+52
+54
+0.8789
+Good
+0.9058
+0.9058
+stage and suggesting that some students struggled with problem
+identification and debugging strategies.
+Figure 4: Heatmap and Box Plot of lab duration distribution
+across the three phases for each student
+Preliminary evidence suggests that high-quality learning behav-
+iors are positively correlated with academic performance and re-
+search literacy. Students who engage in higher-order practical tasks,
+computational thinking, hardware thinking, and critical thinking
+activities typically achieve better grades and demonstrate stronger
+research literacy in subsequent advanced experiments (RQ1, RQ2).
+Surveys and interviews also show that positive personal traits are
+positively correlated with academic performance and research lit-
+eracy (RQ3). This suggests that it is the quality of learning behav-
+iors—rather than mere task completion—that truly influences deep
+learning and long-term development. The analysis also revealed
+some persistent issues in student learning: some students’ knowl-
+edge construction is fragmented, making it difficult for them to
+understand the connections between data representation, instruc-
+tion execution, memory levels, and component coordination; AI
+tools are often used to obtain answers, code, or step-by-step in-
+structions, rather than for analysis, verification, and reflection(as
+shown in Figure 5); some students do not invest sufficient effort in
+experiment preparation, debugging, and summarization, and their
+reflections often remain at the level of operational descriptions.
+In response, instructors should provide stronger guidance and of-
+fer personalized support to students whose learning outcomes are
+limited by their personal traits.
+Based on the above findings, mechanisms that promote effective
+learning behaviors can be incorporated into instructional design to
+guide students toward shifting their focus from “completing tasks”
+to “understanding principles, testing hypotheses, and reflecting on
+and improving their work.”(1) Problem-based learning can promote
+Figure 5: Survey Results on the Use of AI LLM Tools
+students’ in-depth understanding of theoretical knowledge, thereby
+enhancing their cognitive levels and thinking skills, particularly
+critical thinking skills. (2) Strengthen training in experimental de-
+bugging and reflective skills. By introducing debugging logs, error
+tracking sheets, and process reflection forms to optimize the de-
+sign of experimental platforms, we can promote the internalization
+of these behaviors and foster stable yet flexible thinking habits.
+(3) Regulate and guide the use of AI-assisted learning. Courses
+should clearly define the boundaries of its use, encourage students
+to use it for comparing concepts, troubleshooting, organizing their
+thoughts, and retrieving information, and require them to verify the
+basis for the output. Teachers can design “AI Response Analysis”
+assignments to cultivate students’ ability to use AI critically.
+5
+Contributions and Future Work
+The innovation of this paper lies in proposing a framework for
+analyzing learning behaviors in the “Computer Organization and
+Design” course that integrates cognitive and thinking levels with
+personality traits. This framework provides a reference for differ-
+entiated instruction, formative assessment, the design of digital
+practice platforms, and personalized learning support. In the future,
+the authors plan to expand the existing framework to include di-
+mensions of research literacy—such as scientific methods, research
+design, and data literacy—and to enrich the digital educational
+elements within the practical platform to enhance the overall effec-
+tiveness of course instruction and practical support.
+Acknowledgments
+Special thanks to Prof. Longbing Zhang, Xiaokang Guo, Anna Guo,
+as well as all the teaching assistants who have contributed to the
+course.
+6
+113
+A Case Study on Student Learning Behaviors in “Computer Organization and Design”
+ACM-TURC ’26, July 11–12, 2026, Hangzhou, China
+References
+[1] ACM and IEEE Computer Society. 2021. Computing Curricula 2020: Paradigms
+for Global Computing Education (1st ed.). Association for Computing Machinery,
+New York, NY, USA. Accessed: 2026-06-08. doi:10.1145/3467967
+[2] ACM/IEEE Joint Task Force on Computing Curricula. 2013. Computer Science
+Curricula 2013: Curriculum Guidelines for Undergraduate Degree Programs in
+Computer Science. ACM Press, New York, NY, USA. doi:10.1145/2534860
+[3] S. J. Aguilar, S. Lonn, and S. D. Teasley. 2014. Perceptions and Use of an Early
+Warning System During a Higher Education Transition Program. In Proceedings
+of the Fourth International Conference on Learning Analytics and Knowledge (LAK
+’14). Association for Computing Machinery, New York, NY, USA, 113–117. doi:10.
+1145/2567574.2567625
+[4] Lorin W. Anderson, David R. Krathwohl, Peter W. Airasian, Kathleen A. Cruik-
+shank, Richard E. Mayer, Paul R. Pintrich, James Raths, and Merlin C. Wittrock.
+2001. Taxonomy for Learning, Teaching, and Assessing: A Revision of Bloom’s
+Taxonomy of Educational Objectives, Abridged Edition (1st ed.). Longman, New
+York, NY, USA.
+[5] Zhongying Bai. 2018. Tutorial of Computer Organization Principles (6th ed.).
+Science Press, Beijing, China.
+[6] Ryan S. Baker and Pedro S. Inventado. 2014. Educational Data Mining and
+Learning Analytics. In Learning Analytics: From Research to Practice, Johann Ari
+Larusson and Brandon White (Eds.). Springer, New York, NY, 61–75.
+[7] Jeffrey S. Beaudry and Lynne Miller. 2016. Research Literacy: A Primer for Under-
+standing and Using Research. The Guilford Press, New York.
+[8] John Biggs. 1987. Student Approaches to Learning and Studying. Australian
+Council for Educational Research, Melbourne, Australia.
+[9] Juan Chen, Chunyan Deng, Shuai Lyv, Haiyang Jia, and Changhai Zhang. 2023.
+Design and Practice of Formative Assessment in the Course Fundamentals of
+Programming. Computer Education 3 (2023), 61–64. doi:10.16512/j.cnki.jsjjy.2023.
+03.012
+[10] Stella Cottrell. 2017. Critical Thinking Skills: Effective Analysis, Argument and Re-
+flection (3 ed.). Red Globe Press, London. xvi, 309 pages. https://www.bloomsbury.
+com/uk/critical-thinking-skills-9781137550507/
+[11] Paul Curzon, Tim Bell, Jane Waite, and Mark Dorling. 2019. Computational
+Thinking. In The Cambridge Handbook of Computing Education Research, Sally A.
+Fincher and Anthony V. Robins (Eds.). Cambridge University Press, Cambridge,
+513–546. doi:10.1017/9781108654555.018
+[12] Nan Ding, Jialin Song, Xiao Dong, Jian Wang, and Yuxin Wang. 2021. Course
+Construction of Computer Organization Principles Based on Blended Teaching
+Mode. Computer Education 8 (2021), 71–74. doi:10.16512/j.cnki.jsjjy.2021.08.016
+[13] Rebecca Ferguson. 2012. Learning Analytics: Drivers, Developments and Chal-
+lenges. International Journal of Technology Enhanced Learning 4, 5–6 (2012),
+304–317.
+[14] Center for Network and University of Chinese Academy of Sciences Informa-
+tion Services. 2026. Labs of Computer Organization and Design. Accessed: 2026-
+06-08. https://jwba.ucas.ac.cn/sc/course/courseplan/304313
+[15] Dragan Gašević, Shane Dawson, and George Siemens. 2015. Let’s Not Forget:
+Learning Analytics Are About Learning. TechTrends 59, 1 (2015), 64–71. doi:10.
+1007/s11528-014-0822-x
+[16] René F. Kizilcec, Chris Piech, and Emily Schneider. 2013. Deconstructing Disen-
+gagement: Analyzing Learner Subpopulations in Massive Open Online Courses.
+In Proceedings of the Third International Conference on Learning Analytics and
+Knowledge (LAK ’13). ACM, New York, NY, USA, 170–179. doi:10.1145/2460296.
+2460330
+[17] Jean Lave and Etienne Wenger. 1991. Situated Learning: Legitimate Peripheral
+Participation. Cambridge University Press, Cambridge, UK.
+[18] Leah P. Macfadyen and Shane Dawson. 2010. Mining LMS Data to Develop
+an “Early Warning System” for Educators: A Proof of Concept. Computers &
+Education 54, 2 (2010), 588–599. doi:10.1016/j.compedu.2009.09.008
+[19] Ference Marton and Roger Säljö. 1976. On Qualitative Differences in Learning:
+I—Outcome and Process. British Journal of Educational Psychology 46, 1 (1976),
+4–11.
+[20] Wajeeh Matcha, Dragan Gašević, Negin A. Uzir, Jelena Jovanović, and Abelardo
+Pardo. 2020. Analytics of Learning Strategies: Associations with Academic
+Performance and Self-Regulated Learning. Journal of Learning Analytics 7, 2
+(2020), 1–20.
+[21] David A. Patterson and John L. Hennessy. 2014. Computer Organization and
+Design: The Hardware/Software Interface (5th ed.). Morgan Kaufmann, Burlington,
+MA, USA.
+[22] Jean Piaget and Bärbel Inhelder. 1972. The Psychology of the Child (2nd ed.). Basic
+Books, New York, NY.
+[23] Paul R. Pintrich. 2000. The Role of Goal Orientation in Self-Regulated Learning.
+In Handbook of Self-Regulation, Monique Boekaerts, Paul R. Pintrich, and Moshe
+Zeidner (Eds.). Academic Press, San Diego, CA, 451–502. doi:10.1016/B978-
+012109890-2/50043-3
+[24] Michael Prince. 2004. Does Active Learning Work? A Review of the Research.
+Journal of Engineering Education 93, 3 (2004), 223–231. doi:10.1002/j.2168-9830.
+2004.tb00809.x
+[25] Cristobal Romero and Sebastian Ventura. 2010. Educational Data Mining: A
+Review of the State of the Art. IEEE Transactions on Systems, Man, and Cybernetics,
+Part C (Applications and Reviews) 40, 6 (2010), 601–618. doi:10.1109/TSMCC.2010.
+2053532
+[26] George Siemens and Phil Long. 2011. Penetrating the Fog: Analytics in Learning
+and Education. EDUCAUSE Review 46, 5 (2011), 31–40.
+[27] Shuofei Tang. 2016. Computer Organization Principles (2nd ed.). Higher Education
+Press, Beijing, China.
+[28] Lev S. Vygotsky. 1978. Mind in Society: The Development of Higher Psychological
+Processes (1st ed.). Harvard University Press, Cambridge, MA.
+[29] C. Watson and F. W. B. Li. 2014. Failure Rates in Introductory Programming
+Revisited. In Proceedings of the 2014 Conference on Innovation & Technology in
+Computer Science Education (ITiCSE ’14). ACM, New York, NY, USA, 39–44. doi:10.
+1145/2591708.2591749
+[30] Jeannette M. Wing. 2006. Computational Thinking. Commun. ACM 49, 3 (2006),
+33–35. doi:10.1145/1118178.1118215
+[31] Philip H. Winne and Allyson F. Hadwin. 1998.
+Studying as Self-
+Regulated Learning.
+In Metacognition in Educational Theory and Practice
+(1st ed.), Douglas J. Hacker, John Dunlosky, and Arthur C. Graesser
+(Eds.). Lawrence Erlbaum Associates, Mahwah, NJ, 277–304.
+https:
+//www.taylorfrancis.com/books/edit/10.4324/9781410602350/metacognition-
+educational-theory-practice-douglas-hacker-john-dunlosky-arthur-graesser
+[32] Alyssa Friend Wise and Baruch B. Schwarz. 2017. Visions of CSCL: Eight Provo-
+cations for the Future of the Field. International Journal of Computer-Supported
+Collaborative Learning 12, 4 (2017), 423–467.
+[33] Sien Yang, Guohua Shen, Xin Li, Zhiqiu Huang, and Yu Zhou. 2022. Practical
+Exploration of an Online Tutoring Method for Programming Education Based
+on Code Recommendation. Computer Education 3 (2022), 153–156. doi:10.16512/j.
+cnki.jsjjy.2022.03.032
+[34] Jihyun W. You. 2016. Identifying Significant Indicators Using LMS Data to Predict
+Course Achievement in Online Learning. The Internet and Higher Education 29
+(2016), 23–30.
+[35] Ke Zhang. 2025. Cultivating Top Talent in Computer Systems and Processor
+Chips Through the Practical Teaching Cloud Platform. Computer Education 05
+(2025), 9–14. doi:10.16512/j.cnki.jsjjy.2025.05.009
+[36] Barry J. Zimmerman. 2002. Becoming a Self-Regulated Learner: An Overview.
+Theory Into Practice 41, 2 (2002), 64–70.
+7
+114

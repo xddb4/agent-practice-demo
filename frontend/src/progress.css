@@ -1,0 +1,5 @@
+.agent-progress{display:block;width:100%;height:8px;border:0;border-radius:99px;overflow:hidden;appearance:none;background:#ede5f4;color:#a393b7;accent-color:#a393b7}
+.agent-progress::-webkit-progress-bar{border-radius:99px;background:linear-gradient(90deg,#ede5f4 0%,#ede5f4 25%,#a393b7 45%,#b7a8c9 55%,#ede5f4 75%,#ede5f4 100%);background-size:200% 100%;animation:agent-waiting 1.8s linear infinite}
+.agent-progress::-moz-progress-bar{border-radius:99px;background:#a393b7}
+@keyframes agent-waiting{from{background-position:100% 0}to{background-position:-100% 0}}
+@media(prefers-reduced-motion:reduce){.agent-progress::-webkit-progress-bar{animation:none}}

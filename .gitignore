@@ -1,0 +1,10 @@
+.runtime/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.env
+*.db
+uploads/
+*.log
+frontend/public/prototype.html
