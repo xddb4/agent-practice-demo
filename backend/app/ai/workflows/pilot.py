@@ -1,5 +1,6 @@
 """任务路由只生成候选；保存由独立的鉴权确认接口执行。"""
-import os, json, re
+import json, re
+from ...services.model_settings import model_env
 from typing import TypedDict
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -41,7 +42,7 @@ def generate(s):
         stamp=perf_counter();reply=llm.invoke(messages)
         timings.append({'stage':stage,'seconds':round(perf_counter()-stamp,3)})
         return reply
-    if not os.getenv('MODEL_API_KEY'):
+    if not model_env('MODEL_API_KEY'):
         if s.get('image'): raise ValueError('图片识别需要配置支持视觉的 Qwen API')
         items = ([{'title':text[:100], 'important':False,'urgent':False,'source':text,'completion_criteria':''}] if r=='schedule' else
           [{'title':text[:100], 'dimension':DIMENSIONS[0], 'rationale':'离线模式：关联维度需人工核对，不能据此判定能力水平。','source':text}] if r=='evidence' else

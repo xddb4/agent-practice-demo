@@ -13,10 +13,15 @@ function App(){
   const isCurrent=()=>activeRequest.current===operation&&!operation.signal.aborted;
   setRequest(nextRequest);setError(null);setElapsed(0);setBusy(true);
   try{
+   const configuration=await fetch('/api/model-settings',{signal:operation.signal});
+   const settings=await configuration.json();
+   if(!isCurrent())return;
+   if(!configuration.ok){const failure=new Error();failure.detail=settings.detail;failure.status=configuration.status;throw failure}
+   if(!settings.configured){cancel();frame.current?.contentWindow.postMessage({type:'open-model-settings'},location.origin);return}
    const response=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(nextRequest.payload),signal:operation.signal});
    let value;try{value=await response.json()}catch{throw new Error('invalid-response')}
    if(!isCurrent())return;
-   if(!response.ok){const failure=new Error();failure.detail=value.detail;failure.status=response.status;throw failure}
+   if(!response.ok){if(value.detail?.code==='model_not_configured'){cancel();frame.current?.contentWindow.postMessage({type:'open-model-settings'},location.origin);return}const failure=new Error();failure.detail=value.detail;failure.status=response.status;throw failure}
    // 候选直接交给唯一的用户核对表单，禁止增加JSON或模型说明页面。
    frame.current.contentWindow.postMessage({type:'agent-result',result:value},location.origin);setRequest(null);
   }catch(failure){if(isCurrent())setError(toDiagnostic(failure))}

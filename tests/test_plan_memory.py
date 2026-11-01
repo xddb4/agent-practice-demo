@@ -56,3 +56,11 @@ def test_webp_reaches_vision_workflow(monkeypatch):
     monkeypatch.setattr(workflow,'invoke',capture)
     assert c.post('/api/agent',json={'route':'schedule','text':'课表','image':'data:image/webp;base64,dGVzdA=='}).status_code==200
     assert captured[0].startswith('data:image/webp;base64,')
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def offline_model_configuration(monkeypatch):
+    # 这些既有业务测试使用离线工作流；真实配置入口与账号隔离单独测试。
+    monkeypatch.setattr("backend.app.main.runtime_settings", lambda owner: {})

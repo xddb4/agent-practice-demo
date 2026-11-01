@@ -1,4 +1,5 @@
 .env
+.model-encryption.key
 .runtime
 .git
 **/node_modules

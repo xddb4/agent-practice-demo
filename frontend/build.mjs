@@ -7,5 +7,5 @@ html=html.replace('识别功能为流程演示：当前尚未接入视觉模型�
 html=html.replace(/<div class="form-group"><label>完成标准<\/label><input id="f-standard"[^>]*><\/div>/g,'').replaceAll("val('f-standard')","''").replaceAll("+'<br>完成标准：'+esc(t.standard)",'');
 html=html.replaceAll('let field=document.getElementById(key);if(key===','let field=document.getElementById(key);if(!field)continue;if(key===').replaceAll("' 分钟 · 完成标准：'+esc(t.standard)","' 分钟'").replaceAll('先核对完成标准，再安排专注时段。','先核对安排，再留出专注时段。');
 html=html.replace('</head>','<link rel="stylesheet" href="/ui.css"></head>');
-html=html.replace('</body>','<script src="/bridge.js"></script><script src="/features.js"></script><script src="/notifications.js"></script><script src="/review.js"></script><script src="/plans.js"></script><script src="/clipboard.js"></script><script src="/task_views.js"></script></body>');
+html=html.replace('</body>','<script src="/bridge.js"></script><script src="/features.js"></script><script src="/notifications.js"></script><script src="/review.js"></script><script src="/plans.js"></script><script src="/clipboard.js"></script><script src="/task_views.js"></script><script src="/model_settings.js"></script></body>');
 writeFileSync('public/prototype.html',html);

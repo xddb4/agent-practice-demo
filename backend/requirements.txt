@@ -8,3 +8,4 @@ python-multipart>=0.0.20
 httpx>=0.28
 pytest>=8
 pymupdf>=1.24
+cryptography>=43,<47

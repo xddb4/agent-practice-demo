@@ -20,6 +20,7 @@ def test_output_issues_omit_input():
     assert 'private source' not in str(detail)
 
 def test_api_diagnostics_do_not_leak_exception(monkeypatch,caplog):
+    monkeypatch.setattr('backend.app.main.runtime_settings',lambda owner:{})
     c=TestClient(app)
     c.post('/api/auth/register',json={'email':uuid.uuid4().hex+'@example.com','password':'test-only-password'})
     def fail(_):raise ValueError('sensitive-test-marker')

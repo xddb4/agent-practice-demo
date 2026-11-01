@@ -23,6 +23,7 @@ services:
       MODEL_SUPPORTS_VISION: ${MODEL_SUPPORTS_VISION:-true}
       MODEL_JSON_MODE: ${MODEL_JSON_MODE:-true}
       MODEL_THINKING: ${MODEL_THINKING:-false}
+      MODEL_ENCRYPTION_KEY_FILE: /app/uploads/.model-encryption.key
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
     depends_on:
       db:

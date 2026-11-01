@@ -3,6 +3,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Depends, Request, Response, UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -14,15 +17,21 @@ from .services.agent_errors import diagnose
 from .services.plans import plan_title,plan_items,plan_payload
 from .services.context import bounded_context
 from .services.memory import unpack,pack,record_bytes,cleanup_candidates
+from .services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
 from .schemas.agent import output_contract
 from pydantic import ValidationError
 import json
 
 app=FastAPI(title='StudyPilot',version='0.1.0')
+@app.exception_handler(RequestValidationError)
+async def validation_error(request:Request,error):
+    if request.url.path.startswith('/api/model-settings'):
+        return JSONResponse(status_code=422,content={'detail':{'message':'模型配置字段无效，请核对 HTTPS 地址、模型名称和密钥长度','errors':[{'field':'.'.join(map(str,x['loc'])),'type':x['type']} for x in error.errors()]}})
+    return await request_validation_exception_handler(request,error)
 @app.middleware('http')
 async def refresh_local_assets(request:Request,call_next):
     response=await call_next(request)
-    if request.url.path.startswith('/api/') or request.url.path in ['/', '/prototype.html','/bridge.js','/features.js','/review.js','/plans.js','/clipboard.js','/notifications.js','/task_views.js','/ui.css']:
+    if request.url.path.startswith('/api/') or request.url.path in ['/', '/prototype.html','/bridge.js','/features.js','/review.js','/plans.js','/clipboard.js','/notifications.js','/task_views.js','/model_settings.js','/ui.css']:
         response.headers['Cache-Control']='no-store'
     return response
 log=logging.getLogger('studypilot')
@@ -106,10 +115,38 @@ class AgentInput(BaseModel):
     route:str='auto'
     image:str=''
     base_plan_id:str|None=None
+
+@app.get('/api/model-settings')
+def get_model_settings(owner=Depends(uid)):
+    return public_settings(read_settings(owner))
+
+@app.put('/api/model-settings')
+def put_model_settings(body:ModelSettings,owner=Depends(uid)):
+    return save_settings(owner,body)
+
+@app.delete('/api/model-settings')
+def delete_model_settings(owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,'model-settings:'+owner)
+        if row:db.delete(row);db.commit()
+    return {'configured':False}
+
+@app.post('/api/model-settings/test')
+def test_model_settings(owner=Depends(uid)):
+    settings=runtime_settings(owner)
+    try:
+        from .integrations.model import create_model
+        with use_settings(settings):
+            create_model().invoke('Reply only OK. This is a connection test.')
+    except Exception as error:
+        raise HTTPException(502,diagnose(error,uuid.uuid4().hex[:12]))
+    return {'ok':True,'message':'文本模型连接成功；图片能力需用实际图片单独验证。'}
+
 @app.post('/api/agent')
 def agent(body:AgentInput,owner=Depends(uid)):
     if body.route not in ['auto','schedule','evidence','recommend']: raise HTTPException(422,'任务类型无效')
     if body.image and (not body.image.startswith(('data:image/png;base64,','data:image/jpeg;base64,','data:image/webp;base64,')) or len(body.image)>14_000_000): raise HTTPException(422,'仅支持不超过10MB的PNG/JPEG/WebP图片')
+    settings=runtime_settings(owner)
     context=get_state(owner); context['evidence']=[x for x in context['evidence'] if x.get('status')=='已接受']
     if body.base_plan_id:
         with Session() as db:
@@ -118,7 +155,9 @@ def agent(body:AgentInput,owner=Depends(uid)):
             context['reference_plan']={'title':plan_title(base.data),'items':plan_items(base.data),'rule':'仅作为用户明确选择的参考方案；本次约束优先，历史方案不代表已确认能力。'}
     schedule_tasks=context.get('tasks',[])
     context=bounded_context(context)
-    try: result=workflow.invoke({**body.model_dump(),'context':context,'schedule_tasks':schedule_tasks})
+    try:
+        with use_settings(settings):
+            result=workflow.invoke({**body.model_dump(),'context':context,'schedule_tasks':schedule_tasks})
     except Exception as error:
         error_id=uuid.uuid4().hex[:12]
         detail=diagnose(error,error_id)

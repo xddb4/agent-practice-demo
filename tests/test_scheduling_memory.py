@@ -91,3 +91,11 @@ def test_memory_operations_do_not_affect_other_accounts():
     a.post('/api/memory/compact')
     a.post('/api/memory/cleanup',json={'older_than_days':0,'keep_recent':0})
     assert b.get('/api/plans/'+second['id']).status_code==200
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def offline_model_configuration(monkeypatch):
+    # 这些既有业务测试使用离线工作流；真实配置入口与账号隔离单独测试。
+    monkeypatch.setattr("backend.app.main.runtime_settings", lambda owner: {})

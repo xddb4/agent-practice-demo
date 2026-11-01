@@ -23,7 +23,7 @@ def diagnose(error,request_id):
     elif isinstance(error,AgentOutputTooLongError):
         code,title,reason,action='output_limit','识别内容过长','模型输出达到长度上限，结果不完整。','请将材料按日程分段后分别识别。'
     elif status==401:
-        code,title,reason,action,retryable='authentication','模型密钥验证失败','模型服务拒绝了当前API密钥。','请更新本地模型密钥并重启服务。',False
+        code,title,reason,action,retryable='authentication','模型密钥验证失败','模型服务拒绝了当前API密钥。','请在个人空间的模型 API 设置中更新密钥。',False
     elif status==402:
         code,title,reason,action,retryable='balance','模型账户额度不足','模型服务返回账户额度不足。','请检查模型账户余额或更换可用账户后重试。',False
     elif status==403:
