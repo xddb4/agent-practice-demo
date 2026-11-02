@@ -6,8 +6,8 @@ tasksOn=function(key){
 };
 function taskPriority(a,b){return (a.ddl||'9999-12-31').localeCompare(b.ddl||'9999-12-31')||(a.q??3)-(b.q??3)||(a.duration??Infinity)-(b.duration??Infinity)}
 function flexibleGroups(list,key){
- const all=list.filter(task=>!task.start).sort(taskPriority);
- const current=all.filter(task=>task.date===key||(task.suggested_sessions||[]).some(slot=>slot.start?.slice(0,10)===key)||(!task.done&&task.ddl&&task.ddl<=key)||(!task.done&&task.date&&task.date<key));
+ const all=list.filter(task=>!task.start&&!task.done).sort(taskPriority);
+ const current=all.filter(task=>(!task.done&&!task.ddl)||task.date===key||(task.suggested_sessions||[]).some(slot=>slot.start?.slice(0,10)===key)||(!task.done&&task.ddl&&task.ddl<=key)||(!task.done&&task.date&&task.date<key));
  const ids=new Set(current.map(task=>task.id));return {all,current,other:all.filter(task=>!ids.has(task.id))};
 }
 function flexibleCard(task){
@@ -16,5 +16,14 @@ function flexibleCard(task){
 }
 flexibleHTML=function(){
  const groups=flexibleGroups(timelineTasks(),date);
- return '<div class="tasks shredder" id="task-shredder"><div class="section-label"><span>灵活代办：'+groups.all.length+'条</span><span>拖到底部松手删除</span></div><p class="tiny">当天及逾期 '+groups.current.length+'条 · 其他日期／待安排 '+groups.other.length+'条</p><div class="shred-list" id="shred-list">'+groups.current.map(flexibleCard).join('')+(!groups.current.length?'<div class="empty">当天没有灵活任务，可展开其他日期的任务。</div>':'')+(groups.other.length?'<details><summary class="tiny" style="cursor:pointer;padding:12px 0">其他日期／待安排（'+groups.other.length+'条）</summary>'+groups.other.map(flexibleCard).join('')+'</details>':'')+'</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><span>⠿ 拖动调整象限 · 点击查看详情</span><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>';
+ return '<div class="tasks shredder" id="task-shredder"><div class="section-label"><span>灵活代办：'+groups.all.length+'条</span><span>拖到底部松手删除</span></div><p class="tiny">当天／逾期／无截止日期 '+groups.current.length+'条 · 其他日期／待安排 '+groups.other.length+'条</p><div class="shred-list" id="shred-list">'+groups.current.map(flexibleCard).join('')+(!groups.current.length?'<div class="empty">没有当前待办，可展开其他日期的任务。</div>':'')+(groups.other.length?'<details><summary class="tiny" style="cursor:pointer;padding:12px 0">其他日期／待安排（'+groups.other.length+'条）</summary>'+groups.other.map(flexibleCard).join('')+'</details>':'')+'</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><span>⠿ 拖动调整象限 · 点击查看详情</span><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>';
 };
+
+// 独立入口，避免象限页布局变化后丢失推荐页面。
+function openPersonalizedRecommendations(){if(!activeAccount)return login();page='recommend';render()}
+if(typeof document!=='undefined'){
+ const help=document.querySelector('.header-help');
+ if(help&&!document.getElementById('recommend-entry')){
+  const entry=document.createElement('button');entry.id='recommend-entry';entry.className='secondary';entry.textContent='个性化推荐';entry.onclick=openPersonalizedRecommendations;help.before(entry);
+ }
+}

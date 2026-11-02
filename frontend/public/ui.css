@@ -11,3 +11,21 @@
 .model-settings-dialog::backdrop{background:#3d304c55;backdrop-filter:blur(3px)}
 .model-settings-actions{display:flex;flex-wrap:wrap;gap:10px}
 .model-settings-dialog [role=status]{white-space:pre-wrap;font-size:13px;color:#785b95}
+#toast-root .toast{background:#eee4f6;color:#594369;border:1px solid #cbb6dd;box-shadow:0 6px 24px #68507d30}
+#toast-root .toast button,#toast-root .toast a{color:#674780;border-color:#bea5d1}
+#recommend-entry{white-space:nowrap;font-size:13px;border:1px solid #d7c6e5;background:#f7f0fc;color:#785b95;border-radius:20px;padding:8px 13px}
+#recommend-entry:hover{background:#ece0f5}
+.recommendation-toggle{width:92px;height:92px;border-radius:22px;border:1px solid #d0badd;background:#eee4f6;color:#705785;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.recommendation-toggle>span:first-child{font-size:28px}
+.recommendation-toggle[aria-expanded=true]{background:#dccbe9;box-shadow:0 6px 20px #70578522}
+#recommendation-panel[hidden]{display:none!important}
+.quadrant-detail-backdrop{backdrop-filter:blur(7px);background:#44354f55}
+.quadrant-detail-item dl{display:grid;grid-template-columns:90px 1fr;gap:8px;font-size:13px}
+.quadrant-detail-item dd{margin:0;overflow-wrap:anywhere}
+.q-label:is(button){background:transparent;width:100%;text-align:left;color:inherit;cursor:pointer}
+.evidence-inbox-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.evidence-inbox-heading .panel-title{margin:0}
+.evidence-watch-section{margin-top:24px;padding:16px;border:1px dashed #bea5d1;border-radius:14px;background:#f2ebf7}
+.evidence-status{font-weight:400;font-size:12px;color:#785b95;border:1px solid #d3c1e0;border-radius:12px;padding:2px 8px;white-space:nowrap}
+.evidence-row{flex-wrap:wrap;gap:10px}
+.evidence-row .grow{min-width:200px}

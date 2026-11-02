@@ -55,8 +55,8 @@ test('继续历史方案时排除已采纳项，保留原始条目索引用于�
  assert.match(state.html,/已加入计划/);assert.equal(nodes['review-confirm'].textContent,'确认加入 2 项任务');assert.equal(nodes['review-select-all'].checked,true);
  await state.confirmTaskReview();assert.deepEqual(Array.from(calls[0].indices),[0,2]);assert.deepEqual(Array.from(state.saved,item=>item.proposal_index),[0,2]);
 });
-test('推荐结果在右侧结果区域渲染，不打开核对弹窗',()=>{
+test('推荐结果即使存在右侧栏目也打开可勾选核对弹窗',()=>{
  const {state,nodes}=setup();nodes['rec-result']={innerHTML:'',isConnected:true};
  state.handleAgentResult({id:'inline',route:'recommend',items:[{title:'写作',date:'2026-11-03',estimated_minutes:60,important:true,urgent:false,rationale:'目标需要',deadline:'2026-11-04T10:00:00+08:00',suggested_finish:'2026-11-04T10:00:00+08:00'}]});
- assert.equal(state.html,undefined);assert.match(nodes['rec-result'].innerHTML,/准备方案/);assert.match(nodes['rec-result'].innerHTML,/建议完成：2026-11-04 10:00/);
+ assert.match(state.html,/准备方案/);assert.match(state.html,/建议完成：2026-11-04 10:00/);assert.equal(nodes['rec-result'].innerHTML,'');
 });

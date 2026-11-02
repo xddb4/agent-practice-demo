@@ -41,7 +41,7 @@ function reviewInput(row,index,key,label,type='text'){
 }
 function renderTaskReview(){
  const isRecommendation=reviewContext?.route==='recommend';
- const inline=isRecommendation&&document.getElementById('rec-result');
+ const inline=false;
  const show=inline?html=>{closeModal();inline.innerHTML=html}:modal;
  show('<div class="modal-head"><h2>'+(isRecommendation?'准备方案':'核对识别结果')+'</h2>'+(!inline?'<button onclick="closeTaskReview()" aria-label="关闭核对窗口">✕</button>':'')+'</div>'+
  '<p class="desc">勾选需要加入的任务，可以修改内容并选择固定时间或灵活安排。</p>'+
