@@ -1,0 +1,11 @@
+.runtime/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.env
+.model-encryption.key
+*.db
+uploads/
+*.log
+frontend/public/prototype.html

@@ -1,8 +1,12 @@
-# 研时：能力与时间规划智能体
+# StudyPilot：能力与时间规划智能体
+
+首次启动：安装并启动 Docker Desktop，将本仓库克隆到本机，在仓库根目录执行 `docker compose up -d --build`，构建完成后打开 [http://localhost:8000](http://localhost:8000)。注册并登录后，在“个人空间 → 模型 API 设置”中填写自己的 API 密钥与模型名称，即可使用 Agent。以后启动执行 `docker compose up -d`，停止执行 `docker compose stop`。首次构建需要联网下载依赖；Docker 配置尚未完成实际容器启动验证。
+
+当前开发电脑也可在 PowerShell 中进入 `D:\xm\agent-practice-demo`，执行 `.\start.ps1` 后打开上述地址，运行期间保持终端窗口开启。此脚本默认使用本机的 `D:/codeapp/anaconda/python.exe` 与已安装的 `.runtime` 依赖，其他电脑请优先使用 Docker 方式。详细说明见 [本地运行说明](docs/LOCAL_RUN.md)。
 
 这是一个面向本科生科研成长的智能体项目。它把用户的目标、任务、时间投入、阶段成果和自我反馈关联起来，形成“计划执行—行为证据—能力评估—下一轮建议”的闭环。
 
-当前阶段先完成需求拆解、领域模型和系统架构设计，暂不急于实现完整代码。
+已增加本地运行实现。启动步骤、Agent 配置和当前验收边界见 [本地运行说明](docs/LOCAL_RUN.md)。原型文件保持不变。
 
 ## 1. 要解决的问题
 

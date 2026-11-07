@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: studypilot
+      POSTGRES_USER: studypilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-study-password}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U studypilot]
+      interval: 5s
+      retries: 10
+  web:
+    build: .
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://studypilot:${POSTGRES_PASSWORD:-local-study-password}@db/studypilot
+      MODEL_API_KEY: ${MODEL_API_KEY:-}
+      MODEL_PROVIDER: ${MODEL_PROVIDER:-qwen}
+      MODEL_BASE_URL: ${MODEL_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      MODEL_NAME: ${MODEL_NAME:-qwen-plus}
+      VISION_MODEL: ${VISION_MODEL:-qwen-vl-plus}
+      MODEL_SUPPORTS_VISION: ${MODEL_SUPPORTS_VISION:-true}
+      MODEL_JSON_MODE: ${MODEL_JSON_MODE:-true}
+      MODEL_THINKING: ${MODEL_THINKING:-false}
+      MODEL_ENCRYPTION_KEY_FILE: /app/uploads/.model-encryption.key
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes: [attachments:/app/uploads]
+volumes:
+  pgdata:
+  attachments:

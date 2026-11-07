@@ -1,0 +1,307 @@
+import os, uuid, secrets, hashlib, hmac, logging
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from fastapi import FastAPI, HTTPException, Depends, Request, Response, UploadFile, File
+from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from .core.db import Session, Record
+from .ai.workflows.pilot import workflow, DIMENSIONS
+from .integrations.model import ModelCapabilityError
+from .services.agent_errors import diagnose
+from .services.plans import plan_title,plan_items,plan_payload
+from .services.context import bounded_context
+from .services.memory import unpack,pack,record_bytes,cleanup_candidates
+from .services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
+from .schemas.agent import output_contract
+from pydantic import ValidationError
+import json
+
+app=FastAPI(title='StudyPilot',version='0.1.0')
+@app.exception_handler(RequestValidationError)
+async def validation_error(request:Request,error):
+    if request.url.path.startswith('/api/model-settings'):
+        return JSONResponse(status_code=422,content={'detail':{'message':'模型配置字段无效，请核对 HTTPS 地址、模型名称和密钥长度','errors':[{'field':'.'.join(map(str,x['loc'])),'type':x['type']} for x in error.errors()]}})
+    return await request_validation_exception_handler(request,error)
+@app.middleware('http')
+async def refresh_local_assets(request:Request,call_next):
+    response=await call_next(request)
+    if request.url.path.startswith('/api/') or request.url.path in ['/', '/prototype.html','/bridge.js','/features.js','/review.js','/plans.js','/clipboard.js','/notifications.js','/task_views.js','/model_settings.js','/ui.css']:
+        response.headers['Cache-Control']='no-store'
+    return response
+log=logging.getLogger('studypilot')
+def uid(request: Request):
+    token=request.cookies.get('session','')
+    with Session() as db:
+        row=db.get(Record,'session:'+hashlib.sha256(token.encode()).hexdigest())
+        if not row or row.data['expires']<datetime.now(timezone.utc).isoformat(): raise HTTPException(401,'请先登录')
+        return row.owner
+def rows(db, owner, kind):
+    return db.scalars(select(Record).where(Record.owner==owner,Record.kind==kind)).all()
+class Credentials(BaseModel):
+    email: str=Field(min_length=3,max_length=254)
+    password: str=Field(min_length=8,max_length=128)
+    name: str=Field(default='同学',max_length=24)
+def digest(password,salt): return hashlib.pbkdf2_hmac('sha256',password.encode(),bytes.fromhex(salt),210000).hex()
+@app.post('/api/auth/{action}')
+def auth(action:str, body:Credentials,response:Response):
+    email=body.email.strip().lower()
+    if '@' not in email or action not in ['login','register']: raise HTTPException(422,'邮箱或操作无效')
+    with Session() as db:
+        key='user:'+email; user=db.get(Record,key)
+        if action=='register':
+            if user: raise HTTPException(409,'邮箱已注册')
+            salt=secrets.token_hex(16)
+            user=Record(id=key,owner=str(uuid.uuid4()),kind='user',data={'email':email,'name':body.name,'salt':salt,'hash':digest(body.password,salt),'motto':''})
+            db.add(user)
+        elif not user or not hmac.compare_digest(digest(body.password,user.data['salt']),user.data['hash']): raise HTTPException(401,'邮箱或密码错误')
+        token=secrets.token_urlsafe(32)
+        db.add(Record(id='session:'+hashlib.sha256(token.encode()).hexdigest(),owner=user.owner,kind='session',data={'expires':(datetime.now(timezone.utc)+timedelta(days=7)).isoformat()}))
+        try: db.commit()
+        except IntegrityError: raise HTTPException(409,'邮箱已注册')
+        response.set_cookie('session',token,httponly=True,samesite='strict',max_age=604800)
+        return {'id':user.owner,**{k:user.data[k] for k in ['email','name','motto']}}
+@app.post('/api/logout')
+def logout(request:Request,response:Response,owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,'session:'+hashlib.sha256(request.cookies['session'].encode()).hexdigest()); db.delete(row); db.commit()
+    response.delete_cookie('session'); return {'ok':True}
+@app.get('/api/me')
+def me(owner=Depends(uid)):
+    with Session() as db:
+        user=rows(db,owner,'user')[0]
+        return {'id':owner,**{k:user.data[k] for k in ['email','name','motto']}}
+@app.get('/api/state')
+def get_state(owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,'state:'+owner)
+        return row.data if row else {'tasks':[],'evidence':[]}
+class Snapshot(BaseModel):
+    tasks:list[dict]=Field(max_length=5000)
+    evidence:list[dict]=Field(max_length=5000)
+def validate_tasks(tasks):
+    ids=set()
+    proposals=set()
+    for task in tasks:
+        if not str(task.get('title','')).strip(): raise HTTPException(422,'任务名称不能为空')
+        if task.get('id') in ids: raise HTTPException(422,'任务编号重复')
+        ids.add(task.get('id'))
+        if task.get('agent_run_id') and isinstance(task.get('proposal_index'),int):
+            identity=(task['agent_run_id'],task['proposal_index'])
+            if identity in proposals:raise HTTPException(409,'该方案条目已加入计划，请勿重复采纳')
+            proposals.add(identity)
+        if task.get('start') and (not task.get('end') or task['start']>=task['end']): raise HTTPException(422,'结束时间必须晚于开始时间')
+        if task.get('q',0) not in range(4): raise HTTPException(422,'象限无效')
+@app.put('/api/state')
+def put_state(body:Snapshot,owner=Depends(uid)):
+    validate_tasks(body.tasks)
+    for e in body.evidence:
+        if e.get('dim') not in range(6) or e.get('status') not in ['待确认','已接受','已拒绝','待观察']: raise HTTPException(422,'证据维度或状态无效')
+    with Session() as db:
+        db.merge(Record(id='state:'+owner,owner=owner,kind='state',data=body.model_dump())); db.commit()
+    return {'ok':True}
+@app.patch('/api/profile')
+def profile(body:dict,owner=Depends(uid)):
+    with Session() as db:
+        user=rows(db,owner,'user')[0]; user.data={**user.data, 'name':str(body.get('name','同学'))[:24],'motto':str(body.get('motto',''))[:100]};db.commit()
+    return {'ok':True}
+class AgentInput(BaseModel):
+    text:str=Field(min_length=1,max_length=30000)
+    route:str='auto'
+    image:str=''
+    base_plan_id:str|None=None
+
+@app.get('/api/model-settings')
+def get_model_settings(owner=Depends(uid)):
+    return public_settings(read_settings(owner))
+
+@app.put('/api/model-settings')
+def put_model_settings(body:ModelSettings,owner=Depends(uid)):
+    return save_settings(owner,body)
+
+@app.delete('/api/model-settings')
+def delete_model_settings(owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,'model-settings:'+owner)
+        if row:db.delete(row);db.commit()
+    return {'configured':False}
+
+@app.post('/api/model-settings/test')
+def test_model_settings(owner=Depends(uid)):
+    settings=runtime_settings(owner)
+    try:
+        from .integrations.model import create_model
+        with use_settings(settings):
+            create_model().invoke('Reply only OK. This is a connection test.')
+    except Exception as error:
+        raise HTTPException(502,diagnose(error,uuid.uuid4().hex[:12]))
+    return {'ok':True,'message':'文本模型连接成功；图片能力需用实际图片单独验证。'}
+
+@app.post('/api/agent')
+def agent(body:AgentInput,owner=Depends(uid)):
+    if body.route not in ['auto','schedule','evidence','recommend']: raise HTTPException(422,'任务类型无效')
+    if body.image and (not body.image.startswith(('data:image/png;base64,','data:image/jpeg;base64,','data:image/webp;base64,')) or len(body.image)>14_000_000): raise HTTPException(422,'仅支持不超过10MB的PNG/JPEG/WebP图片')
+    settings=runtime_settings(owner)
+    context=get_state(owner); context['evidence']=[x for x in context['evidence'] if x.get('status')=='已接受']
+    if body.base_plan_id:
+        with Session() as db:
+            base=db.get(Record,body.base_plan_id)
+            if not base or base.owner!=owner or base.kind!='run' or base.data.get('route')!='recommend':raise HTTPException(404,'参考方案不存在')
+            context['reference_plan']={'title':plan_title(base.data),'items':plan_items(base.data),'rule':'仅作为用户明确选择的参考方案；本次约束优先，历史方案不代表已确认能力。'}
+    schedule_tasks=context.get('tasks',[])
+    context=bounded_context(context)
+    try:
+        with use_settings(settings):
+            result=workflow.invoke({**body.model_dump(),'context':context,'schedule_tasks':schedule_tasks})
+    except Exception as error:
+        error_id=uuid.uuid4().hex[:12]
+        detail=diagnose(error,error_id)
+        log.warning('agent_failed request_id=%s route=%s code=%s error_type=%s upstream_status=%s',error_id,body.route,detail['code'],type(error).__name__,getattr(error,'status_code',None))
+        raise HTTPException(422 if isinstance(error,ModelCapabilityError) else 502,detail)
+    run_id=str(uuid.uuid4())
+    with Session() as db:
+        db.add(Record(id=run_id,owner=owner,kind='run',data={'route':result['route'],'image':bool(body.image),'input_source':body.text,'created_at':datetime.now(timezone.utc).isoformat(),'parent_plan_id':body.base_plan_id,**result['result'],'status':'pending'}));db.commit()
+    metrics=result['result'].get('metrics',{})
+    log.info('agent_completed run=%s route=%s seconds=%s model_calls=%s context_characters=%s',run_id,result['route'],metrics.get('total_seconds'),metrics.get('model_calls'),metrics.get('context_characters'))
+    return {'id':run_id,'route':result['route'],**result['result']}
+class CandidateReview(BaseModel):
+    items:list[dict]=Field(min_length=1,max_length=100)
+    indices:list[int]|None=None
+@app.post('/api/agent/{run_id}/review')
+def review(run_id:str,body:CandidateReview,owner=Depends(uid)):
+    with Session() as db:
+        run=db.get(Record,run_id)
+        if not run or run.kind!='run' or run.owner!=owner:raise HTTPException(404,'候选记录不存在')
+        run.data=unpack(run.data)
+        indices=body.indices if body.indices is not None else list(range(len(body.items)))
+        if len(indices)!=len(body.items) or len(set(indices))!=len(indices) or any(index<0 or index>=len(run.data['items']) for index in indices):raise HTTPException(422,'候选索引无效')
+        schema=output_contract(run.data['route'],run.data.get('image',False))
+        try:
+            checked=schema.model_validate_json(json.dumps({'items':body.items,'notice':run.data.get('notice','')},ensure_ascii=False)).model_dump(mode='json')
+        except ValidationError as error:
+            errors=[{'field':'.'.join(map(str,x['loc'])),'type':x['type']} for x in error.errors()]
+            raise HTTPException(422,{'message':'候选字段无效，请补充或修改','errors':errors})
+        revisions={**run.data.get('item_revisions',{}),**{str(index):item for index,item in zip(indices,checked['items'])}}
+        run.data={**run.data,'reviewed_items':checked['items'],'reviewed_indices':indices,'item_revisions':revisions,'status':'reviewed','reviewed_at':datetime.now(timezone.utc).isoformat()};db.commit()
+        return {'id':run_id,'route':run.data['route'],**checked,'sources':run.data.get('sources',[]),'trace':run.data.get('trace',[])}
+@app.get('/api/plans')
+def list_plans(include_archived:bool=False,owner=Depends(uid)):
+    state=get_state(owner)
+    with Session() as db:
+        plans=[record for record in rows(db,owner,'run') if record.data.get('route')=='recommend' and (include_archived or not record.data.get('archived'))]
+        plans.sort(key=lambda record:record.data.get('created_at') or record.data.get('reviewed_at') or '',reverse=True)
+        return [{'id':record.id,'title':plan_title(record.data),'created_at':record.data.get('created_at'),'count':len(plan_items(record.data)),'archived':record.data.get('archived',False),'adopted_count':len(plan_payload(record,state['tasks'])['adopted_indices'])} for record in plans[:50]]
+@app.get('/api/plans/{plan_id}')
+def get_plan(plan_id:str,owner=Depends(uid)):
+    state=get_state(owner)
+    with Session() as db:
+        record=db.get(Record,plan_id)
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'准备方案不存在')
+        return plan_payload(record,state['tasks'])
+@app.post('/api/plans/{plan_id}/copy')
+def copy_plan(plan_id:str,owner=Depends(uid)):
+    with Session() as db:
+        source=db.get(Record,plan_id)
+        if not source or source.owner!=owner or source.kind!='run' or source.data.get('route')!='recommend':raise HTTPException(404,'准备方案不存在')
+        data=unpack(source.data)
+        items=plan_items(source.data)
+        for item in items:
+            for field in ('date','start','end','deadline','suggested_finish'):
+                if field in item:item[field]=None
+            if 'suggested_sessions' in item:item['suggested_sessions']=[]
+        record=Record(id=str(uuid.uuid4()),owner=owner,kind='run',data={'route':'recommend','items':items,'input_source':data.get('input_source',''),'display_title':plan_title(data)+'（副本）','created_at':datetime.now(timezone.utc).isoformat(),'parent_plan_id':plan_id,'status':'pending','sources':data.get('sources',[]),'search_status':data.get('search_status',{}),'notice':''})
+        db.add(record);db.commit()
+        return plan_payload(record,[])
+class ArchiveInput(BaseModel):
+    archived:bool=True
+@app.post('/api/plans/{plan_id}/archive')
+def archive_plan(plan_id:str,body:ArchiveInput,owner=Depends(uid)):
+    with Session() as db:
+        record=db.get(Record,plan_id)
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'准备方案不存在')
+        record.data={**record.data,'archived':body.archived};db.commit()
+    return {'ok':True}
+@app.delete('/api/plans/{plan_id}')
+def delete_plan(plan_id:str,owner=Depends(uid)):
+    state=get_state(owner)
+    if any(task.get('agent_run_id')==plan_id for task in state['tasks']):raise HTTPException(409,'该方案仍被正式任务引用，请使用归档保留来源')
+    with Session() as db:
+        record=db.get(Record,plan_id)
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'准备方案不存在')
+        db.delete(record);db.commit()
+    return {'ok':True}
+class MemoryAction(BaseModel):
+    older_than_days:int=Field(default=30,ge=0,le=3650)
+    keep_recent:int=Field(default=5,ge=0,le=1000)
+@app.get('/api/memory')
+def memory_stats(owner=Depends(uid)):
+    state=get_state(owner)
+    with Session() as db:
+        records=rows(db,owner,'run');eligible=cleanup_candidates(records,state['tasks'])
+        return {'records':len(records),'bytes':sum(record_bytes(record) for record in records),'compressed':sum('_compressed_v1' in record.data for record in records),'archived':sum(bool(record.data.get('archived')) for record in records),'cleanup_count':len(eligible),'context_limit_characters':12000}
+@app.post('/api/memory/compact')
+def compact_memory(owner=Depends(uid)):
+    with Session() as db:
+        records=rows(db,owner,'run');before=sum(record_bytes(record) for record in records);changed=0
+        for record in records:
+            if '_compressed_v1' in record.data:continue
+            compacted=pack(record.data)
+            if '_compressed_v1' in compacted:record.data=compacted;changed+=1
+        db.commit();after=sum(record_bytes(record) for record in records)
+        return {'compressed':changed,'bytes_saved':max(0,before-after)}
+@app.post('/api/memory/cleanup-preview')
+def preview_cleanup(body:MemoryAction,owner=Depends(uid)):
+    state=get_state(owner)
+    with Session() as db:
+        records=cleanup_candidates(rows(db,owner,'run'),state['tasks'],body.older_than_days,body.keep_recent)
+        return {'count':len(records),'bytes':sum(record_bytes(record) for record in records)}
+@app.post('/api/memory/cleanup')
+def cleanup_memory(body:MemoryAction,owner=Depends(uid)):
+    state=get_state(owner)
+    with Session() as db:
+        records=cleanup_candidates(rows(db,owner,'run'),state['tasks'],body.older_than_days,body.keep_recent)
+        for record in records:db.delete(record)
+        db.commit();return {'deleted':len(records)}
+@app.get('/api/report')
+def report(owner=Depends(uid)):
+    state=get_state(owner); evidence=[e for e in state['evidence'] if e.get('status')=='已接受']
+    return {'generated_at':datetime.now(timezone.utc).isoformat(),'dimensions':[{'name':d,'evidence':[e for e in evidence if e.get('dim')==i],'level':'已有过程证据，水平待评估' if any(e.get('dim')==i for e in evidence) else '证据不足','trend':'暂无可比历史','confidence':'有限','next':'补充含问题、方法、对照数据和反思的作品'} for i,d in enumerate(DIMENSIONS)]}
+@app.get('/api/health')
+def health():
+    with Session() as db: db.execute(select(Record.id).limit(1))
+    return {'status':'ok','agent':os.getenv('MODEL_PROVIDER','qwen') if os.getenv('MODEL_API_KEY') else 'offline','model':os.getenv('MODEL_NAME') if os.getenv('MODEL_API_KEY') else None,'database': 'postgresql' if os.getenv('DATABASE_URL','').startswith('postgresql') else 'sqlite-local'}
+
+root=Path(__file__).resolve().parents[2]
+@app.post('/api/files')
+async def upload(file:UploadFile=File(...),owner=Depends(uid)):
+    ext=Path(file.filename or '').suffix.lower()
+    if ext not in ['.pdf','.txt','.md','.png','.jpg','.jpeg','.webp']: raise HTTPException(422,'支持PDF、文本与图片附件')
+    data=await file.read(10*1024*1024+1)
+    if len(data)>10*1024*1024: raise HTTPException(413,'附件不得超过10MB')
+    key=str(uuid.uuid4()); folder=root/'uploads';folder.mkdir(exist_ok=True)
+    (folder/key).write_bytes(data)
+    text=''
+    if ext in ['.txt','.md']:
+        try:text=data.decode('utf-8')
+        except UnicodeDecodeError:raise HTTPException(422,'文本附件需采用UTF-8编码')
+    elif ext=='.pdf':
+        try:
+            import pymupdf
+            with pymupdf.open(stream=data,filetype='pdf') as doc:text='\n'.join(page.get_text() for page in doc)
+        except Exception:raise HTTPException(422,'PDF无法解析，请粘贴正文或上传有效PDF')
+    with Session() as db:
+        db.add(Record(id='file:'+key,owner=owner,kind='file',data={'name':file.filename,'text':text[:30000]}));db.commit()
+    return {'id':key,'name':file.filename,'text':text[:30000],'url':'/api/files/'+key}
+@app.get('/api/files/{key}')
+def download(key:str,owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,'file:'+key)
+        if not row or row.owner!=owner: raise HTTPException(404,'附件不存在')
+        return FileResponse(root/'uploads'/key,filename=row.data['name'],media_type='application/octet-stream')
+
+if (root/'frontend/dist').exists(): app.mount('/',StaticFiles(directory=root/'frontend/dist',html=True),name='web')
