@@ -6,9 +6,12 @@
   let scene = null, dispose = null;
   const clamp = value => Math.max(0, Math.min(1, value));
 
-  function todayTasks() {
-    const scheduled = tasksOn(today).filter(task => !task.done);
-    const flexible = flexibleGroups(timelineTasks(), today).current;
+  function todayTasks(includeCompleted = false) {
+    const scheduled = tasksOn(today).filter(task => includeCompleted || !task.done);
+    const all = timelineTasks();
+    const flexible = includeCompleted
+      ? flexibleGroups(all.map(task => ({...task, done: false})), today).current.map(task => all.find(original => original.id === task.id))
+      : flexibleGroups(all, today).current;
     return [...new Map([...scheduled, ...flexible].map(task => [String(task.id), task])).values()]
       .sort((a, b) => a.start && b.start ? a.start.localeCompare(b.start) : a.start ? -1 : b.start ? 1 : taskPriority(a, b));
   }
@@ -45,12 +48,27 @@
       const time = document.createElement('span');
       time.className = 'plan-today-time';
       time.textContent = task.start || '灵活';
+      const meta = document.createElement('span');
+      meta.className = 'plan-today-meta';
+      const kind = document.createElement('span');
+      kind.className = 'plan-today-kind ' + (task.start ? 'is-fixed' : 'is-flexible');
+      kind.textContent = task.start ? '固定' : '灵活';
+      time.textContent = task.start ? task.start + (task.end ? ' – ' + task.end : '') : (task.duration ? task.duration + ' 分钟' : '时间自定');
+      meta.append(kind, time);
       const title = document.createElement('span');
+      title.className = 'plan-today-title';
       title.textContent = task.title;
-      button.append(time, title);
+      button.append(meta, title);
       button.addEventListener('click', () => inspectTimelineTask(task.id));
       list.append(button);
     });
+    const allToday = todayTasks(true);
+    const completed = allToday.filter(task => task.done).length;
+    const percent = allToday.length ? Math.round(completed / allToday.length * 100) : 0;
+    const progress = document.createElement('footer');
+    progress.className = 'plan-today-progress';
+    progress.innerHTML = '<div><span>今日完成进度</span><span>' + completed + ' / ' + allToday.length + ' 已完成</span></div><progress max="100" value="' + percent + '" aria-label="今日任务完成进度">' + percent + '%</progress>';
+    root.querySelector('.plan-today').append(progress);
     const abort = new AbortController();
     const intro = root.querySelector('.plan-intro');
     const todayCard = root.querySelector('.plan-today');
