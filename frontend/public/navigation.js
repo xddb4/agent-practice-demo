@@ -96,6 +96,7 @@
 
   function refresh() {
     refreshFrame = 0;
+    content.classList.toggle('sphere-matrix', !!content.querySelector('.quadrant-sphere-stage'));
     const quadrants = content.querySelector('.quadrants');
     if (quadrants !== quadrantRoot) {
       disposeQuadrants?.();

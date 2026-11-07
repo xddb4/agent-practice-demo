@@ -1,0 +1,135 @@
+.sphere-matrix {
+  position: relative;
+  min-height: calc(100dvh - var(--header-height, 85px));
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+.sphere-matrix > .heading {
+  position: absolute;
+  z-index: 5;
+  top: 24px;
+  left: 38px;
+  right: 38px;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.sphere-matrix > .heading h1 { font-size: clamp(28px, 2.8vw, 40px); line-height: 1.28; }
+.sphere-matrix > .heading button { pointer-events: auto; }
+.sphere-matrix .division-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.sphere-matrix .division-workspace.has-recommendations { grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); }
+.sphere-matrix .quadrant-recommendations { margin-top: 135px; align-self: start; }
+.quadrant-sphere-stage {
+  position: relative;
+  width: 100%;
+  height: min(720px, calc(100dvh - var(--header-height, 85px) - 48px));
+  min-height: 510px;
+  isolation: isolate;
+}
+.quadrant-sphere {
+  --sphere-tone: rgba(210, 223, 249, .72);
+  --sphere-shadow: rgba(72, 99, 150, .22);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .74);
+  background: radial-gradient(ellipse at 28% 18%, rgba(255, 255, 255, .92), rgba(255, 255, 255, .14) 43%, transparent 70%), radial-gradient(ellipse at 74% 84%, var(--sphere-shadow), transparent 62%), var(--sphere-tone);
+  box-shadow: inset 8px 10px 25px rgba(255, 255, 255, .65), inset -14px -19px 32px var(--sphere-shadow), 0 17px 32px rgba(26, 43, 79, .16);
+  backdrop-filter: blur(16px) saturate(125%);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  color: #29344e;
+  will-change: transform, width, height;
+}
+.quadrant-sphere::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 12%;
+  left: 16%;
+  width: 35%;
+  height: 12%;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, .74), transparent);
+  transform: rotate(-30deg);
+  filter: blur(2px);
+  pointer-events: none;
+}
+.quadrant-sphere::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-right-color: transparent;
+  border-bottom-color: rgba(255, 255, 255, .12);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.sphere-q0 { --sphere-tone: rgba(243, 194, 192, .78); --sphere-shadow: rgba(146, 63, 89, .23); }
+.sphere-q1 { --sphere-tone: rgba(180, 190, 239, .78); --sphere-shadow: rgba(63, 72, 152, .24); }
+.sphere-q2 { --sphere-tone: rgba(237, 218, 173, .79); --sphere-shadow: rgba(150, 114, 58, .21); }
+.sphere-q3 { --sphere-tone: rgba(167, 209, 228, .79); --sphere-shadow: rgba(48, 109, 150, .22); }
+.sphere-hit-area {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 18px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 50%;
+  color: inherit;
+  background: transparent;
+  user-select: none;
+  transition: height .4s, padding .4s;
+}
+.sphere-hit-area:hover { filter: none; }
+.sphere-hit-area:focus-visible { outline: none; }
+.quadrant-sphere:has(.sphere-hit-area:focus-visible) { outline: 2px solid #52678d; outline-offset: 4px; }
+.sphere-index { font: 10px/1.2 ui-monospace, monospace; letter-spacing: 2px; opacity: .55; }
+.sphere-label { font-size: 14px; line-height: 1.4; font-weight: 500; white-space: nowrap; }
+.sphere-count { display: flex; flex-direction: column; align-items: center; gap: 2px; font: 400 clamp(32px, calc(var(--sphere-diameter, 152px) * .24), 78px)/1 Georgia, serif; }
+.sphere-count small { font: 11px/1.5 "Microsoft YaHei", sans-serif; opacity: .65; }
+.sphere-preview {
+  position: absolute;
+  z-index: 3;
+  top: 43%;
+  left: 14%;
+  right: 14%;
+  bottom: 17%;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity .35s, transform .4s, visibility .35s;
+}
+.quadrant-sphere.is-expanded .sphere-hit-area { height: 41%; justify-content: flex-end; padding-bottom: 10px; }
+.quadrant-sphere.is-expanded .sphere-count { flex-direction: row; font-size: 38px; gap: 8px; }
+.quadrant-sphere.is-expanded .sphere-preview { opacity: 1; visibility: visible; transform: none; }
+.sphere-task-list { list-style: none; margin: 0; padding: 0 2px 18px; height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.sphere-task-list::-webkit-scrollbar { width: 0; }
+.sphere-task-list li { border-top: 1px solid rgba(49, 65, 105, .14); padding: 9px 0; font-size: 15px; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }
+.sphere-task-list li > span { display: block; }
+.sphere-task-list small { display: block; font-size: 11px; opacity: .62; }
+.sphere-empty { text-align: center; padding-top: 18px !important; }
+.sphere-more { position: absolute; bottom: -22px; left: calc(50% - 18px); width: 36px; height: 24px; font-size: 24px; line-height: 1; color: inherit; }
+.sphere-more[hidden] { display: none; }
+@media(max-width: 700px) {
+  .sphere-matrix { padding: 20px 14px; }
+  .sphere-matrix > .heading { left: 20px; right: 20px; top: 18px; }
+  .sphere-matrix > .heading h1 { font-size: 26px; max-width: 210px; }
+  .sphere-matrix .recommendation-toggle { width: 66px; height: 66px; font-size: 11px; border-radius: 18px; }
+  .sphere-matrix .division-workspace.has-recommendations { grid-template-columns: 1fr; }
+  .sphere-matrix .quadrant-recommendations { margin-top: 0; }
+  .quadrant-sphere-stage { height: max(560px, calc(100dvh - var(--header-height, 85px) - 45px)); }
+  .sphere-label { font-size: 12px; }
+  .sphere-task-list li { font-size: 13px; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .sphere-hit-area, .sphere-preview { transition: none; }
+}
