@@ -28,6 +28,7 @@ function mountQuadrantSpheres(stage) {
     wake();
   }
   function arm(q) {
+    if (document.querySelector('#modal-root .modal-backdrop')) return;
     clearTimeout(leaveTimer);
     if (hovered === q) return;
     hovered = q;
@@ -39,7 +40,7 @@ function mountQuadrantSpheres(stage) {
     clearTimeout(leaveTimer);
     leaveTimer = setTimeout(() => {
       const ball = balls[expanded];
-      if (!ball || ball.element.contains(document.activeElement) || ball.element.matches(':hover')) return;
+      if (!ball || ball.element.querySelector(':focus-visible') || ball.element.matches(':hover')) return;
       expand(-1);
     }, 260);
   }
@@ -49,7 +50,12 @@ function mountQuadrantSpheres(stage) {
     if (!width || !height) return;
     const mobile = width < 600;
     balls.forEach(ball => {
-      const diameter = ball.count === 0 ? (mobile ? 112 : 152) : Math.min(mobile ? width * .60 : 338, (mobile ? 126 : 176) + Math.sqrt(ball.count) * 30);
+      const emptyDiameter = mobile ? 112 : 152;
+      // Leave room for two neighboring circles on narrow screens while keeping sizes ordered by count.
+      const mobileLimit = Math.max(emptyDiameter, (width - 28) / 2);
+      const diameter = ball.count === 0 ? emptyDiameter : mobile
+        ? emptyDiameter + (mobileLimit - emptyDiameter) * (1 - Math.exp(-Math.sqrt(ball.count) / 3))
+        : Math.min(338, 176 + Math.sqrt(ball.count) * 30);
       ball.base = Math.min(diameter / 2, width / 2 - 12);
       if (!ball.r) ball.r = ball.base;
     });
@@ -118,10 +124,11 @@ function mountQuadrantSpheres(stage) {
     balls.forEach((ball,i) => {
       const speed=Math.hypot(ball.x-before[i][0],ball.y-before[i][1]);
       movement=Math.max(movement,speed,Math.abs(ball.r-before[i][2]));
-      const stretch=reduced?0:Math.min(.025,speed*.002);
+      // Actual displacement drives the jelly shape; contact forces cannot leave a resting circle squashed.
+      const stretch=reduced?0:clamp((ball.x-before[i][0]-ball.y+before[i][1])*.012+(ball.r-before[i][2])*.016,-.045,.045);
       ball.element.style.width=ball.element.style.height=(ball.r*2)+'px';
       ball.element.style.setProperty('--sphere-diameter',(ball.r*2)+'px');
-      ball.element.style.transform=`translate3d(${ball.x-ball.r}px,${ball.y-ball.r}px,0) scale(${1+stretch},${1-stretch*.6})`;
+      ball.element.style.transform=`translate3d(${ball.x-ball.r}px,${ball.y-ball.r}px,0) scale(${1+stretch},${1/(1+stretch)})`;
       if (expanded === ball.q) updateOverflow(ball);
     });
     quietFrames=movement<.03?quietFrames+1:0;
