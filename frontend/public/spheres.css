@@ -35,38 +35,16 @@
   height: 152px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .74);
-  background: radial-gradient(ellipse at 28% 18%, rgba(255, 255, 255, .92), rgba(255, 255, 255, .14) 43%, transparent 70%), radial-gradient(ellipse at 74% 84%, var(--sphere-shadow), transparent 62%), var(--sphere-tone);
-  box-shadow: inset 8px 10px 25px rgba(255, 255, 255, .65), inset -14px -19px 32px var(--sphere-shadow), 0 17px 32px rgba(26, 43, 79, .16);
-  backdrop-filter: blur(16px) saturate(125%);
-  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  border: 1px solid rgba(78, 80, 130, .08);
+  background: var(--sphere-tone);
+  box-shadow: none;
+  filter: saturate(1.2);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   color: #29344e;
   will-change: transform, width, height;
 }
-.quadrant-sphere::before {
-  content: '';
-  position: absolute;
-  z-index: 1;
-  top: 12%;
-  left: 16%;
-  width: 35%;
-  height: 12%;
-  border-radius: 50%;
-  background: linear-gradient(rgba(255, 255, 255, .74), transparent);
-  transform: rotate(-30deg);
-  filter: blur(2px);
-  pointer-events: none;
-}
-.quadrant-sphere::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(255, 255, 255, .35);
-  border-right-color: transparent;
-  border-bottom-color: rgba(255, 255, 255, .12);
-  border-radius: 50%;
-  pointer-events: none;
-}
+.quadrant-sphere::before, .quadrant-sphere::after { content: none; }
 .sphere-q0 { --sphere-tone: rgba(243, 194, 192, .78); --sphere-shadow: rgba(146, 63, 89, .23); }
 .sphere-q1 { --sphere-tone: rgba(180, 190, 239, .78); --sphere-shadow: rgba(63, 72, 152, .24); }
 .sphere-q2 { --sphere-tone: rgba(237, 218, 173, .79); --sphere-shadow: rgba(150, 114, 58, .21); }

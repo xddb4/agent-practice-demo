@@ -1,0 +1,66 @@
+/* Shared textured glass and softly illustrated dialogs. */
+.surface-filters { position: absolute; pointer-events: none; overflow: hidden; }
+body::before { filter: blur(8px) saturate(1.12); }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url('/assets/frosted-glass.jpg') center / cover;
+  opacity: .36;
+  mix-blend-mode: soft-light;
+}
+.app-header {
+  background: linear-gradient(90deg, #f5f5ffb8, #e6e7f28c), url('/assets/frosted-glass.jpg') center 42% / cover;
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+}
+.header-background {
+  background: linear-gradient(#eff0fa66, #eff0fa66), url('/assets/frosted-glass.jpg') center / cover;
+  filter: blur(3px);
+}
+.header-content-fade::after { background: linear-gradient(#eeeff930, #eeeff910); }
+.app-header .gooey-nav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.landing-page .landing-art,
+.landing-page.distortion-ready .landing-art,
+.landing-page:not(.distortion-ready) .landing-art {
+  filter: url('#floral-ink') contrast(1.22) brightness(.78) saturate(1.12);
+}
+.modal-backdrop,
+.quadrant-detail-backdrop,
+.auth-landing #modal-root .modal-backdrop {
+  background: rgba(19, 23, 43, .46);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: surface-backdrop-in .45s ease both;
+}
+.modal,
+.modal.landing-auth-dialog,
+.study-alert {
+  background: linear-gradient(120deg, rgba(249, 249, 255, .79), rgba(241, 240, 252, .83)), url('/assets/dialog-floral-soft.svg') center / cover;
+  color: #343b54;
+  border: 1px solid rgba(255, 255, 255, .74);
+  box-shadow: 0 24px 90px rgba(18, 22, 48, .24);
+  scrollbar-width: none;
+}
+.modal:not(.landing-auth-dialog) { animation: surface-dialog-in .55s cubic-bezier(.2,.8,.2,1) both; }
+.modal::-webkit-scrollbar,
+.modal *::-webkit-scrollbar,
+.study-alert::-webkit-scrollbar { width: 0; height: 0; }
+.modal * { scrollbar-width: none; }
+.modal { overscroll-behavior: contain; }
+.quadrant-detail-item { background: rgba(252, 252, 255, .64); border-color: rgba(111, 113, 151, .16); }
+.quadrant-detail-item dl { font-size: 14px; }
+.modal-backdrop.is-surface-closing { animation: surface-backdrop-out .28s ease both; pointer-events: none; }
+.modal-backdrop.is-surface-closing .modal { animation: surface-dialog-out .28s ease both; }
+@keyframes surface-backdrop-in { from { background-color: rgba(19,23,43,0); backdrop-filter: blur(0); } }
+@keyframes surface-dialog-in { from { opacity: 0; transform: translateY(22px) scale(.96); filter: blur(5px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes surface-backdrop-out { to { opacity: 0; backdrop-filter: blur(0); } }
+@keyframes surface-dialog-out { to { opacity: 0; transform: translateY(12px) scale(.98); } }
+@media(prefers-reduced-motion: reduce) {
+  .modal-backdrop, .modal:not(.landing-auth-dialog), .modal-backdrop.is-surface-closing, .modal-backdrop.is-surface-closing .modal { animation: none; }
+}

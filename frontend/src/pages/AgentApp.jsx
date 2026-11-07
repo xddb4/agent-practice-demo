@@ -41,8 +41,8 @@ function App(){
    <progress className="agent-progress" aria-label="正在等待处理结果" />
    <small style={{display:'block',marginTop:8,color:'#8b8098'}}>已等待 {elapsed} 秒</small>
   </aside>}
-  {request&&error&&<div style={{position:'fixed',inset:0,background:'#314d3e55',display:'grid',placeItems:'center',fontFamily:'Microsoft YaHei',zIndex:999}}>
-   <section role="dialog" aria-modal="true" aria-label="处理失败" style={{background:'#fffef9',borderRadius:22,padding:30,width:'min(640px,85vw)',maxHeight:'85vh',overflow:'auto',color:'#48444e'}}>
+  {request&&error&&<div className="agent-dialog-backdrop" style={{position:'fixed',inset:0,display:'grid',placeItems:'center',fontFamily:'Microsoft YaHei',zIndex:999}}>
+   <section className="agent-dialog" role="dialog" aria-modal="true" aria-label="处理失败" style={{borderRadius:22,padding:30,width:'min(640px,85vw)',maxHeight:'85vh',overflow:'auto',color:'#48444e'}}>
     <h2>{error.title}</h2><div role="alert" style={{lineHeight:1.8}}>
      <p>原因：{error.reason}</p>{error.problems?.length>0&&<ul>{error.problems.map((problem,index)=><li key={index}>{problem}</li>)}</ul>}
      <p>建议：{error.action}</p><p style={{fontSize:12}}>原输入已保留，已有日程未受影响。</p>

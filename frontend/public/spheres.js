@@ -98,7 +98,7 @@ function mountQuadrantSpheres(stage) {
     for (let pass=0;pass<5;pass++) {
       for (let i=0;i<balls.length;i++) for (let j=i+1;j<balls.length;j++) {
         const a=balls[i],b=balls[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
-        const contact=a.r+b.r-5;
+        const contact=a.r+b.r+12;
         if (d>=contact) continue;
         const push=(contact-d)*1.02,nx=dx/d,ny=dy/d;
         const massA=a.r*a.r,massB=b.r*b.r,total=massA+massB;
