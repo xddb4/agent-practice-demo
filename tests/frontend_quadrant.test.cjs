@@ -14,6 +14,10 @@ test('象限排除完成记录，点击象限弹窗列出实际条目',()=>{
  state.showQuadrantTasks(0);assert.match(state.modalHTML,/待办任务/);assert.doesNotMatch(state.modalHTML,/另一象限|完成任务|推荐任务/);assert.match(state.modalHTML,/计划日期|截止日期|地点/);
  state.completeQuadrantTask(1,0);assert.match(state.modalHTML,/暂无待办/);assert.equal(state.tasks.length,3);
 });
+test('完成确认尚未提交时不覆盖确认弹窗',()=>{
+ const {state}=setup();state.toggle=()=>state.modalHTML='完成确认';
+ state.completeQuadrantTask(1,0);assert.equal(state.modalHTML,'完成确认');assert.equal(state.tasks[0].done,undefined);
+});
 test('推荐栏独立开关且仅含目标表单，不绑定已选象限',()=>{
  const {state,nodes}=setup();state.matrix();assert.equal(state.selectedQuadrant,null);
  assert.match(nodes.content.innerHTML,/recommendation-toggle/);assert.doesNotMatch(nodes.content.innerHTML,/加入此象限|根据任务与本地能力记录提供规则建议/);

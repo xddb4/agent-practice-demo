@@ -12,7 +12,7 @@ function showQuadrantTasks(q){
  modal('<div class="modal-head"><h2>'+esc(labels[q])+' · '+list.length+' 项待办</h2><button onclick="closeModal()" aria-label="关闭任务列表">✕</button></div>'+(list.map(quadrantTaskHTML).join('')||'<p class="empty">这个象限暂无待办任务。</p>'));
  document.querySelector('#modal-root .modal-backdrop')?.classList.add('quadrant-detail-backdrop');
 }
-function completeQuadrantTask(id,q){toggle(id);showQuadrantTasks(q)}
+function completeQuadrantTask(id,q){toggle(id);if(tasks.find(task=>task.id===id)?.done)showQuadrantTasks(q)}
 function recommendationGoalHTML(){return '<aside class="quadrant-recommendations" id="recommendation-panel" aria-label="个性化推荐" '+(recommendationPanelOpen?'':'hidden')+'><div class="panel-title">准备一个目标</div><form onsubmit="generateRec(event)"><div class="form-group"><label for="r-title">目标</label><input id="r-title" required placeholder="例如：准备期末考试"></div><div class="form-group"><label for="r-ddl">截止日期</label><input id="r-ddl" type="date" required></div><div class="form-group"><label for="r-hours">每周可投入（小时）</label><input id="r-hours" type="number" min="1" max="80" value="6" required></div><div class="form-group"><label for="r-focus">重点方向</label><textarea id="r-focus" placeholder="希望优先练习什么？"></textarea></div><button class="secondary">生成阶段安排</button><div id="plan-reference" class="tiny"></div></form><div id="rec-result" role="status"></div></aside>'}
 function syncRecommendationToggle(){
  const panel=document.getElementById('recommendation-panel');if(panel)panel.hidden=!recommendationPanelOpen;
