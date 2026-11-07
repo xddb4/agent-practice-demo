@@ -44,7 +44,7 @@ function flexibleCard(task){
 }
 flexibleHTML=function(){
  const groups=flexibleGroups(timelineTasks(),date);
- return '<div class="tasks shredder" id="task-shredder"><div class="section-label"><span>灵活代办：'+groups.all.length+'条</span><span>拖到底部松手删除</span></div><p class="tiny">当天／逾期／无截止日期 '+groups.current.length+'条 · 其他日期／待安排 '+groups.other.length+'条</p><div class="shred-list" id="shred-list">'+groups.current.map(flexibleCard).join('')+(!groups.current.length?'<div class="empty">没有当前待办，可展开其他日期的任务。</div>':'')+(groups.other.length?'<details><summary class="tiny" style="cursor:pointer;padding:12px 0">其他日期／待安排（'+groups.other.length+'条）</summary>'+groups.other.map(flexibleCard).join('')+'</details>':'')+'</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><span>⠿ 拖动调整象限 · 点击查看详情</span><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>';
+ return '<div class="tasks shredder" id="task-shredder"><div class="section-label"><span>灵活代办：'+groups.all.length+'条</span></div><div class="shred-list" id="shred-list">'+groups.current.map(flexibleCard).join('')+(!groups.current.length?'<div class="empty">没有当前待办，可展开其他日期的任务。</div>':'')+(groups.other.length?'<details><summary class="tiny" style="cursor:pointer;padding:12px 0">其他日期／待安排（'+groups.other.length+'条）</summary>'+groups.other.map(flexibleCard).join('')+'</details>':'')+'</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>';
 };
 
 // 独立入口，避免象限页布局变化后丢失推荐页面。
