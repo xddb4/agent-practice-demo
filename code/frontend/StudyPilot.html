@@ -258,7 +258,7 @@ const compile = (gl, type, source) => {
 
 
 function mountStudyGridDistortion(root,canvas,options={}){
-const {imageSrc,grid=60,radius=.11,strength=.24,relaxation=.95,mode='push',softness=.08,chroma=0,idle=0,clickRipple=true,intro=false}=options;
+const {imageSrc,grid=60,radius=.11,strength=.24,relaxation=.95,mode='push',softness=.08,chroma=0,idle=0,clickRipple=true,intro=false,rippleScale=1}=options;
   const settings = {
     grid: clamp(Math.round(grid), 2, 120),
     radius: clamp(radius, 0.01, 1),
@@ -268,6 +268,7 @@ const {imageSrc,grid=60,radius=.11,strength=.24,relaxation=.95,mode='push',softn
     softness: clamp(softness, 0, 1),
     chroma: clamp(chroma, 0, 2),
     idle: clamp(idle, 0, 1),
+    rippleScale: clamp(rippleScale, 0.1, 1),
     clickRipple,
     intro
   };
@@ -445,12 +446,12 @@ const settingsRef={current:settings},controlRef={current:null};
         const cellWidth = width / cols;
         const cellHeight = height / rows;
         const span = Math.hypot(width, height);
-        const band = Math.max(cellWidth, cellHeight) * 1.2 + span * 0.03;
-        const amount = width * (0.03 + s.strength * 0.3);
+        const band = (Math.max(cellWidth, cellHeight) * 1.2 + span * 0.03) * s.rippleScale;
+        const amount = width * (0.03 + s.strength * 0.3) * s.rippleScale;
         state.ripples = state.ripples.filter(ripple => time - ripple.start < RIPPLE_LIFE);
         for (const ripple of state.ripples) {
           const age = (time - ripple.start) / RIPPLE_LIFE;
-          const front = age * span * 0.75;
+          const front = age * span * 0.75 * s.rippleScale;
           const fade = (1 - age) ** 2;
           for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
@@ -1446,7 +1447,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Delete'&&e.key!=='Backspace'
 let landingDistortionCleanup=null,landingDistortionPending=false,landingLeaveTimer=0,landingMotionPaused=false;
 
 function stopLandingDistortion(){if(landingDistortionCleanup){landingDistortionCleanup();landingDistortionCleanup=null}document.getElementById('landing-page').classList.remove('distortion-ready')}
-function startLandingDistortion(){if(landingDistortionCleanup||landingDistortionPending||landingMotionPaused)return;landingDistortionPending=true;requestAnimationFrame(()=>{landingDistortionPending=false;let landing=document.getElementById('landing-page');if(activeAccount||landing.hidden||landingMotionPaused||document.hidden)return;let source=document.querySelector('.landing-art');if(!source)return;try{landingDistortionCleanup=window.mountStudyGridDistortion?.(document.getElementById('landing-distortion'),document.getElementById('landing-distortion-canvas'),{imageSrc:source.getAttribute('src'),rotation:90,imagePosition:[.5,.5],grid:60,radius:.11,strength:.24,relaxation:.95,mode:'push',softness:.08,chroma:0,idle:0,clickRipple:true,intro:false,onReady:()=>{if(!activeAccount&&!landingMotionPaused)landing.classList.add('distortion-ready')},onError:()=>landing.classList.remove('distortion-ready')})||null}catch{stopLandingDistortion()}})}
+function startLandingDistortion(){if(landingDistortionCleanup||landingDistortionPending||landingMotionPaused)return;landingDistortionPending=true;requestAnimationFrame(()=>{landingDistortionPending=false;let landing=document.getElementById('landing-page');if(activeAccount||landing.hidden||landingMotionPaused||document.hidden)return;let source=document.querySelector('.landing-art');if(!source)return;try{landingDistortionCleanup=window.mountStudyGridDistortion?.(document.getElementById('landing-distortion'),document.getElementById('landing-distortion-canvas'),{imageSrc:source.getAttribute('src'),rotation:90,imagePosition:[.5,.5],grid:84,radius:.077,rippleScale:.7,strength:.24,relaxation:.95,mode:'push',softness:1,chroma:0,idle:0,clickRipple:true,intro:false,onReady:()=>{if(!activeAccount&&!landingMotionPaused)landing.classList.add('distortion-ready')},onError:()=>landing.classList.remove('distortion-ready')})||null}catch{stopLandingDistortion()}})}
 function showLandingPage(){clearTimeout(landingLeaveTimer);let root=document.getElementById('landing-page');root.hidden=false;root.classList.remove('is-leaving');document.body.classList.add('auth-landing');let fab=document.getElementById('task-fab');if(fab)fab.hidden=true;startLandingDistortion()}
 function leaveLandingPage(){let root=document.getElementById('landing-page');if(root.hidden||root.classList.contains('is-leaving'))return;document.body.classList.remove('auth-landing');root.classList.add('is-leaving');let app=document.querySelector('.app');app?.classList.add('board-enter');clearTimeout(landingLeaveTimer);landingLeaveTimer=setTimeout(()=>{root.hidden=true;root.classList.remove('auth-opening');stopLandingDistortion();app?.classList.remove('board-enter')},window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:900)}
 function toggleLandingMotion(){landingMotionPaused=!landingMotionPaused;let root=document.getElementById('landing-page'),button=document.getElementById('landing-motion');root.classList.toggle('motion-paused',landingMotionPaused);button.textContent=landingMotionPaused?'▷':'Ⅱ';button.setAttribute('aria-pressed',String(landingMotionPaused));button.setAttribute('aria-label',landingMotionPaused?'继续背景动效':'暂停背景动效');if(landingMotionPaused)stopLandingDistortion();else startLandingDistortion()}

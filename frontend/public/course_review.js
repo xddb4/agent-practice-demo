@@ -1,9 +1,45 @@
 courseTerm='';
-let bulkCourseRows=null,bulkCourseWeeks={from:'',to:''};
+let bulkCourseRows=null,bulkCourseWeeks={from:'',to:''},courseDraftSaved=false;
+const openCourseUpload=typeof openImageImport==='function'?openImageImport:()=>{};
+openImageImport=function(){if(courseDraftSaved&&courseRows.length){courseDraftSaved=false;return reviewCourseImage()}return openCourseUpload()};
+function keepCourseDraft(){courseDraftSaved=true;closeModal()}
 
 function compareCourses(a,b){return (a.day||8)-(b.day||8)||(a.start||'99:99').localeCompare(b.start||'99:99')}
 
 function validCourseWeeks(from,to){return Number.isInteger(from)&&Number.isInteger(to)&&from>=1&&to<=40&&to>=from}
+function selectedCourseWeeks(course){
+ if(!course.weeks?.trim())return Array.from({length:course.to-course.from+1},(_,i)=>course.from+i);
+ const weeks=new Set();
+ for(const part of course.weeks.replace(/，/g,',').split(',')){
+  const match=part.trim().match(/^(\d+)(?:\s*[-–]\s*(\d+))?$/);
+  if(!match||!validCourseWeeks(+match[1],+(match[2]||match[1])))throw new Error('上课周次请填写如 5,10-15，范围为 1–40。');
+  for(let w=+match[1];w<=+(match[2]||match[1]);w++)weeks.add(w);
+ }
+ return [...weeks].sort((a,b)=>a-b);
+}
+function removeReviewedCourse(index){
+ const scroll=document.querySelector('.course-review-content'),top=scroll?.scrollTop||0;
+ const rows=Array.from(scroll?.querySelectorAll('.course-review')||[]);
+ if(!Number.isInteger(index)||index<0||index>=courseRows.length||!rows[index])return;
+ courseRows.splice(index,1);
+ rows[index].remove();
+ rows.filter((_,i)=>i!==index).forEach((row,i)=>{
+  row.querySelector('.course-row-head b').textContent='课程 '+(i+1);
+  row.querySelector('.course-row-head button').onclick=()=>removeReviewedCourse(i);
+  row.querySelectorAll('input,select').forEach(field=>{
+   for(const name of ['oninput','onchange']){
+    const handler=field.getAttribute(name);
+    if(handler)field.setAttribute(name,handler.replace(/courseField\(\d+,/g,'courseField('+i+','));
+   }
+   const label=field.getAttribute('aria-label');
+   if(label)field.setAttribute('aria-label',label.replace(/^课程\d+ /,'课程'+(i+1)+' '));
+  });
+ });
+ scroll.scrollTop=top;
+}
+function closeCourseReview(){
+ modal('<div class="modal-head"><h2>保留当前导入记录？</h2></div><p>保留后再次打开图片导入即可继续核对（刷新页面前有效）；不保留将清除本次未导入课程。</p><div class="modal-footer"><button class="secondary" onclick="reviewCourseImage()">继续编辑</button><button class="secondary" onclick="courseDraftSaved=false;courseRows=[];courseImage=null;closeModal()">不保留并退出</button><button class="primary" onclick="keepCourseDraft()">保留并退出</button></div>');
+}
 
 function courseFieldSelector(index,label){return '[aria-label="课程'+(index+1)+' '+label+'"]'}
 
@@ -76,6 +112,11 @@ reviewCourseImage=function(){
  content.append(...dialog.childNodes);
  dialog.classList.add('course-review-dialog');
  dialog.append(content,actions);
+ content.querySelectorAll('.course-review').forEach((row,index)=>{
+  row.querySelector('.course-row-head button').onclick=()=>removeReviewedCourse(index);
+  row.querySelector('.form-grid').insertAdjacentHTML('beforeend','<label style="grid-column:1/-1">指定上课周次（可选，优先于起止周）<input aria-label="课程'+(index+1)+' 指定周次" placeholder="例如 5,10-15" value="'+esc(courseRows[index].weeks||'')+'" oninput="courseField('+index+',\'weeks\',this.value)"></label>');
+ });
+ content.querySelector('.modal-head button').onclick=closeCourseReview;
 };
 
 function courseValidationError(message,selector){return Object.assign(new Error(message),{selector})}
@@ -89,8 +130,9 @@ function expandCourseTimeline(rows,term){
   if(!course.title.trim())throw courseValidationError('请填写课程名称。',courseFieldSelector(index,'课程名称'));
   if(!Number.isInteger(course.day)||course.day<1||course.day>7)throw courseValidationError('请选择上课星期。',courseFieldSelector(index,'星期'));
   if(!course.start||!course.end||course.start>=course.end)throw courseValidationError('请补齐上课时间，结束时间需晚于开始时间。',courseFieldSelector(index,course.start?'结束时间':'开始时间'));
-  if(!validCourseWeeks(course.from,course.to))throw courseValidationError('请核对每门课程的起始周和结束周，范围为 1–40。',courseFieldSelector(index,validCourseWeeks(course.from,course.from)?'结束周':'起始周'));
-  for(let week=course.from;week<=course.to;week++){
+  if(!course.weeks?.trim()&&!validCourseWeeks(course.from,course.to))throw courseValidationError('请核对每门课程的起始周和结束周，范围为 1–40。',courseFieldSelector(index,validCourseWeeks(course.from,course.from)?'结束周':'起始周'));
+  let selected;try{selected=selectedCourseWeeks(course)}catch(error){throw courseValidationError(error.message,courseFieldSelector(index,'指定周次'))}
+  for(const week of selected){
    if((course.pattern==='odd'&&week%2===0)||(course.pattern==='even'&&week%2===1))continue;
    const day=new Date(base);
    day.setUTCDate(day.getUTCDate()+(week-1)*7+course.day-1);
@@ -105,8 +147,8 @@ function expandCourseTimeline(rows,term){
 function showCourseTimeline(requestedWeek){
  let events;
  try{events=expandCourseTimeline(courseRows,courseTerm)}catch(error){return courseFieldAlert(error.message,error.selector)}
- const firstWeek=Math.min(...courseRows.map(course=>course.from));
- const lastWeek=Math.max(...courseRows.map(course=>course.to));
+ const firstWeek=Math.min(...courseRows.flatMap(selectedCourseWeeks));
+ const lastWeek=Math.max(...courseRows.flatMap(selectedCourseWeeks));
  const week=Number.isInteger(requestedWeek)?Math.max(firstWeek,Math.min(lastWeek,requestedWeek)):firstWeek;
  const monday=addDays(courseTerm,(week-1)*7);
  const days=Array.from({length:7},(_,index)=>addDays(monday,index));
@@ -119,12 +161,14 @@ function showCourseTimeline(requestedWeek){
  };
  const headers=days.map((day,index)=>`<b>周${'一二三四五六日'[index]} <small>${esc(day.slice(5))}</small></b>`).join('');
  const columns=entries.map(day=>'<div class="course-week-column">'+timelineBlocksHTML(day)+'</div>').join('');
- modal(`<div class="modal-head"><h2>课表时间轴预览</h2><button onclick="closeModal()" aria-label="关闭预览">✕</button></div>
+ const ticks=[...new Set(events.flatMap(event=>[event.start,event.end]))].sort();
+ const timeAxis=ticks.map(time=>'<div class="hour-line" style="top:'+minutes(time)+'px"><span>'+esc(time)+'</span></div>').join('');
+ modal(`<div class="modal-head"><h2>课表时间轴预览</h2><button onclick="closeCourseReview()" aria-label="关闭预览">✕</button></div>
  <div class="course-week-tools"><b>第 ${week} 周 · ${esc(monday)} 至 ${esc(days[6])}</b>
  <button class="secondary" ${week<=firstWeek?'disabled':''} onclick="showCourseTimeline(${week-1})">上一周</button>
  ${paritySwitch(1)}${paritySwitch(0)}<button class="secondary" ${week>=lastWeek?'disabled':''} onclick="showCourseTimeline(${week+1})">下一周</button></div>
  <p class="desc">本周 ${count} 节课。淡色课程本周不上课，下周上课。确认时导入全部核对过的课程周次。</p>
- <div class="course-week-scroll" id="course-week-scroll" tabindex="0" aria-label="一周课表时间轴"><div class="course-week-board"><div class="course-week-heading">${headers}</div><div class="hours-canvas course-week-grid">${timelineHoursHTML()}${columns}</div></div></div>
+ <div class="course-week-scroll" id="course-week-scroll" tabindex="0" aria-label="一周课表时间轴"><div class="course-week-board"><div class="course-week-heading">${headers}</div><div class="hours-canvas course-week-grid">${timeAxis}${columns}</div></div></div>
  <div class="modal-footer"><button class="secondary" onclick="reviewCourseImage()">返回核对</button><button class="primary" onclick="importReviewedCourses()">确认导入并检查冲突</button></div>`);
  const scroll=document.getElementById('course-week-scroll');
  const starts=entries.flat().map(event=>minutes(event.start));

@@ -60,7 +60,8 @@
     if (!root?.isConnected) return;
     const box = root.getBoundingClientRect();
     const headerHeight = header?.offsetHeight || 85;
-    const desired = Math.max(0, window.scrollY + box.top - headerHeight - 26);
+    const mottoSpace = Number(root.closest('.plan-scene')?.dataset.mottoSpace || 0);
+    const desired = Math.max(0, window.scrollY + box.top - headerHeight - 26 - mottoSpace);
     const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     const top = Math.min(desired, limit);
     if (Math.abs(window.scrollY - top) > 12) window.scrollTo({top, behavior: behavior()});

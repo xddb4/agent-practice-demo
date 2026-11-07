@@ -16,6 +16,7 @@ function mountQuadrantSpheres(stage) {
   function wake() { quietFrames = 0; if (!frame) frame = requestAnimationFrame(tick); }
   function expand(q) {
     expanded = q;
+    const sizeLimit = Math.min(...balls.map(ball => ball.base)) * 2;
     balls.forEach(ball => {
       const active = ball.q === q;
       ball.element.classList.toggle('is-expanded', active);
@@ -23,7 +24,7 @@ function mountQuadrantSpheres(stage) {
       ball.preview.inert = !active;
       ball.preview.setAttribute('aria-hidden', String(!active));
       ball.element.style.zIndex = active ? '4' : String(1 + ball.q % 2);
-      ball.target = active ? Math.min(ball.count ? 420 : 300, width * .91, height * .8) / 2 : ball.base;
+      ball.target = active ? Math.min((ball.count ? 420 : 300) / 2, width * .455, height * .4, sizeLimit) : ball.base;
     });
     wake();
   }
@@ -59,6 +60,8 @@ function mountQuadrantSpheres(stage) {
       ball.base = Math.min(diameter / 2, width / 2 - 12);
       if (!ball.r) ball.r = ball.base;
     });
+    const smallest = Math.min(...balls.map(ball => ball.base));
+    balls.forEach(ball => { ball.base = Math.min(ball.base, smallest * 2); });
     const [a,b,c,d] = balls, cx = width / 2, cy = height / 2;
     const anchors = [
       [cx-(a.base+b.base)*.47,cy-(a.base+c.base)*.42],
@@ -121,14 +124,19 @@ function mountQuadrantSpheres(stage) {
       const top=Math.min(...balls.map(ball=>ball.y-ball.r)),bottom=Math.max(...balls.map(ball=>ball.y+ball.r));
       balls.forEach(ball=>{ball.x+=(width/2-(left+right)/2)*.04;ball.y+=(height/2-(top+bottom)/2)*.04;});
     }
+    const shapes = balls.map((ball,i) => {
+      const stretch=reduced?0:clamp((ball.x-before[i][0]-ball.y+before[i][1])*.012+(ball.r-before[i][2])*.016,-.045,.045);
+      return {x:1+stretch,y:1/(1+stretch)};
+    });
+    const smallestVisible = Math.min(...balls.map((ball,i) => ball.r * Math.min(shapes[i].x,shapes[i].y)));
     balls.forEach((ball,i) => {
       const speed=Math.hypot(ball.x-before[i][0],ball.y-before[i][1]);
       movement=Math.max(movement,speed,Math.abs(ball.r-before[i][2]));
-      // Actual displacement drives the jelly shape; contact forces cannot leave a resting circle squashed.
-      const stretch=reduced?0:clamp((ball.x-before[i][0]-ball.y+before[i][1])*.012+(ball.r-before[i][2])*.016,-.045,.045);
-      ball.element.style.width=ball.element.style.height=(ball.r*2)+'px';
-      ball.element.style.setProperty('--sphere-diameter',(ball.r*2)+'px');
-      ball.element.style.transform=`translate3d(${ball.x-ball.r}px,${ball.y-ball.r}px,0) scale(${1+stretch},${1/(1+stretch)})`;
+      // The 2:1 limit also covers spring overshoot and the jelly's stretched axis.
+      const radius = Math.min(ball.r, smallestVisible*2/Math.max(shapes[i].x,shapes[i].y));
+      ball.element.style.width=ball.element.style.height=(radius*2)+'px';
+      ball.element.style.setProperty('--sphere-diameter',(radius*2)+'px');
+      ball.element.style.transform=`translate3d(${ball.x-radius}px,${ball.y-radius}px,0) scale(${shapes[i].x},${shapes[i].y})`;
       if (expanded === ball.q) updateOverflow(ball);
     });
     quietFrames=movement<.03?quietFrames+1:0;
