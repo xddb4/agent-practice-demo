@@ -9,5 +9,5 @@ html=html.replaceAll('let field=document.getElementById(key);if(key===','let fie
 html=html.replace('</head>','<link rel="stylesheet" href="/ui.css"></head>');
 html=html.replace('以下是固定示例课程，与所上传图片内容无关。请核对并修改所有字段；真实版本将由视觉模型生成候选课程。若图片仅包含“第几节”，还需结合学校作息表转换为具体时间。','以下是视觉模型从当前图片提取的候选课程。请核对星期、周次和时间。若图片只标注节次，请按学校作息表补填具体时间。').replace('默认日期为演示值，请按学校校历修改。','请按学校校历填写，用于把教学周换算为实际日期。');
 html=html.replace('</body>','<script src="/bridge.js"></script><script src="/features.js"></script><script src="/notifications.js"></script><script src="/review.js"></script><script src="/plans.js"></script><script src="/clipboard.js"></script><script src="/task_views.js"></script><script src="/model_settings.js"></script><script src="/quadrant_view.js"></script><script src="/evidence_inbox.js"></script></body>');
-html=html.replace('</body>','<script src="/course_review.js"></script></body>');
+html=html.replace('</body>','<script src="/course_review.js"></script><script src="/navigation.js"></script></body>');
 writeFileSync('public/prototype.html',html);

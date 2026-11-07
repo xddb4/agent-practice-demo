@@ -23,7 +23,7 @@ function toggleRecommendationPanel(){recommendationPanelOpen=!recommendationPane
 matrix=function(){
  if(recommendationPanelOwner!==activeAccount?.id){recommendationPanelOpen=false;recommendationPanelOwner=activeAccount?.id;selectedPlanId=null;selectedPlanTitle=''}
  selectedQuadrant=null;
- document.getElementById('content').innerHTML=head('把精力，<br>放在值得的事上。','点击象限，查看其中的待办任务。','<button id="recommendation-toggle" class="recommendation-toggle" aria-controls="recommendation-panel" aria-expanded="'+recommendationPanelOpen+'" onclick="toggleRecommendationPanel()"><span aria-hidden="true">✧</span><span>推荐任务</span></button>')+'<div class="division-workspace '+(recommendationPanelOpen?'has-recommendations':'')+'"><section class="editorial-quadrants">'+quadHTML()+'</section>'+recommendationGoalHTML()+'</div>';
+ document.getElementById('content').innerHTML=head('把精力，<br>放在值得的事上。','','<button id="recommendation-toggle" class="recommendation-toggle" aria-controls="recommendation-panel" aria-expanded="'+recommendationPanelOpen+'" onclick="toggleRecommendationPanel()"><span aria-hidden="true">✧</span><span>推荐任务</span></button>')+'<div class="division-workspace '+(recommendationPanelOpen?'has-recommendations':'')+'"><section class="editorial-quadrants">'+quadHTML()+'</section>'+recommendationGoalHTML()+'</div>';
  document.querySelectorAll('[data-drop-q]').forEach(el=>el.addEventListener('click',event=>{if(event.target.closest('button,select,input,a'))return;if(Date.now()<dragClickUntil)return;showQuadrantTasks(Number(el.dataset.dropQ))}));
  updatePlanReference();
 };

@@ -5,6 +5,12 @@ body {
   background-color: #edf0fa;
   isolation: isolate;
 }
+:root {
+  --workspace-background: linear-gradient(rgba(246, 246, 253, .36), rgba(246, 246, 253, .36)), url('/assets/floral-scene.jpg') center / cover no-repeat;
+}
+html, body { scrollbar-width: none; -ms-overflow-style: none; }
+html { scroll-padding-top: calc(var(--header-height, 85px) + 26px); }
+html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; }
 /* Rotate the source clockwise without changing the supplied image. */
 body::before {
   content: '';
@@ -17,7 +23,7 @@ body::before {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%) rotate(90deg);
-  background: linear-gradient(rgba(246, 246, 253, .36), rgba(246, 246, 253, .36)), url('/assets/floral-scene.jpg') center / cover no-repeat;
+  background: var(--workspace-background);
 }
 .app,
 .main { background: transparent; }
@@ -30,6 +36,29 @@ body::before {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+.app-header.ref-header-hidden { transform: none; opacity: 1; pointer-events: auto; }
+.header-content-fade {
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: calc(100% + 40px);
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(#000, #000 calc(100% - 40px), transparent);
+}
+.header-background {
+  position: fixed;
+  width: 100vh;
+  width: 100dvh;
+  height: 100vw;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  background: var(--workspace-background);
 }
 .landing-page { background: #f0eef9; }
 .landing-page .landing-art,
@@ -263,6 +292,64 @@ body::before {
   margin: 28px auto 0;
 }
 #task-shredder .shred-footer { justify-content: flex-end; }
+/* Keep compact typography readable without enlarging the decorative headline. */
+body { font-size: 15px; line-height: 1.7; }
+.app-header .brand { font-size: 24px; }
+.app-header .gooey-nav__link { font-size: 14px; }
+.header-profile, .header-account { font-size: 13px; }
+#recommend-entry { font-size: 14px; }
+.heading h1 { font-size: clamp(36px, 3.8vw, 64px); }
+.subtitle { font-size: 14px; }
+.tiny, .gallery-range { font-size: 12px; }
+.time-tools .tiny { font-size: 12px; }
+.gallery-kicker { font-size: 11px; }
+.gallery-main .time-toolbar h2 { font-size: 26px; }
+.gallery-day-title { font-size: 23px; }
+.gallery-day-count, .gallery-open-day { font-size: 12px; }
+.gallery-mini-event { font-size: 14px; }
+.gallery-mini-event small, .gallery-collapsed-count { font-size: 11px; }
+.right-task-column .section-label > span:first-child { font-size: 20px; }
+.task-name { font-size: 14px; }
+.task-meta, .task-end, .shred-prompt, .shred-footer button { font-size: 12px; }
+.panel-title { font-size: 20px; }
+.editorial-quadrants .q-label { font-size: 13px; }
+.editorial-quadrants .q-index { font-size: 11px; }
+.editorial-quadrants .q-count small { font-size: 13px; }
+.editorial-quadrants .mini-task { font-size: 15px; line-height: 1.6; padding: 12px 0; }
+.editorial-quadrants .q-ddl { font-size: 12px; }
+.q-empty { font-size: 14px; }
+.form-group label { font-size: 14px; }
+.primary, .secondary, .landing-auth-dialog .auth-submit { font-size: 15px; }
+.quad-list-shell { position: relative; padding-bottom: 24px; }
+.q-task-list {
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.q-task-list::-webkit-scrollbar { width: 0; height: 0; }
+.q-task-list:focus-visible { outline: 2px solid #aa8cbb; outline-offset: 4px; border-radius: 4px; }
+.q-more-tasks {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  color: #8b739e;
+}
+.q-more-tasks[hidden] { display: none; }
+.gallery-main { scroll-margin-top: calc(var(--header-height, 85px) + 26px); }
+.gallery-main:focus-visible { outline: 2px solid #ad91bf; outline-offset: 5px; }
+@media (max-width: 700px) {
+  .app-header .brand { font-size: 21px; }
+  .heading h1 { font-size: 34px; }
+  .gallery-range { gap: 8px; flex-wrap: wrap; }
+}
 @media (prefers-reduced-motion: reduce) {
   .landing-auth-dialog .auth-floating-field input,
   .landing-auth-dialog .auth-floating-field label { transition: none; }
