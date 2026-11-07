@@ -18,12 +18,20 @@ readCourseImage=function(input){
   if(version!==courseReadVersion)return;
   courseImage={name:file.name||'粘贴的课表截图.png',url:reader.result};
   const preview=document.getElementById('course-image-preview');if(preview)preview.innerHTML=courseImagePreview();
+  syncCourseImageStep();
   const button=document.getElementById('course-recognize');if(button)button.disabled=false;
  };
  reader.onerror=()=>{if(version===courseReadVersion)showStudyAlert('图片读取失败，请重新上传或粘贴')};reader.readAsDataURL(file);
 };
 const openImageImportWithoutPaste=openImageImport;
-openImageImport=function(){openImageImportWithoutPaste();const drop=document.querySelector('#modal-root .image-drop');if(drop){drop.tabIndex=0;drop.setAttribute('aria-label','上传课程表图片，也可按Ctrl加V粘贴截图')}};
+function syncCourseImageStep(){
+ const drop=document.querySelector('#modal-root .image-drop');
+ if(drop)drop.hidden=Boolean(courseImage);
+}
+const originalCourseImagePreview=courseImagePreview;
+courseImagePreview=function(){return courseImage?originalCourseImagePreview()+'<button type="button" class="secondary" onclick="chooseAnotherCourseImage()">更换图片</button>':''};
+function chooseAnotherCourseImage(){courseReadVersion++;courseImage=null;openImageImport();document.getElementById('course-file')?.focus()}
+openImageImport=function(){openImageImportWithoutPaste();const drop=document.querySelector('#modal-root .image-drop');if(drop){drop.tabIndex=0;drop.setAttribute('aria-label','上传课程表图片，也可按Ctrl加V粘贴截图')}syncCourseImageStep()};
 const useSvgExample=useDemoCourseImage;
 useDemoCourseImage=function(){
  useSvgExample();const sample=courseImage,image=new Image();

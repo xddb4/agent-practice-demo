@@ -1,10 +1,13 @@
-function showStudyAlert(message,title='请检查填写内容'){
+function showStudyAlert(message,title='请检查填写内容',onClose){
  const previous=document.activeElement;
  document.querySelector('.study-alert')?.close();
  const dialog=document.createElement('dialog');dialog.className='study-alert';dialog.setAttribute('aria-labelledby','study-alert-title');dialog.setAttribute('aria-describedby','study-alert-message');
  dialog.innerHTML='<h2 id="study-alert-title"></h2><p id="study-alert-message"></p><form method="dialog"><button autofocus>知道了</button></form>';
  dialog.querySelector('h2').textContent=title;dialog.querySelector('p').textContent=String(message);
- dialog.addEventListener('close',()=>{dialog.remove();if(previous?.isConnected)previous.focus()},{once:true});
+ dialog.addEventListener('close',()=>{
+  dialog.remove();
+  if(!onClose?.()&&previous?.isConnected)previous.focus();
+ },{once:true});
  document.body.appendChild(dialog);dialog.showModal();
 }
 const toastBeforeAlerts=toast;

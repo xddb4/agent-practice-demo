@@ -52,11 +52,33 @@ test('继续历史方案时排除已采纳项，保留原始条目索引用于�
  const calls=[];const {state,nodes}=setup(async(path,body)=>calls.push(body));
  const items=[0,1,2].map(index=>({title:'任务'+index,date:'2026-11-03',estimated_minutes:30,important:true,urgent:false,rationale:'目标需要'}));
  state.handleAgentResult({id:'history-plan',route:'recommend',items,proposal_indices:[0,1,2],adopted_indices:[1],reused:true});
- assert.match(state.html,/已加入计划/);assert.equal(nodes['review-confirm'].textContent,'确认加入 2 项任务');assert.equal(nodes['review-select-all'].checked,true);
+ assert.match(state.html,/已加入计划/);assert.equal(nodes['review-confirm'].textContent,'加入日程（2）');assert.equal(nodes['review-select-all'].checked,true);
  await state.confirmTaskReview();assert.deepEqual(Array.from(calls[0].indices),[0,2]);assert.deepEqual(Array.from(state.saved,item=>item.proposal_index),[0,2]);
 });
 test('推荐结果即使存在右侧栏目也打开可勾选核对弹窗',()=>{
  const {state,nodes}=setup();nodes['rec-result']={innerHTML:'',isConnected:true};
  state.handleAgentResult({id:'inline',route:'recommend',items:[{title:'写作',date:'2026-11-03',estimated_minutes:60,important:true,urgent:false,rationale:'目标需要',deadline:'2026-11-04T10:00:00+08:00',suggested_finish:'2026-11-04T10:00:00+08:00'}]});
  assert.match(state.html,/准备方案/);assert.match(state.html,/建议完成：2026-11-04 10:00/);assert.equal(nodes['rec-result'].innerHTML,'');
+});
+test('准备方案左侧选择任务，右侧只编辑所选任务并显示建议时段',()=>{
+ const {state,nodes}=setup();
+ const base={date:'2026-11-03',estimated_minutes:60,important:true,urgent:false};
+ state.handleAgentResult({id:'split',route:'recommend',sources:[{title:'备考资料',url:'https://example.com/reference'}],items:[
+  {...base,title:'听力训练',suggested_sessions:[
+   {start:'2026-11-03T09:00:00+08:00',end:'2026-11-03T09:30:00+08:00'},
+   {start:'2026-11-04T10:00:00+08:00',end:'2026-11-04T10:30:00+08:00'},
+  ]},
+  {...base,title:'写作练习'},
+ ]});
+ const [left,right]=state.html.split('<section class="review-plan-editor">');
+ assert.match(left,/<div class="review-plan-actions"><button id="review-confirm"/);
+ assert.match(right,/<div class="review-plan-notes">[\s\S]*备考资料/);
+ assert.match(left,/听力训练[\s\S]*建议执行 2 次/);
+ assert.doesNotMatch(left,/计划日期|预计总时长/);
+ assert.match(right,/2026-11-03 09:00–09:30 · 30 分钟/);
+ nodes['review-plan-details']={innerHTML:''};
+ state.reviewField(0,'selected',false);
+ assert.doesNotMatch(nodes['review-plan-details'].innerHTML,/听力训练/);
+ assert.match(nodes['review-plan-details'].innerHTML,/写作练习/);
+ assert.equal(nodes['review-confirm'].textContent,'加入日程（1）');
 });

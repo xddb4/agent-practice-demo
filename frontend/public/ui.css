@@ -29,3 +29,49 @@
 .evidence-status{font-weight:400;font-size:12px;color:#785b95;border:1px solid #d3c1e0;border-radius:12px;padding:2px 8px;white-space:nowrap}
 .evidence-row{flex-wrap:wrap;gap:10px}
 .evidence-row .grow{min-width:200px}
+.image-drop[hidden]{display:none!important}
+.course-bulk-weeks{background:#f5eef9;border-color:#dac8e6;padding:16px}
+.course-bulk-weeks button{margin-top:12px}
+.scheduled-event.course-ghost{opacity:.58;border-style:dashed;cursor:default}
+.modal:has(.course-week-scroll){width:min(1120px,94vw);max-width:94vw}
+.course-week-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+.course-week-tools b{margin-right:auto}
+.course-week-tools button[aria-pressed=true]{background:#e9ddf4;border-color:#ac96c3;color:#5b4372}
+.course-week-scroll{max-height:50vh;overflow:auto;border:1px solid #ded3e7;border-radius:12px;overscroll-behavior:contain}
+.course-week-board{min-width:780px}
+.course-week-heading,.course-week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.course-week-heading{position:sticky;top:0;z-index:4;background:#f4edf8;padding:8px 18px 8px 55px;text-align:center;border-bottom:1px solid #ded3e7}
+.course-week-heading small{display:block;font-weight:400}
+.course-week-column{position:relative;border-left:1px solid #eee5f2;min-width:0}
+.course-week-grid .scheduled-event{cursor:default}
+.modal:has(.review-plan-layout){width:min(1080px,94vw);max-width:94vw;height:90dvh;max-height:90dvh;padding:0}
+.review-plan-main{height:100%;display:flex;flex-direction:column;padding:24px 28px 20px}
+.review-plan-actions{display:flex;align-items:center;gap:12px}
+.review-plan-actions .primary{white-space:nowrap}
+.review-plan-layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);grid-template-rows:minmax(0,1fr);gap:20px}
+.review-plan-list,.review-plan-editor{min-width:0;min-height:0;overflow:auto;border:1px solid #ded3e7;border-radius:14px;padding:14px}
+.review-plan-notes{padding:12px 28px 24px}
+.review-plan-layout h3{margin:0 0 10px}
+.review-task-choice{display:flex;align-items:center;gap:8px;margin:10px 0}
+.review-plan-option{align-items:flex-start;padding:9px 0;border-top:1px solid #e5dce9;cursor:pointer;overflow-wrap:anywhere}
+.review-plan-option small{display:block;color:#735f85;margin-top:3px}
+.review-suggested-times{background:#f1eaf7;color:#624a76;border-radius:9px;padding:10px;margin-bottom:10px}
+.review-suggested-times ol{margin:5px 0 0;padding-left:20px}
+@media(max-width:680px){
+ .review-plan-main{padding:16px 14px 12px}
+ .review-plan-layout{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(0,2fr);gap:10px}
+ .review-plan-notes{padding:10px 14px 16px}
+}
+.modal.course-review-dialog{display:grid;grid-template-columns:minmax(0,1fr) 190px;grid-template-rows:minmax(0,1fr);width:min(1060px,94vw);max-width:94vw;height:min(86dvh,820px);padding:0;overflow:hidden}
+.course-review-content{min-width:0;min-height:0;padding:26px;overflow-y:auto;overscroll-behavior:contain}
+.course-review-actions{display:flex;flex-direction:column;gap:12px;padding:20px 14px;background:#f5eef9;border-left:1px solid #ded3e7}
+.course-review-actions .modal-footer{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0}
+.course-review-actions button{white-space:normal;text-align:center}
+.course-review-content [aria-invalid=true]{border-color:#9876b3;box-shadow:0 0 0 2px #d8c4e6}
+@media(max-width:600px){
+ .modal.course-review-dialog{grid-template-columns:minmax(0,1fr) 126px}
+ .course-review-content{padding:14px}
+ .course-review-content .form-grid{grid-template-columns:1fr}
+ .course-review-actions{padding:14px 8px;font-size:12px}
+ .course-review-actions button{padding:8px}
+}

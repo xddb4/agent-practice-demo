@@ -6,7 +6,7 @@ submitEvidence=async function(e){
   askAgent('evidence',val('e-title')+'\n来源：'+val('e-source')+'\n'+text);
  }catch(e){toast(e.message)}
 };
-recognizeCourseDemo=function(){if(!courseImage)return toast('请先选择课表图片');if(!courseImage.url.startsWith('data:image/'))return toast('图片无效');askAgent('schedule','识别课表：输出每项title,day(1-7),start,end,location,from,to,pattern(all/odd/even),q。保留教学周与节次；日期未知不得猜测。',courseImage.url)};
+recognizeCourseDemo=function(){if(!courseImage)return toast('请先选择课表图片');if(!courseImage.url.startsWith('data:image/'))return toast('图片无效');askAgent('schedule','识别这张课表。按课表填写星期、起止时间、地点和教学周。只有节次或字段不清楚时留空，不要猜测。',courseImage.url)};
 const baseMapItem=mapItem;
 mapItem=function(x,i){const t=baseMapItem(x,i);if(!x.start&&!x.date&&!x.deadline)t.date='';return t};
 const baseCommitParsed=commitParsed;
