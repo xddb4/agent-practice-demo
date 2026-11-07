@@ -31,7 +31,7 @@ async def validation_error(request:Request,error):
 @app.middleware('http')
 async def refresh_local_assets(request:Request,call_next):
     response=await call_next(request)
-    if request.url.path.startswith('/api/') or request.url.path in ['/', '/prototype.html','/bridge.js','/features.js','/review.js','/plans.js','/clipboard.js','/notifications.js','/task_views.js','/model_settings.js','/ui.css']:
+    if request.url.path.startswith('/api/') or request.url.path == '/' or request.url.path.endswith(('.html', '.css', '.js')):
         response.headers['Cache-Control']='no-store'
     return response
 log=logging.getLogger('studypilot')

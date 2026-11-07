@@ -87,10 +87,10 @@ function mountQuadrantSpheres(stage) {
       let tx = expanded === ball.q ? width/2 : ball.ax;
       let ty = expanded === ball.q ? height/2 : ball.ay;
       if (pointer.active && !reduced) {
-        const dx=pointer.x-ball.x,dy=pointer.y-ball.y,distance=Math.hypot(dx,dy),reach=ball.r+135;
-        const pull = Math.max(0,1-distance/reach), limit = expanded === ball.q ? 10 : 28;
-        tx += clamp(dx*.2,-limit,limit)*pull;
-        ty += clamp(dy*.2,-limit,limit)*pull;
+        const dx=pointer.x-ball.x,dy=pointer.y-ball.y,distance=Math.hypot(dx,dy),reach=ball.r+220;
+        const pull = Math.sqrt(Math.max(0,1-distance/reach)), limit = expanded === ball.q ? 22 : 64;
+        tx += clamp(dx*.42,-limit,limit)*pull;
+        ty += clamp(dy*.42,-limit,limit)*pull;
       }
       if (reduced) { ball.x=tx; ball.y=ty; ball.r=ball.target; }
       else {

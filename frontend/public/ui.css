@@ -109,7 +109,16 @@ body::before {
   mix-blend-mode: multiply;
 }
 .landing-page .landing-distortion,
-.landing-page.distortion-ready .landing-distortion { display: none; }
+.landing-page.distortion-ready .landing-distortion {
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -3;
+  opacity: 1;
+  pointer-events: none;
+}
+.landing-page.distortion-ready .landing-art { opacity: 0; }
 .landing-page::after {
   inset: 0;
   border: 0;
@@ -264,12 +273,18 @@ body::before {
   .landing-page .entry-caption { transition: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .landing-auth-dialog { animation-duration: .95s; }
-  .board-enter { animation-duration: 1.2s; }
+  .landing-auth-dialog { animation-duration: .65s; }
+  .board-enter { animation-duration: .75s; }
   .board-enter .app-header-inner,
-  .board-enter #content > .heading { animation-duration: 1.15s; }
-  .board-enter #content > .workspace { animation-duration: 1.25s; }
-  .editorial-reveal.is-visible { transition-duration: 1.05s; }
+  .board-enter #content > .heading { animation-duration: .7s; }
+  .board-enter #content > .workspace { animation-duration: .75s; }
+  .editorial-reveal.is-visible { transition-duration: .65s; }
+}
+.editorial-reveal.is-pending { filter: none; }
+.editorial-reveal.is-visible { transition-property: opacity, transform; }
+@keyframes morandi-board-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 .landing-auth-dialog .auth-floating-field {
   position: relative;

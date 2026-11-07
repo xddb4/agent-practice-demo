@@ -69,7 +69,6 @@
 .sphere-hit-area:hover { filter: none; }
 .sphere-hit-area:focus-visible { outline: none; }
 .quadrant-sphere:has(.sphere-hit-area:focus-visible) { outline: 2px solid #52678d; outline-offset: 4px; }
-.sphere-index { font: 10px/1.2 ui-monospace, monospace; letter-spacing: 2px; opacity: .55; }
 .sphere-label { font-size: 14px; line-height: 1.4; font-weight: 500; white-space: nowrap; }
 .sphere-count { display: flex; flex-direction: column; align-items: center; gap: 2px; font: 400 clamp(32px, calc(var(--sphere-diameter, 152px) * .24), 78px)/1 Georgia, serif; }
 .sphere-count small { font: 11px/1.5 "Microsoft YaHei", sans-serif; opacity: .65; }

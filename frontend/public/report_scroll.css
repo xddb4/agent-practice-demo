@@ -1,0 +1,70 @@
+.ability-scroll { position: relative; margin: 24px 0 36px; }
+.ability-scroll-pin {
+  position: sticky;
+  top: var(--ability-pin-top, 103px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.ability-scroll-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.ability-scroll-toolbar h2 { margin: 0; font: 400 26px/1.4 "Songti SC", "SimSun", serif; color: #29344e; }
+.ability-scroll-toolbar p { margin: 5px 0 0; color: #64708a; font-size: 13px; }
+.ability-scroll-controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.ability-scroll-controls button { width: 40px; height: 40px; border: 1px solid #7d82a733; border-radius: 50%; background: #ffffff75; font-size: 21px; }
+.ability-scroll-controls button:disabled { opacity: .28; cursor: default; }
+.ability-scroll-count { min-width: 44px; text-align: center; font: 13px/1.5 ui-monospace, monospace; color: #5e6684; }
+.ability-scroll-viewport { flex: 1; min-height: 0; overflow: hidden; border-radius: 24px; }
+.ability-scroll-viewport:focus-visible { outline: 2px solid #8b8ac4; outline-offset: 5px; }
+.ability-scroll-track.report-grid { display: flex; gap: 28px; height: 100%; will-change: transform; transition: none; opacity: 1; filter: none; }
+.ability-scroll-track > .ability {
+  flex: 0 0 calc(100% - clamp(24px, 8vw, 112px));
+  max-width: 960px;
+  min-width: 0;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr);
+  gap: 28px;
+  padding: clamp(24px, 3vw, 42px);
+  border: 1px solid #ffffffb3;
+  border-radius: 24px;
+  background: linear-gradient(125deg, #f9faffdf, #e8e7f5c4), url('/assets/dialog-floral-soft.svg') center / cover;
+  color: #303b55;
+}
+.ability-scroll-track > .ability:nth-child(2n) { background-image: linear-gradient(125deg, #efedf9df, #e2eafaaf), url('/assets/dialog-floral-soft.svg'); }
+.ability-card-heading { display: flex; flex-direction: column; justify-content: center; border-right: 1px solid #69729324; padding-right: 24px; }
+.ability-card-heading h3 { margin: 0 0 24px; font: 400 clamp(25px, 2.8vw, 40px)/1.5 "Songti SC", "SimSun", serif; letter-spacing: .5px; color: #303956; text-wrap: balance; }
+.ability-card-heading .level { font-size: 20px; color: #74729d; }
+.ability-card-body { min-width: 0; overflow-y: auto; scrollbar-width: none; padding-right: 5px; }
+.ability-card-body::-webkit-scrollbar { width: 0; }
+.ability-card-body p, .ability-card-body details { font-size: 15px; line-height: 1.9; color: #647087; }
+.ability-card-body summary { color: #3b4967; cursor: pointer; padding: 10px 0; }
+.ability-card-body details { border-top: 1px solid #69729324; }
+.ability-scroll-footer { display: grid; gap: 10px; }
+.ability-scroll-progress { height: 3px; overflow: hidden; border-radius: 3px; background: #66708f24; }
+.ability-scroll-progress i { display: block; width: 100%; height: 100%; background: #7776a6; transform: scaleX(var(--ability-progress, 0)); transform-origin: left; }
+.ability-scroll-steps { display: flex; gap: 12px; justify-content: space-between; }
+.ability-scroll-steps button { flex: 1; min-width: 0; padding: 3px 0; color: #777c94; font-size: 12px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.ability-scroll-steps button[aria-pressed=true] { color: #353e62; font-weight: 600; }
+.ability-scroll.is-reduced-motion .ability-scroll-pin { position: static; height: auto; }
+.ability-scroll.is-reduced-motion .ability-scroll-viewport { overflow: visible; }
+.ability-scroll.is-reduced-motion .ability-scroll-track { display: grid; height: auto; will-change: auto; }
+.ability-scroll.is-reduced-motion .ability { max-width: none; min-height: 330px; height: auto; scroll-margin-top: var(--ability-pin-top); }
+.ability-scroll.is-reduced-motion .ability-card-body { overflow: visible; }
+.ability-scroll.is-reduced-motion .ability-scroll-footer, .ability-scroll.is-reduced-motion .ability-scroll-controls { display: none; }
+@media(max-width: 760px) {
+  .ability-scroll { margin-top: 18px; }
+  .ability-scroll-pin { gap: 14px; }
+  .ability-scroll-toolbar h2 { font-size: 23px; }
+  .ability-scroll-toolbar p { max-width: 190px; font-size: 12px; }
+  .ability-scroll-controls { gap: 6px; }
+  .ability-scroll-controls button { width: 32px; height: 32px; }
+  .ability-scroll-track.report-grid { gap: 18px; }
+  .ability-scroll-track > .ability { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 16px; padding: 24px; }
+  .ability-card-heading { border-right: 0; border-bottom: 1px solid #69729324; padding: 0 0 16px; }
+  .ability-card-heading h3 { font-size: 26px; margin-bottom: 8px; }
+  .ability-card-heading .level { font-size: 17px; }
+  .ability-card-body p, .ability-card-body details { font-size: 14px; }
+  .ability-scroll-steps { gap: 6px; }
+  .ability-scroll-steps button { font-size: 10px; }
+}

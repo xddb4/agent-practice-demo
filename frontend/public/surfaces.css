@@ -26,7 +26,8 @@ body::after {
 }
 .landing-page .landing-art,
 .landing-page.distortion-ready .landing-art,
-.landing-page:not(.distortion-ready) .landing-art {
+.landing-page:not(.distortion-ready) .landing-art,
+.landing-page .landing-distortion canvas {
   filter: url('#floral-ink') contrast(1.22) brightness(.78) saturate(1.12);
 }
 .modal-backdrop,
@@ -56,9 +57,9 @@ body::after {
 .quadrant-detail-item dl { font-size: 14px; }
 .modal-backdrop.is-surface-closing { animation: surface-backdrop-out .28s ease both; }
 .modal-backdrop.is-surface-closing .modal { animation: surface-dialog-out .28s ease both; }
-@keyframes surface-backdrop-in { from { background-color: rgba(19,23,43,0); backdrop-filter: blur(0); } }
-@keyframes surface-dialog-in { from { opacity: 0; transform: translateY(22px) scale(.96); filter: blur(5px); } to { opacity: 1; transform: none; filter: none; } }
-@keyframes surface-backdrop-out { to { opacity: 0; backdrop-filter: blur(0); } }
+@keyframes surface-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes surface-dialog-in { from { opacity: 0; transform: translateY(22px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes surface-backdrop-out { to { opacity: 0; } }
 @keyframes surface-dialog-out { to { opacity: 0; transform: translateY(12px) scale(.98); } }
 @media(prefers-reduced-motion: reduce) {
   .modal-backdrop, .modal:not(.landing-auth-dialog), .modal-backdrop.is-surface-closing, .modal-backdrop.is-surface-closing .modal { animation: none; }
