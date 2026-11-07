@@ -11,4 +11,4 @@ Get-Content '.env' | ForEach-Object {
   if ($_ -match '^([A-Z_]+)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1],$matches[2],'Process') }
 }
 $env:PYTHONPATH=Join-Path $projectRoot '.runtime'
-Start-Process -FilePath 'D:/codeapp/anaconda/python.exe' -ArgumentList '-m','uvicorn','backend.app.main:app','--host','127.0.0.1','--port','8000' -WorkingDirectory $projectRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $projectRoot 'server.out.log') -RedirectStandardError (Join-Path $projectRoot 'server.err.log')
+Start-Process -FilePath 'D:/codeapp/anaconda/python.exe' -ArgumentList '-m','uvicorn','backend.app.main:app','--host','127.0.0.1','--port','8000','--log-level','warning','--no-access-log' -WorkingDirectory $projectRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $projectRoot 'server.out.log') -RedirectStandardError (Join-Path $projectRoot 'server.err.log')
