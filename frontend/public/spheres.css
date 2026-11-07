@@ -27,7 +27,6 @@
 }
 .quadrant-sphere {
   --sphere-tone: rgba(210, 223, 249, .72);
-  --sphere-shadow: rgba(72, 99, 150, .22);
   position: absolute;
   left: 0;
   top: 0;
@@ -45,10 +44,10 @@
   will-change: transform, width, height;
 }
 .quadrant-sphere::before, .quadrant-sphere::after { content: none; }
-.sphere-q0 { --sphere-tone: rgba(243, 194, 192, .78); --sphere-shadow: rgba(146, 63, 89, .23); }
-.sphere-q1 { --sphere-tone: rgba(180, 190, 239, .78); --sphere-shadow: rgba(63, 72, 152, .24); }
-.sphere-q2 { --sphere-tone: rgba(237, 218, 173, .79); --sphere-shadow: rgba(150, 114, 58, .21); }
-.sphere-q3 { --sphere-tone: rgba(167, 209, 228, .79); --sphere-shadow: rgba(48, 109, 150, .22); }
+.sphere-q0 { --sphere-tone: rgba(243, 194, 192, .78); }
+.sphere-q1 { --sphere-tone: rgba(180, 190, 239, .78); }
+.sphere-q2 { --sphere-tone: rgba(237, 218, 173, .79); }
+.sphere-q3 { --sphere-tone: rgba(167, 209, 228, .79); }
 .sphere-hit-area {
   position: absolute;
   z-index: 2;

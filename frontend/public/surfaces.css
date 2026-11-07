@@ -8,8 +8,7 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background: url('/assets/frosted-glass.jpg') center / cover;
-  opacity: .36;
-  mix-blend-mode: soft-light;
+  opacity: .42;
 }
 .app-header {
   background: linear-gradient(90deg, #f5f5ffb8, #e6e7f28c), url('/assets/frosted-glass.jpg') center 42% / cover;
@@ -55,7 +54,7 @@ body::after {
 .modal { overscroll-behavior: contain; }
 .quadrant-detail-item { background: rgba(252, 252, 255, .64); border-color: rgba(111, 113, 151, .16); }
 .quadrant-detail-item dl { font-size: 14px; }
-.modal-backdrop.is-surface-closing { animation: surface-backdrop-out .28s ease both; pointer-events: none; }
+.modal-backdrop.is-surface-closing { animation: surface-backdrop-out .28s ease both; }
 .modal-backdrop.is-surface-closing .modal { animation: surface-dialog-out .28s ease both; }
 @keyframes surface-backdrop-in { from { background-color: rgba(19,23,43,0); backdrop-filter: blur(0); } }
 @keyframes surface-dialog-in { from { opacity: 0; transform: translateY(22px) scale(.96); filter: blur(5px); } to { opacity: 1; transform: none; filter: none; } }
