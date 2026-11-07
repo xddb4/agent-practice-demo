@@ -17,7 +17,7 @@ body::before {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%) rotate(90deg);
-  background: linear-gradient(rgba(246, 246, 253, .68), rgba(246, 246, 253, .68)), url('/assets/floral-scene.jpg') center / cover no-repeat;
+  background: linear-gradient(rgba(246, 246, 253, .36), rgba(246, 246, 253, .36)), url('/assets/floral-scene.jpg') center / cover no-repeat;
 }
 .app,
 .main { background: transparent; }
@@ -121,8 +121,27 @@ body::before {
 .landing-page .landing-footer { right: 36px; }
 .task-gallery .gallery-panel-art {
   width: max(100%, var(--gallery-media-width, 380px));
-  background-image: linear-gradient(155deg, #8a91a515, #ab9caa15), var(--day-art);
+  background-image: var(--day-art);
   background-position: var(--art-position, 50%) center;
+}
+.task-gallery .ag-day-panel .gallery-panel-art {
+  filter: saturate(.78) brightness(.70);
+}
+.task-gallery .ag-day-panel.is-today .gallery-panel-art {
+  filter: saturate(.95) brightness(.88);
+}
+.task-gallery .ag-day-panel.is-active .gallery-panel-art {
+  filter: brightness(.94);
+}
+.task-gallery .ag-day-panel.is-active.is-today .gallery-panel-art {
+  filter: none;
+}
+.task-gallery .gallery-panel-overlay {
+  background: linear-gradient(180deg, rgba(12, 22, 46, .08), transparent 35%, rgba(12, 22, 46, .38));
+  opacity: 1;
+}
+.task-gallery .ag-day-panel.is-active .gallery-panel-overlay {
+  background: linear-gradient(180deg, transparent 40%, rgba(12, 22, 46, .18) 60%, rgba(12, 22, 46, .78));
 }
 @media (max-width: 700px) {
   .task-gallery .gallery-panel-art { left: 0; width: 100%; transform: none !important; }
@@ -138,6 +157,14 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .landing-page .login-circular-wrap,
   .landing-page .entry-caption { transition: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .landing-auth-dialog { animation-duration: 1.15s; }
+  .board-enter { animation-duration: 1.4s; }
+  .board-enter .app-header-inner,
+  .board-enter #content > .heading { animation-duration: 1.35s; }
+  .board-enter #content > .workspace { animation-duration: 1.45s; }
+  .editorial-reveal.is-visible { transition-duration: 1.25s; }
 }
 .study-alert h2{font-size:19px;margin:0 0 12px;color:#67517b}
 .study-alert p{white-space:pre-wrap;margin:0 0 22px}
