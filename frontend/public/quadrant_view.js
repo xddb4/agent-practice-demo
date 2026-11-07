@@ -1,5 +1,4 @@
 // 象限只展示已有任务，推荐目标不绑定任何象限。
-let recommendationPanelOpen=false,recommendationPanelOwner=null;
 function quadrantPending(q){return tasks.filter(task=>task.q===q&&!task.done).sort(taskPriority)}
 quadHTML=function(){return '<div class="quadrant-sphere-stage" role="group" aria-label="四个任务象限">'+labels.map((label,q)=>{
  const list=quadrantPending(q);
@@ -14,22 +13,15 @@ function showQuadrantTasks(q){
  document.querySelector('#modal-root [aria-label="关闭任务列表"]')?.focus({preventScroll:true});
 }
 function completeQuadrantTask(id,q){toggle(id);if(tasks.find(task=>task.id===id)?.done)showQuadrantTasks(q)}
-function recommendationGoalHTML(){return '<aside class="quadrant-recommendations" id="recommendation-panel" aria-label="个性化推荐" '+(recommendationPanelOpen?'':'hidden')+'><div class="panel-title">准备一个目标</div><form onsubmit="generateRec(event)"><div class="form-group"><label for="r-title">目标</label><input id="r-title" required placeholder="例如：准备期末考试"></div><div class="form-group"><label for="r-ddl">截止日期</label><input id="r-ddl" type="date" required></div><div class="form-group"><label for="r-hours">每周可投入（小时）</label><input id="r-hours" type="number" min="1" max="80" value="6" required></div><div class="form-group"><label for="r-focus">重点方向</label><textarea id="r-focus" placeholder="希望优先练习什么？"></textarea></div><button class="secondary">生成阶段安排</button><div id="plan-reference" class="tiny"></div></form><div id="rec-result" role="status"></div></aside>'}
-function syncRecommendationToggle(){
- const panel=document.getElementById('recommendation-panel');if(panel)panel.hidden=!recommendationPanelOpen;
- document.querySelector('.division-workspace')?.classList.toggle('has-recommendations',recommendationPanelOpen);
- document.getElementById('recommendation-toggle')?.setAttribute('aria-expanded',String(recommendationPanelOpen));
-}
-function toggleRecommendationPanel(){recommendationPanelOpen=!recommendationPanelOpen;syncRecommendationToggle()}
 matrix=function(){
- if(recommendationPanelOwner!==activeAccount?.id){recommendationPanelOpen=false;recommendationPanelOwner=activeAccount?.id;selectedPlanId=null;selectedPlanTitle=''}
  selectedQuadrant=null;
  document.getElementById('content').classList?.add('sphere-matrix');
- document.getElementById('content').innerHTML=head('把精力，<br>放在值得的事上。','','<button id="recommendation-toggle" class="recommendation-toggle" aria-controls="recommendation-panel" aria-expanded="'+recommendationPanelOpen+'" onclick="toggleRecommendationPanel()"><span aria-hidden="true">✧</span><span>推荐任务</span></button>')+'<div class="division-workspace '+(recommendationPanelOpen?'has-recommendations':'')+'"><section class="editorial-quadrants">'+quadHTML()+'</section>'+recommendationGoalHTML()+'</div>';
+ document.getElementById('content').innerHTML=head('把精力，<br>放在值得的事上。','点击象限，查看其中的待办任务。','<button id="recommendation-toggle" class="recommendation-toggle" aria-haspopup="dialog" onclick="openPersonalizedRecommendations()"><span aria-hidden="true">✧</span><span>推荐任务</span></button>')+'<div class="division-workspace"><section class="editorial-quadrants">'+quadHTML()+'</section></div>';
  document.querySelectorAll('[data-drop-q]').forEach(el=>el.addEventListener('click',event=>{if(event.target.closest('button,select,input,a'))return;if(Date.now()<dragClickUntil)return;showQuadrantTasks(Number(el.dataset.dropQ))}));
- updatePlanReference();
  if(typeof mountQuadrantSpheres==='function')mountQuadrantSpheres(document.querySelector('.quadrant-sphere-stage'));
 };
-openPersonalizedRecommendations=function(){if(!activeAccount)return login();page='matrix';render();recommendationPanelOpen=true;syncRecommendationToggle();document.getElementById('r-title')?.focus()};
-// 顶部旧入口使用相同的开关，避免维护两套推荐表单。
-if(typeof document!=='undefined'){const entry=document.getElementById('recommend-entry');if(entry)entry.onclick=()=>{if(page==='matrix')toggleRecommendationPanel();else openPersonalizedRecommendations()}}
+openPersonalizedRecommendations=function(){if(!activeAccount)return login();openPlanDialogue()};
+if(typeof document!=='undefined'){
+ const entry=document.getElementById('recommend-entry');
+ if(entry)entry.onclick=openPersonalizedRecommendations;
+}

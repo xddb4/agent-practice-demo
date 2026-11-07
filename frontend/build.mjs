@@ -1,4 +1,5 @@
 import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 mkdirSync('public',{recursive:true});
 const path=existsSync('prototype.html')?'prototype.html':'../code/frontend/StudyPilot.html';
 let html=readFileSync(path,'utf8');
@@ -8,7 +9,14 @@ html=html.replace(/<div class="form-group"><label>完成标准<\/label><input id
 html=html.replaceAll('let field=document.getElementById(key);if(key===','let field=document.getElementById(key);if(!field)continue;if(key===').replaceAll("' 分钟 · 完成标准：'+esc(t.standard)","' 分钟'").replaceAll('先核对完成标准，再安排专注时段。','先核对安排，再留出专注时段。');
 html=html.replace('</head>','<link rel="stylesheet" href="/ui.css"><link rel="stylesheet" href="/spheres.css"><link rel="stylesheet" href="/surfaces.css"><link rel="stylesheet" href="/report_scroll.css"><link rel="stylesheet" href="/completion_ticket.css"></head>');
 html=html.replace('以下是固定示例课程，与所上传图片内容无关。请核对并修改所有字段；真实版本将由视觉模型生成候选课程。若图片仅包含“第几节”，还需结合学校作息表转换为具体时间。','以下是视觉模型从当前图片提取的候选课程。请核对星期、周次和时间。若图片只标注节次，请按学校作息表补填具体时间。').replace('默认日期为演示值，请按学校校历修改。','请按学校校历填写，用于把教学周换算为实际日期。');
-html=html.replace('</body>','<script src="/bridge.js"></script><script src="/features.js"></script><script src="/notifications.js"></script><script src="/review.js"></script><script src="/plans.js"></script><script src="/clipboard.js"></script><script src="/task_views.js"></script><script src="/model_settings.js"></script><script src="/quadrant_view.js"></script><script src="/evidence_inbox.js"></script></body>');
+html=html.replace('</body>','<script src="/bridge.js"></script><script src="/features.js"></script><script src="/notifications.js"></script><script src="/review.js"></script><script src="/plans.js"></script><script src="/plan_dialogue.js"></script><script src="/clipboard.js"></script><script src="/task_views.js"></script><script src="/model_settings.js"></script><script src="/quadrant_view.js"></script><script src="/evidence_inbox.js"></script></body>');
 html=html.replace('</body>','<script src="/course_review.js"></script><script src="/navigation.js"></script><script src="/spheres.js"></script><script src="/surfaces.js"></script><script src="/report_scroll.js"></script><script src="/completion_ticket.js"></script></body>');
 html=html.replace('</body>','<svg class="surface-filters" aria-hidden="true" width="0" height="0"><defs><filter id="floral-ink" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation=".7" result="soft"/><feConvolveMatrix in="soft" order="3" kernelMatrix="0 -1 0 -1 4 -1 0 -1 0" bias="0" preserveAlpha="true" result="edges"/><feColorMatrix in="edges" type="matrix" values="-.65 -.65 -.65 0 1 -.65 -.65 -.65 0 1 -.65 -.65 -.65 0 1 0 0 0 1 0" result="ink"/><feBlend in="SourceGraphic" in2="ink" mode="multiply"/></filter></defs></svg></body>');
+// The prototype loads public adapters directly, outside Vite's hashed bundles.
+html=html.replace(/(src|href)="\/([\w-]+\.(?:js|css))"/g,(attribute,key,name)=>{
+ const file='public/'+name;
+ if(!existsSync(file))return attribute;
+ const version=createHash('sha256').update(readFileSync(file)).digest('hex').slice(0,12);
+ return key+'="/'+name+'?v='+version+'"';
+});
 writeFileSync('public/prototype.html',html);

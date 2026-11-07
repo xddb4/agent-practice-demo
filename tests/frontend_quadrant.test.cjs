@@ -18,10 +18,10 @@ test('完成确认尚未提交时不覆盖确认弹窗',()=>{
  const {state}=setup();state.toggle=()=>state.modalHTML='完成确认';
  state.completeQuadrantTask(1,0);assert.equal(state.modalHTML,'完成确认');assert.equal(state.tasks[0].done,undefined);
 });
-test('推荐栏独立开关且仅含目标表单，不绑定已选象限',()=>{
+test('推荐按钮直接打开独立聊天工作台',()=>{
  const {state,nodes}=setup();state.matrix();assert.equal(state.selectedQuadrant,null);
  assert.match(nodes.content.innerHTML,/recommendation-toggle/);assert.doesNotMatch(nodes.content.innerHTML,/加入此象限|根据任务与本地能力记录提供规则建议/);
- state.toggleRecommendationPanel();assert.equal(nodes['recommendation-panel'].hidden,false);
- state.toggleRecommendationPanel();assert.equal(nodes['recommendation-panel'].hidden,true);
- assert.match(state.recommendationGoalHTML(),/r-title|r-ddl|r-hours|r-focus/);
+ let opened=false;state.openPlanDialogue=()=>{opened=true};
+ state.openPersonalizedRecommendations();assert.equal(opened,true);
+ assert.doesNotMatch(nodes.content.innerHTML,/recommendation-panel/);
 });

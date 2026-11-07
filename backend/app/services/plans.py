@@ -32,11 +32,25 @@ def plan_items(data):
         if str(key).isdigit() and int(key)<len(items):items[int(key)]=dict(item)
     return items
 
+def linked_tasks(tasks, plan_id, items):
+    owned = [task for task in tasks if task.get('agent_run_id') == plan_id]
+    linked = {task['proposal_index']: task for task in owned if isinstance(task.get('proposal_index'), int)}
+    legacy = {}
+    for task in owned:
+        if not isinstance(task.get('proposal_index'), int):
+            legacy.setdefault(task.get('title'), []).append(task)
+    for index, item in enumerate(items):
+        title = item.get('title')
+        matches = legacy.get(title, [])
+        if index not in linked and len(matches) == 1 and sum(other.get('title') == title for other in items) == 1:
+            linked[index] = matches[0]
+    return linked
+
+
 def plan_payload(record,tasks):
-    data=unpack(record.data);items=plan_items(data);adopted=set()
-    for task in tasks:
-        if task.get('agent_run_id')!=record.id:continue
-        index=task.get('proposal_index')
-        if isinstance(index,int):adopted.add(index)
-        else:adopted.update(i for i,item in enumerate(items) if item.get('title')==task.get('title'))
-    return {'id':record.id,'route':'recommend','title':plan_title(data),'created_at':data.get('created_at'),'input_source':data.get('input_source',''),'items':items,'proposal_indices':list(range(len(items))),'adopted_indices':sorted(adopted),'sources':data.get('sources',[]),'search_status':data.get('search_status',{}),'reused':True,'parent_plan_id':data.get('parent_plan_id')}
+    data=unpack(record.data);items=plan_items(data)
+    linked=linked_tasks(tasks,record.id,items)
+    indices=[index for index in range(len(items)) if index not in data.get('cancelled_indices',[])]
+    calendar_fields=('title','date','start','end','duration','ddl','done','location','suggested_sessions')
+    calendar={index:{key:linked[index].get(key) for key in calendar_fields} for index in indices if index in linked}
+    return {'id':record.id,'route':'recommend','title':plan_title(data),'created_at':data.get('created_at'),'input_source':data.get('input_source',''),'items':[items[index] for index in indices],'proposal_indices':indices,'adopted_indices':list(calendar),'calendar_items':calendar,'sources':data.get('sources',[]),'skills':data.get('skills',[]),'planning':data.get('planning',{}),'search_status':data.get('search_status',{}),'reused':True,'parent_plan_id':data.get('parent_plan_id')}

@@ -8,6 +8,20 @@ def client():
     return c
 def plan(c):return c.post('/api/agent',json={'route':'recommend','text':json.dumps({'目标':'准备缓存实验','每周小时':4},ensure_ascii=False)}).json()
 
+def test_recommendation_reads_only_owned_materials(monkeypatch,tmp_path):
+    import backend.app.main as main
+    a,b=client(),client()
+    monkeypatch.setattr(main,'root',tmp_path)
+    upload=a.post('/api/files',files={'file':('results.txt',('听力失分较多。'*800).encode(),'text/plain')})
+    assert upload.status_code==200
+    body={'text':'准备考试','route':'recommend','material_ids':[upload.json()['id']]}
+    assert b.post('/api/agent',json=body).status_code==404
+    def capture(state):
+        assert state['materials']==[{'name':'results.txt','text':('听力失分较多。'*800)[:3500]}]
+        return {'route':'recommend','result':{'items':[],'notice':''}}
+    monkeypatch.setattr(workflow,'invoke',capture)
+    assert a.post('/api/agent',json=body).status_code==200
+
 def test_saved_plan_partial_review_and_copy():
     c=client();original=plan(c);plan_id=original['id']
     assert any(x['id']==plan_id for x in c.get('/api/plans').json())

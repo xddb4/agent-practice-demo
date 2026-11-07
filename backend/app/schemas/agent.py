@@ -57,6 +57,8 @@ class ProposedTask(Contract):
     rationale:str=Field(min_length=1,max_length=5000)
     task_key:str|None=Field(default=None,max_length=64)
     depends_on:list[str]=Field(default_factory=list,max_length=20)
+    requires_contiguous:bool=False
+    min_gap_days:int=Field(default=0,ge=0,le=14)
     deadline:AwareDatetime|None=None
     suggested_finish:AwareDatetime|None=None
     suggested_sessions:list[dict]=Field(default_factory=list,max_length=400)
@@ -77,5 +79,25 @@ class EvidenceOutput(Contract):
 class RecommendationOutput(Contract):
     items:list[ProposedTask]=Field(min_length=1,max_length=100)
     notice:str
+
+class GeneratedProposedTask(ProposedTask):
+    task_key:str=Field(min_length=1,max_length=64)
+    requires_contiguous:bool
+
+class GeneratedRecommendation(RecommendationOutput):
+    items:list[GeneratedProposedTask]=Field(min_length=1,max_length=16)
+    dialogue_reply:str|None=Field(default=None,max_length=600)
+
+    @model_validator(mode='after')
+    def distinct_actions(self):
+        titles={''.join(item.title.split()).casefold() for item in self.items}
+        if '' in titles or len(titles)!=len(self.items):raise ValueError('任务名称需要明确区分每项练习的动作与材料')
+        keys=set()
+        for item in self.items:
+            if item.task_key in keys:raise ValueError('task_key 必须唯一')
+            if not set(item.depends_on)<=keys:raise ValueError('依赖项必须在当前任务之前列出，且引用已定义的 task_key')
+            if item.min_gap_days and not item.depends_on:raise ValueError('间隔天数需要对应的前置任务')
+            keys.add(item.task_key)
+        return self
 def output_contract(route,image=False):
     return CourseOutput if image else {'schedule':ScheduleOutput,'evidence':EvidenceOutput,'recommend':RecommendationOutput}[route]
