@@ -1,3 +1,9 @@
+function dialogueShortTitle(title){return Array.from(String(title||'新对话').trim()).slice(0,10).join('')}
+function dialogueIcon(name){
+ const paths={upload:'<path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5L14 2a4 4 0 0 1 5.7 5.7L9.1 18.3a2 2 0 0 1-2.8-2.8L16.2 5.6"/>',mail:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',copy:'<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',check:'<path d="m5 12 4 4L19 6"/>'};
+ return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[name]+'</svg>';
+}
+
 async function dialogueRequest(path, body, signal){
  const response=await fetch('/api/'+path,body===undefined?undefined:{
   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal
@@ -26,24 +32,24 @@ function openPlanDialogue(id=null,reference=null){
  const planPath='plans/'+encodeURIComponent(id);
  const path=planPath+'/dialogue';
  const owner=activeAccount?.id;
- modal('<div class="plan-dialogue" id="plan-dialogue"><div class="modal-head"><h2>个性化推荐</h2>'+
+ modal('<div class="plan-dialogue" id="plan-dialogue"><div class="modal-head"><h2 class="dialogue-heading">Talk to <span class="brand-wordmark">Study<em>Pilot</em></span></h2>'+
   '<button type="button" onclick="closeModal()" aria-label="关闭方案对话">✕</button></div>'+
   '<nav class="dialogue-switch" aria-label="方案对话切换"><label class="tiny">切换对话 <select data-dialogue-switch><option value="">新对话</option></select></label>'+
-  '<button type="button" class="secondary" data-dialogue-new>＋ 新对话</button></nav>'+
+  '<button type="button" class="dialogue-new" data-dialogue-new aria-label="新对话" title="新对话">＋</button></nav>'+
   '<p class="desc" data-dialogue-title></p><div class="dialogue-workspace">'+
   '<section class="dialogue-chat" aria-label="与 Agent 对话"><div class="dialogue-messages" role="log" aria-label="对话记录"></div>'+
   '<p class="tiny" role="status" data-dialogue-status>正在读取对话…</p>'+
-  '<form id="dialogue-form"><label class="dialogue-input"><span>你的消息</span><textarea name="message" rows="3" maxlength="3000" placeholder="输入消息，也可以粘贴截图或文件"></textarea></label>'+
+  '<form id="dialogue-form"><label class="dialogue-input"><textarea name="message" rows="3" maxlength="3000" placeholder=" " aria-label="简述你的目标以及基本概况"></textarea><span>简述你的目标以及基本概况·······</span></label>'+
   '<div class="dialogue-attachments" aria-label="待发送附件"></div>'+
   '<div class="dialogue-actions"><input name="attachments" type="file" hidden multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.md">'+
-  '<button type="button" class="secondary dialogue-add" aria-label="添加图片或文件" title="添加图片或文件">＋</button><button type="submit" class="primary">发送</button></div></form></section>'+
+  '<button type="button" class="secondary dialogue-add" aria-label="添加图片或文件" title="添加图片或文件">'+dialogueIcon('upload')+'</button><button type="submit" class="primary dialogue-send" aria-label="发送" title="发送">'+dialogueIcon('mail')+'</button></div></form></section>'+
   '<aside class="dialogue-sidebar" aria-label="方案和对话设置"><div class="dialogue-sidebar-tools">'+
   '<label class="tiny">辅导方向 <select name="skill" form="dialogue-form"><option value="auto">自动判断</option><option value="time-management">时间管理</option>'+
   '<option value="english-prep">英语备考</option><option value="research-growth">科研成长</option></select></label>'+
   '<label class="tiny">目标截止日期<input name="deadline" type="date" form="dialogue-form" '+(creating?'required':'readonly')+'></label>'+
   '<label class="tiny">每周可投入（小时）<input name="hours" type="number" min="1" max="80" value="'+(creating?'6':'')+'" form="dialogue-form" '+(creating?'required':'readonly')+'></label>'+
   (creating?'':
-   '<p class="tiny">这里显示初始计划条件。时间有变化，可以直接告诉 Agent。</p><button type="button" class="secondary" data-dialogue-plan>选择任务／执行安排</button>')+
+   '<button type="button" class="secondary" data-dialogue-plan>选择任务／执行安排</button>')+
   '</div>'+
   '<div data-dialogue-proposal></div><details class="dialogue-plan-summary"><summary>当前任务 <span data-dialogue-count></span></summary>'+
   '<div data-dialogue-tasks>正在读取方案…</div></details></aside></div></div>');
@@ -72,6 +78,8 @@ function openPlanDialogue(id=null,reference=null){
   addButton.disabled=picker.disabled=input.disabled;
   attachmentList.querySelectorAll('button').forEach(button=>{button.disabled=input.disabled});
   root.querySelectorAll('[data-dialogue-switch],[data-dialogue-new],[data-dialogue-plan]').forEach(control=>{control.disabled=busy});
+  history.querySelectorAll('[data-record-plan]').forEach(button=>{button.disabled=busy});
+  history.querySelectorAll('[data-record-more]').forEach(button=>{button.disabled=input.disabled});
   proposal.querySelectorAll('button').forEach(button=>{button.disabled=busy});
  }
  function showAttachments(){
@@ -110,18 +118,20 @@ function openPlanDialogue(id=null,reference=null){
   history.innerHTML=messages.length?messages.map((turn,index)=>
    '<article class="dialogue-turn" data-role="'+esc(turn.role)+'"><b>'+esc(names[turn.role])+'</b>'+
    '<p>'+esc(turn.text)+'</p>'+(turn.skills?.length?'<small>辅导方式 · '+esc(turn.skills.join('、'))+'</small>':'')+
-   (turn.role!=='system'?'<div class="dialogue-message-actions"><button type="button" class="tiny" data-copy="'+index+'">复制</button>'+
+   (turn.role!=='system'?'<div class="dialogue-message-actions"><button type="button" class="tiny" data-copy="'+index+'" aria-label="复制消息" title="复制消息">'+dialogueIcon('copy')+'</button>'+
     (turn.waiting?'<button type="button" class="secondary" data-cancel-send>撤回</button>':
      turn.failed?'<button type="button" class="tiny" data-retry>重试</button><button type="button" class="tiny" data-edit-failed>撤回编辑</button>':
      !turn.waiting&&messages===current?.messages&&current.withdraw_token&&index===messages.length-2?
      '<button type="button" class="tiny" data-withdraw>撤回编辑</button>':'')+'</div>':'')+
+   (turn.role==='system'&&turn.text==='准备方案已保存，可以继续对话。'&&!creating?'<div class="dialogue-record-actions"><button type="button" data-record-plan>查看任务安排</button><button type="button" data-record-more>补充信息</button></div>':'')+
    (turn.failed?'<small>回复失败'+(turn.failed.requestId?' · 错误编号 '+esc(turn.failed.requestId):'')+'</small>':'')+'</article>'
-  ).join(''):'<p class="tiny">'+(creating?'告诉我你想准备什么，以及目前的情况。先在侧栏填好截止日期和每周可投入时间。':'可以询问方案细节、反馈进度，或告诉 Agent 哪些任务需要改期。')+'</p>';
+  ).join(''):'<div class="dialogue-start" aria-hidden="true">START</div>';
   history.scrollTop=history.scrollHeight;
  }
  function display(result){
   current=result;
-  root.querySelector('[data-dialogue-title]').textContent=result.title;
+  root.querySelector('[data-dialogue-title]').textContent=dialogueShortTitle(result.dialogue_title||result.title);
+  root.querySelector('[data-dialogue-title]').title=result.title;
   skill.value=result.skill_profile;
   showMessages(result.messages);
   const pending=result.pending;
@@ -229,7 +239,7 @@ function openPlanDialogue(id=null,reference=null){
   const button=event.target.closest('button');
   if(!button)return;
   if(button.hasAttribute('data-copy')){
-   try{await navigator.clipboard.writeText(visibleMessages[Number(button.dataset.copy)].text);button.textContent='已复制'}
+   try{await navigator.clipboard.writeText(visibleMessages[Number(button.dataset.copy)].text);button.innerHTML=dialogueIcon('check');button.setAttribute('aria-label','已复制');button.title='已复制'}
    catch{if(active())status.textContent='浏览器未允许访问剪贴板，可以选中文字后复制。'}
    return;
   }
@@ -246,6 +256,8 @@ function openPlanDialogue(id=null,reference=null){
    return;
   }
   if(busy)return;
+  if(button.hasAttribute('data-record-plan'))return openSavedPlan(id);
+  if(button.hasAttribute('data-record-more')){if(!input.disabled)input.focus();return}
   if(button.hasAttribute('data-retry')&&failed)return sendMessage(failed.message,failed.profile);
   if(button.hasAttribute('data-edit-failed')&&failed){
    input.value=failed.message;failed=null;showMessages(current.messages);setBusy(false);input.focus();
@@ -267,13 +279,13 @@ function openPlanDialogue(id=null,reference=null){
   if(!active())return;
   const currentOption=Array.from(switcher.options).find(option=>option.value===id);
   for(const plan of plans){
-   if(plan.id===id){currentOption.textContent=plan.title;continue}
-   switcher.add(new Option(plan.title+(plan.created_at?' · '+new Date(plan.created_at).toLocaleString('zh-CN'):''),plan.id));
+   if(plan.id===id){currentOption.textContent=dialogueShortTitle(plan.dialogue_title||plan.title);currentOption.title=plan.title;continue}
+   const option=new Option(dialogueShortTitle(plan.dialogue_title||plan.title),plan.id);option.title=plan.title;switcher.add(option);
   }
  }).catch(()=>{if(active())switcher.title='暂时无法读取其他对话，请重新打开个性化推荐'});
  if(creating){
   root.querySelector('.dialogue-plan-summary').hidden=true;
-  input.placeholder='例如：准备六级考试。目标 600 分，上次听力丢分较多。';
+
   if(reference?.hours)hours.value=reference.hours;
   display({title:reference?'参考「'+reference.title+'」开始新对话':'新对话',skill_profile:'auto',messages:[],pending:null});
   setBusy(false);input.focus();

@@ -31,7 +31,12 @@
     sizer.className = 'plan-motto-sizer';
     sizer.setAttribute('aria-hidden', 'true');
     motto.className = 'plan-motto';
-    slot.append(sizer, motto);
+    const dock = document.createElement('div');
+    dock.className = 'plan-motto-dock';
+    dock.textContent = motto.textContent;
+    dock.setAttribute('aria-hidden', 'true');
+    slot.append(sizer, motto, dock);
+    workspace.querySelector('.gallery-range > span:nth-child(2)')?.remove();
     if (calendar) workspace.querySelector('.time-tools').prepend(calendar);
     const list = root.querySelector('.plan-today-list');
     const items = todayTasks();
@@ -63,6 +68,8 @@
       const eased = progress * progress * (3 - 2 * progress);
       const size = 1 + (scale - 1) * eased;
       motto.style.transform = `translate3d(${originX}px,${originY + (targetY - originY) * eased}px,0) scale(${size})`;
+      motto.style.opacity = String(1 - clamp((progress - .45) / .3));
+      dock.style.opacity = String(clamp((progress - .55) / .3));
       todayCard.style.opacity = String(1 - clamp(progress * 1.6));
       todayCard.style.transform = reduced ? '' : `translateY(${-progress * 32}px)`;
       todayCard.inert = progress > .65;
@@ -85,7 +92,11 @@
       motto.style.width = box.width + 'px';
       workspace.style.left = content.getBoundingClientRect().left + parseFloat(getComputedStyle(content).paddingLeft) + 'px';
       workspace.style.width = intro.getBoundingClientRect().width + 'px';
-      const space = Math.ceil(box.height * scale + 34);
+      dock.style.left = originX + 'px';
+      dock.style.top = targetY + 'px';
+      const dockFont = Math.min(19, (innerWidth - originX * 2) / Math.max(1, Array.from(dock.textContent).length * 1.06));
+      dock.style.fontSize = dockFont + 'px';
+      const space = Math.ceil(dockFont * 1.6 + 28);
       root.dataset.mottoSpace = String(space);
       root.style.setProperty('--plan-motto-space', space + 'px');
       update();

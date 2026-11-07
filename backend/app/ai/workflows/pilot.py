@@ -98,7 +98,7 @@ def generate(s):
     content.extend({'type':'image_url','image_url':{'url':image}} for image in attachment_images)
     vision=bool(s.get('image') or attachment_images)
     if r=='recommend' and s.get('dialogue_message'):
-        prompt+=' JSON 可附 dialogue_reply。用自然中文直接回应用户，简述方案优先事项并邀请继续讨论。不要展示内部推理、具体时段或声称已加入日程。'
+        prompt+=' JSON 请附 dialogue_title，将用户目标提炼为十字以内的小标题，例如「六级备考计划」，不要照抄完整消息。另附 dialogue_reply。用自然中文直接回应用户，简述方案优先事项并邀请继续讨论。不要展示内部推理、具体时段或声称已加入日程。'
     contract=GeneratedRecommendation if r=='recommend' and not s.get('image') else output_contract(r,bool(s.get('image')))
     prompt+=' 最终输出严格遵循此JSON Schema，禁止额外字段；未知时间为null。'+json.dumps(contract.model_json_schema(),ensure_ascii=False)
     messages=[SystemMessage(content=prompt),HumanMessage(content=content)]

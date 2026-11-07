@@ -87,6 +87,7 @@ class GeneratedProposedTask(ProposedTask):
 class GeneratedRecommendation(RecommendationOutput):
     items:list[GeneratedProposedTask]=Field(min_length=1,max_length=16)
     dialogue_reply:str|None=Field(default=None,max_length=600)
+    dialogue_title:str|None=Field(default=None,min_length=1,max_length=10,description="提炼用户目标的十字以内对话小标题，不包含分数、个人情况或日期")
 
     @model_validator(mode='after')
     def distinct_actions(self):

@@ -137,7 +137,7 @@ function showRecommendationPane(pane){
  reviewPane=pane;
  const panel=document.getElementById('review-plan-editor');
  panel.hidden=pane===null;
- document.getElementById('review-pane-title').textContent=pane==='all'?'总安排':reviewRows[pane]?.adopted?'日程详情':'编辑任务';
+ document.getElementById('review-pane-title').textContent=pane==='all'?'总安排预览':reviewRows[pane]?.adopted?'日程详情':'编辑任务';
  refreshRecommendationDetails();
  if(pane!==null)panel.focus();
 }
@@ -168,7 +168,7 @@ function renderTaskReview(){
  const isRecommendation=reviewContext?.route==='recommend';
  const dialogueReview=reviewContext?.dialogueReview;
  const pending=dialogueReview?.pending;
- const selectAll='<label class="review-task-choice"><input style="width:auto" id="review-select-all" type="checkbox" onchange="selectAllReviewTasks(this.checked)">全选未加入的任务</label>';
+ const selectAll='<label class="review-task-choice"><input style="width:auto" id="review-select-all" type="checkbox" onchange="selectAllReviewTasks(this.checked)">全选</label>';
  const tasks=isRecommendation?
   '<div class="review-plan-layout"><section class="review-plan-list"><h3>选择任务</h3>'+(pending?'':selectAll)+
    reviewRows.map((row,index)=>{
@@ -177,18 +177,18 @@ function renderTaskReview(){
     return '<div class="review-plan-option"><label class="review-task-choice">'+(pending||row.calendar?'':reviewCheckbox(row,index))+'<span><b id="review-task-title-'+index+'">'+esc(row.title)+'</b><small>'+esc(status)+'</small></span></label>'+
      (pending&&!row.adopted?'':'<button type="button" class="tiny" onclick="showRecommendationPane('+index+')">'+(row.adopted?'查看':'编辑')+'</button>')+'</div>';
    }).join('')+
-  '</section><section class="review-plan-editor" id="review-plan-editor" tabindex="-1" '+(reviewPane===null?'hidden':'')+'><div class="modal-head"><h3 id="review-pane-title">'+(reviewPane==='all'?'总安排':'编辑任务')+'</h3><button type="button" onclick="showRecommendationPane(null)" aria-label="关闭安排">✕</button></div><div id="review-plan-details">'+recommendationDetailsHTML()+'</div></section></div>':
+  '</section><section class="review-plan-editor" id="review-plan-editor" tabindex="-1" '+(reviewPane===null?'hidden':'')+'><div class="modal-head"><h3 id="review-pane-title">'+(reviewPane==='all'?'总安排预览':'编辑任务')+'</h3><button type="button" onclick="showRecommendationPane(null)" aria-label="关闭安排">✕</button></div><div id="review-plan-details">'+recommendationDetailsHTML()+'</div></section></div>':
   selectAll+reviewRows.map((row,index)=>reviewTaskDetails(row,index)).join('');
  const confirm='<button id="review-confirm" class="primary" onclick="confirmTaskReview()"></button>';
  const close='<button onclick="closeTaskReview()" aria-label="关闭核对窗口">✕</button>';
  const dialogue=reviewContext?.id?(pending?
   '<button type="button" class="secondary" data-review-decision onclick="decideReviewChanges(false,true)">不是很满意？放弃改动并继续聊</button>':
-  '<button type="button" class="secondary" id="review-dialogue">不是很满意？继续聊</button>'):'';
+  '<button type="button" class="secondary" id="review-dialogue">继续聊</button>'):'';
  const heading='<div class="modal-head"><h2>'+(isRecommendation?'准备方案':'核对识别结果')+'</h2>'+
   (isRecommendation?'<div class="review-plan-actions">'+(pending?'':confirm)+'<button type="button" class="secondary" onclick="showRecommendationPane(\'all\')">查看总安排</button>'+dialogue+close+'</div>':close)+'</div>';
- const description='<p class="desc">'+(isRecommendation?'勾选要采纳的任务，再核对执行安排。每个建议时段计为一次执行。':'勾选需要加入的任务，可以修改内容并选择固定时间或灵活安排。')+'</p>';
+ const description=isRecommendation?'':'<p class="desc">勾选需要加入的任务，可以修改内容并选择固定时间或灵活安排。</p>';
  const changeNote=dialogueReview?'<section class="review-round"><b>'+ (pending?'本轮待确认的改动':dialogueReview.created?'本轮新增 '+reviewRows.length+' 项准备任务':dialogueReview.outcome||'本轮无任务改动')+'</b>'+
-  (dialogueReview.reply?'<details open><summary>Agent 回复</summary><p>'+esc(dialogueReview.reply)+'</p></details>':'')+
+  (dialogueReview.reply?'<p class="review-round-reply">'+esc(dialogueReview.reply)+'</p>':'')+
   (pending?'<ul class="dialogue-changes">'+pending.preview.map(dialoguePreviewHTML).join('')+'</ul><div class="review-plan-actions"><button type="button" class="secondary" data-review-decision onclick="decideReviewChanges(false)">放弃改动</button><button type="button" class="primary" data-review-decision onclick="decideReviewChanges(true)">确认改动</button></div>':'')+'</section>':'';
  const skillNote=isRecommendation&&reviewContext.skills?.length?'<p class="tiny">本次使用：'+reviewContext.skills.map(skill=>esc(skill.label)).join('、')+'</p>':'';
  const scopeNote=isRecommendation&&reviewContext.planning?.scope_adjustment?'<p class="tiny">按时间预算调整：'+esc(reviewContext.planning.scope_adjustment)+'</p>':'';

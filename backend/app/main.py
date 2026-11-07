@@ -17,7 +17,7 @@ from .ai.skills import SKILL_LABELS, skills_for_request
 from .ai.workflows.plan_dialogue import workflow as dialogue_workflow
 from .integrations.model import ModelCapabilityError
 from .services.agent_errors import diagnose
-from .services.plans import plan_title,plan_payload
+from .services.plans import plan_title,plan_payload,dialogue_title
 from .services.plan_dialogue import dialogue_context, prepare_changes, apply_changes
 from .services.context import bounded_context
 from .services.memory import unpack,pack,record_bytes,cleanup_candidates
@@ -300,7 +300,7 @@ def list_plans(include_archived:bool=False,owner=Depends(uid)):
         results=[]
         for record in plans[:50]:
             plan=plan_payload(record,state['tasks'])
-            results.append({'id':record.id,'title':plan['title'],'created_at':plan['created_at'],'count':len(plan['items']),'archived':record.data.get('archived',False),'adopted_count':len(plan['adopted_indices'])})
+            results.append({'id':record.id,'title':plan['title'],'dialogue_title':plan['dialogue_title'],'created_at':plan['created_at'],'count':len(plan['items']),'archived':record.data.get('archived',False),'adopted_count':len(plan['adopted_indices'])})
         return results
 @app.get('/api/plans/{plan_id}')
 def get_plan(plan_id:str,owner=Depends(uid)):
@@ -340,7 +340,7 @@ def dialogue_payload(record, data):
     can_withdraw = len(messages) >= 2 and [turn['role'] for turn in messages[-2:]] == ['user', 'assistant']
     token = hashlib.sha256(json.dumps(messages, sort_keys=True).encode()).hexdigest() if can_withdraw else None
     public_messages = [{key: value for key, value in turn.items() if key in ('role', 'text', 'skills')} for turn in messages]
-    return {'id': record.id, 'title': plan_title(data), 'messages': public_messages, 'withdraw_token': token,
+    return {'id': record.id, 'title': plan_title(data), 'dialogue_title': dialogue_title(data), 'messages': public_messages, 'withdraw_token': token,
             'skill_profile': chat.get('skill_profile', 'auto'),
             'pending': {'id': pending['id'], 'preview': pending['preview']} if pending else None}
 

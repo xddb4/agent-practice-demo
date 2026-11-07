@@ -1,5 +1,6 @@
 """准备方案的显式持久记忆；不把模型推测写成能力事实。"""
 import json
+import re
 from .memory import unpack
 
 def plan_title(data):
@@ -11,6 +12,16 @@ def plan_title(data):
         if isinstance(parsed,dict):return str(parsed.get('目标') or parsed.get('goal') or '准备方案')[:200]
     except (ValueError,TypeError):pass
     return source[:100] or '准备方案'
+
+def dialogue_title(data):
+    """Prefer the model title; old records use a local fallback without model calls."""
+    data=unpack(data)
+    title=str(data.get('dialogue_title') or '').strip()
+    if title:return title[:10]
+    original=plan_title(data)
+    for keyword,label in [('六级','六级备考计划'),('四级','四级备考计划'),('雅思','雅思备考计划'),('考研','考研准备计划'),('论文','论文研究计划'),('科研','科研成长计划')]:
+        if keyword in original:return label
+    return re.sub(r'\s+','',original)[:10] or '准备方案'
 
 def plan_items(data):
     data=unpack(data)
@@ -53,4 +64,4 @@ def plan_payload(record,tasks):
     indices=[index for index in range(len(items)) if index not in data.get('cancelled_indices',[])]
     calendar_fields=('title','date','start','end','duration','ddl','done','location','suggested_sessions')
     calendar={index:{key:linked[index].get(key) for key in calendar_fields} for index in indices if index in linked}
-    return {'id':record.id,'route':'recommend','title':plan_title(data),'created_at':data.get('created_at'),'input_source':data.get('input_source',''),'items':[items[index] for index in indices],'proposal_indices':indices,'adopted_indices':list(calendar),'calendar_items':calendar,'sources':data.get('sources',[]),'skills':data.get('skills',[]),'planning':data.get('planning',{}),'search_status':data.get('search_status',{}),'reused':True,'parent_plan_id':data.get('parent_plan_id')}
+    return {'id':record.id,'route':'recommend','title':plan_title(data),'dialogue_title':dialogue_title(data),'created_at':data.get('created_at'),'input_source':data.get('input_source',''),'items':[items[index] for index in indices],'proposal_indices':indices,'adopted_indices':list(calendar),'calendar_items':calendar,'sources':data.get('sources',[]),'skills':data.get('skills',[]),'planning':data.get('planning',{}),'search_status':data.get('search_status',{}),'reused':True,'parent_plan_id':data.get('parent_plan_id')}

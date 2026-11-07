@@ -622,6 +622,71 @@ body { font-size: 15px; line-height: 1.7; }
 .plan-dialogue .dialogue-changes { max-height: 24vh; overflow: auto; margin: .5rem 0; padding: 0; list-style: none; }
 .dialogue-changes .preview-item { padding: .45rem; }
 .dialogue-changes ul { padding-left: 1rem; }
+/* Quiet composer, floating prompt, and compact message controls. */
+.dialogue-input { position: relative; margin-top: .65rem; }
+.dialogue-input textarea {
+  min-height: 112px;
+  padding: 30px 14px 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  background: #fbfafc;
+}
+.dialogue-input > span {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 17px;
+  color: #92909d;
+  font-size: 15px;
+  line-height: 1.5;
+  pointer-events: none;
+  transition: top .2s ease, font-size .2s ease, color .2s ease;
+}
+.dialogue-input textarea:focus + span,
+.dialogue-input textarea:not(:placeholder-shown) + span { top: 7px; font-size: 11px; color: #82718f; }
+#dialogue-form > .dialogue-actions { justify-content: flex-end; align-items: center; }
+#dialogue-form .dialogue-add, #dialogue-form .dialogue-send {
+  margin: 0;
+  width: 44px;
+  height: 40px;
+  padding: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+.dialogue-messages:has(> .dialogue-start) { display: grid; place-items: center; }
+.dialogue-start { font-size: clamp(50px, 8vw, 104px); font-weight: 800; letter-spacing: .12em; color: #65547e24; user-select: none; }
+.plan-dialogue .dialogue-turn { position: relative; }
+.plan-dialogue .dialogue-turn[data-role="user"]::after {
+  content: '';
+  position: absolute;
+  right: -9px;
+  bottom: 5px;
+  width: 18px;
+  height: 19px;
+  background: #eae0f2;
+  clip-path: path('M 0 0 L 10 0 Q 6 11 17 16 Q 7 20 0 12 Z');
+}
+.dialogue-message-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+.dialogue-message-actions [data-copy] { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 4px; border: 0; background: transparent; color: #8b799d; }
+.dialogue-message-actions [data-copy]:hover { color: #49355f; background: #8b799d12; }
+.dialogue-message-actions [data-copy] svg { width: 17px; height: 17px; }
+.dialogue-record-actions { display: flex; justify-content: flex-end; align-items: center; margin-top: 12px; }
+.dialogue-record-actions button { border: 0; border-radius: 0; background: transparent; padding: 0 12px; font-size: 13px; color: #79658f; }
+.dialogue-record-actions button + button { border-left: 1px solid #ac9ab958; }
+.dialogue-record-actions button:hover { color: #443054; }
+.review-plan-main > .modal-head .review-plan-actions > button:not([aria-label]) {
+  box-sizing: border-box;
+  width: 170px;
+  min-height: 48px;
+  padding: 10px 12px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  white-space: normal;
+}
+@media (prefers-reduced-motion: reduce) { .dialogue-input > span { transition: none; } }
 @media (max-width: 540px) {
   .dialogue-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: .45rem; }
   .dialogue-sidebar { max-height: 24dvh; }

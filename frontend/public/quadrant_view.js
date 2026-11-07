@@ -16,7 +16,7 @@ function completeQuadrantTask(id,q){toggle(id);if(tasks.find(task=>task.id===id)
 matrix=function(){
  selectedQuadrant=null;
  document.getElementById('content').classList?.add('sphere-matrix');
- document.getElementById('content').innerHTML=head('把精力，<br>放在值得的事上。','点击象限，查看其中的待办任务。','<button id="recommendation-toggle" class="recommendation-toggle" aria-haspopup="dialog" onclick="openPersonalizedRecommendations()"><span aria-hidden="true">✧</span><span>推荐任务</span></button>')+'<div class="division-workspace"><section class="editorial-quadrants">'+quadHTML()+'</section></div>';
+ document.getElementById('content').innerHTML=head('把精力，<br>放在值得的事上。','','<button id="recommendation-toggle" class="recommendation-toggle" aria-haspopup="dialog" onclick="openPersonalizedRecommendations()"><svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M16 3c0 9-4 13-13 13 9 0 13 4 13 13 0-9 4-13 13-13-9 0-13-4-13-13Z"/><path d="M26 2v7m-3.5-3.5h7"/></svg><span>推荐任务</span></button>')+'<div class="division-workspace"><section class="editorial-quadrants">'+quadHTML()+'</section></div>';
  document.querySelectorAll('[data-drop-q]').forEach(el=>el.addEventListener('click',event=>{if(event.target.closest('button,select,input,a'))return;if(Date.now()<dragClickUntil)return;showQuadrantTasks(Number(el.dataset.dropQ))}));
  if(typeof mountQuadrantSpheres==='function')mountQuadrantSpheres(document.querySelector('.quadrant-sphere-stage'));
 };

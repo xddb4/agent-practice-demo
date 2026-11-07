@@ -1,0 +1,85 @@
+/* Legible ink on glass, without changing light lettering on the dark gallery art. */
+body { color: #283149;  }
+html, body { overflow-x: clip; }
+#modal-root { position: relative; z-index: 100; }
+body:has(#modal-root .modal-backdrop) .plan-motto,
+body:has(#modal-root .modal-backdrop) .plan-motto-dock { visibility: hidden; }
+.sphere-matrix .subtitle:empty { display: none; }
+body :is(.tiny, .desc, .subtitle, .task-meta, .task-end, .task-info small, .preview-item small, .empty, .notice, .form-group label) { color: #505b73;  }
+body :is(input, textarea, select) {  color: #29334b; }
+body :is(input, textarea)::placeholder { color: #6e7282; opacity: 1; }
+.app-header .brand {  color: #202b44; font-weight: 750; }
+.brand-wordmark { font-family: 'Segoe UI', sans-serif; font-weight: 750; letter-spacing: -.9px; }
+.brand-wordmark em { color: #555472; font-style: normal; font-weight: 500; }
+.app-header .header-date { color: #46516a;  }
+.app-header .header-help { color: #36445f;  }
+.app-header #recommend-entry { color: #303d59;  }
+.app-header .header-profile #username { color: #303d59;  }
+.app-header .profile-chevron { color: #4a5670;  }
+.app-header .header-profile .avatar { width: 40px; height: 40px;  color: #39435d; }
+.app-header .gooey-nav__link {  }
+.app-header .gooey-nav__list:not(.gooey-nav__list--active) .gooey-nav__link { color: #555d74; }
+.plan-motto-dock { position: fixed; z-index: 24; margin: 0; white-space: nowrap; font-family: 'Songti SC', 'SimSun', serif; font-weight: 700; line-height: 1.6; letter-spacing: .02em; color: #202940; opacity: 0; pointer-events: none; }
+.plan-today-head h2 { color: #26324a; font-weight: 600; }
+.plan-today-head span, .plan-today-date, .plan-today-time { color: #4a566e;  }
+.plan-scene .gallery-main .time-toolbar h2 { color: #222d46;  font-weight: 700; }
+.plan-scene .gallery-main .gallery-range {  color: #46536c; font-weight: 550; }
+.plan-scene .time-tools .tiny { color: #394861;  font-weight: 600; }
+.plan-scene .time-tools .circle-btn { color: #303e59;  }
+.plan-scene .gallery-workspace { overflow-x: hidden; }
+.gallery-main:focus-visible { outline: none; }
+.gallery-main, .gallery-workspace, .task-gallery { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
+* { scrollbar-width: none; }
+.gallery-date-trigger .gallery-weekday {  color: #fff; }
+.gallery-collapsed-count {  color: #fff; }
+.gallery-day-count, .gallery-open-day, .gallery-mini-event small {  color: #f5f3fc; }
+.gallery-mini-event {  color: #fff; }
+.task-gallery .ag-day-panel.is-active .gallery-date-trigger,
+.task-gallery .ag-day-panel.is-active .gallery-weekday { color: #26334c; text-shadow: 0 1px 6px #ffffff9c; }
+.task-gallery .ag-day-panel.is-active .gallery-panel-overlay { background: linear-gradient(180deg, transparent 28%, #14203a18 40%, #14203a85 65%, #14203ae8); }
+.gallery-panel-content { text-shadow: 0 1px 5px #101a3199; }
+.right-task-column :is(.empty, .tiny, .shred-prompt, .shred-footer button) { color: #4d5872;  }
+.sphere-label {  color: #27334b; }
+.sphere-count small {  opacity: 1; color: #46516a; }
+.sphere-task-list small {  opacity: 1; color: #48536d; }
+#recommendation-toggle { border: 0; background: transparent; box-shadow: none; color: #464365; }
+#recommendation-toggle canvas, #dialogue-form .dialogue-add canvas, #dialogue-form .dialogue-send canvas { display: none; }
+#recommendation-toggle > span:last-child {  }
+.plan-dialogue .dialogue-heading { display: flex; align-items: baseline; gap: 10px;  color: #26324a; flex-wrap: wrap; }
+.dialogue-heading .brand-wordmark {  }
+.plan-dialogue .dialogue-switch { flex-wrap: nowrap; justify-content: space-between; }
+.plan-dialogue .dialogue-switch label { flex: 1;  color: #46516b; }
+.plan-dialogue .dialogue-switch select { width: min(300px, 70%);  }
+.plan-dialogue .dialogue-switch .dialogue-new { flex: 0 0 42px; width: 42px; height: 42px; padding: 0; border-radius: 50%; border: 1px solid #b9abc8; background: #faf7ff; color: #59446e;  line-height: 1; }
+.plan-dialogue .dialogue-turn:not([data-role="system"]) { max-width: 60%; width: fit-content; box-sizing: border-box; color: #28354d;  }
+.plan-dialogue .dialogue-turn small {  color: #536078; }
+.plan-dialogue .dialogue-turn[data-role="assistant"]::after { content: ''; position: absolute; left: -9px; bottom: 5px; width: 18px; height: 19px; background: white; clip-path: path('M 0 0 L 10 0 Q 6 11 17 16 Q 7 20 0 12 Z'); transform: scaleX(-1); }
+.plan-dialogue .dialogue-input > span { right: auto; max-width: calc(100% - 28px); color: #6d7181; }
+.plan-dialogue .dialogue-input textarea { padding-top: 22px; }
+.plan-dialogue .dialogue-input textarea:focus + span,
+.plan-dialogue .dialogue-input textarea:not(:placeholder-shown) + span { top: -8px; left: 10px; padding: 0 6px; background: #fbfafc; color: #594b6d;  line-height: 18px; }
+#dialogue-form .dialogue-add, #dialogue-form .dialogue-send { border: 0; border-radius: 0; background: transparent; box-shadow: none; color: #514266; }
+#dialogue-form .dialogue-add::before, #dialogue-form .dialogue-add::after,
+#dialogue-form .dialogue-send::before, #dialogue-form .dialogue-send::after { display: none; }
+#dialogue-form .dialogue-add:hover, #dialogue-form .dialogue-send:hover { color: #29213e; background: #8b799d12; }
+#dialogue-form .dialogue-add:disabled, #dialogue-form .dialogue-send:disabled { opacity: .45; }
+.dialogue-record-actions button, .dialogue-message-actions button { color: #5d4b75;  }
+.dialogue-sidebar-tools label, .dialogue-plan-summary, .dialogue-plan-summary small {  color: #4a5570; }
+.review-plan-main .review-plan-actions button { color: #554369;  }
+.review-plan-main .review-plan-actions .primary { color: #fff; }
+.review-task-choice small, .review-round, .review-plan-notes { color: #49556d;  }
+@media(max-width: 700px) {
+  .app-header .brand {  }
+  .app-header .gooey-nav__link {  }
+  .app-header .header-profile #username {  }
+  .plan-dialogue .dialogue-heading {  gap: 8px; }
+  .dialogue-heading .brand-wordmark {  }
+  .plan-dialogue .dialogue-turn:not([data-role="system"]) {  }
+  .plan-scene .gallery-main .time-toolbar h2 {  }
+}
+@media(max-width: 450px) {
+  .app-header-inner { padding-inline: 16px; }
+  .header-account { flex-wrap: wrap; justify-content: flex-end; max-width: 180px; }
+  .app-header #recommend-entry {  }
+}
