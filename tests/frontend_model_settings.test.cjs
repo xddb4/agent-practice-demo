@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const {readFileSync}=require('node:fs');
-const source=readFileSync('frontend/src/pages/AgentApp.jsx','utf8');
+const source=readFileSync('frontend/src/pages/AgentApp.jsx','utf8').replace(/\r\n/g,'\n');
 const run=source.slice(source.indexOf('async function runAgent('),source.indexOf('\n useEffect(()=>{\n  function receive'));
 function fixture(configured){
  const calls=[],messages=[];

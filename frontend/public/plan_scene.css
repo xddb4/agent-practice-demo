@@ -1,0 +1,121 @@
+/* One viewport-aligned glass surface: the header never shows a separate crop. */
+body::before,
+.header-background {
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  transform: none;
+  background: url('/assets/workspace-glass.svg') center / cover no-repeat;
+  filter: none;
+}
+body::after, .header-content-fade::after { content: none; }
+.app-header, .app-header-inner {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.plan-scene {
+  --plan-motto-space: 76px;
+  min-height: calc(200dvh - var(--header-height, 88px) - 60px);
+}
+.plan-intro {
+  min-height: max(520px, calc(100dvh - var(--header-height, 88px) - 60px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(255px, 33%);
+  align-items: center;
+  gap: clamp(28px, 5vw, 80px);
+  padding: 20px 0 64px;
+}
+.plan-motto-slot { min-width: 0; }
+.plan-motto, .plan-motto-sizer {
+  margin: 0;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif SC', 'SimSun', serif;
+  font-size: clamp(36px, 4.3vw, 66px);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: .04em;
+  color: #232a41;
+  text-wrap: balance;
+}
+.plan-motto-sizer { visibility: hidden; }
+.plan-motto {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 24;
+  transform-origin: top left;
+  pointer-events: none;
+  animation: plan-motto-in .9s ease backwards;
+  will-change: transform;
+}
+.plan-today { min-width: 0; animation: plan-motto-in .85s .25s ease backwards; }
+.plan-today-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.plan-today-head h2 { font-family: 'Songti SC', 'SimSun', serif; font-size: 25px; font-weight: 400; margin: 0; }
+.plan-today-head span, .plan-today-date { font-size: 12px; letter-spacing: .08em; color: #667087; }
+.plan-today-date { margin: 16px 0 24px; }
+.plan-today-list { max-height: min(460px, 55dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.plan-today-list::-webkit-scrollbar { width: 0; }
+.plan-today-task {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  padding: 20px 0;
+  border: 0;
+  border-top: 1px solid #49526e29;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #2d3650;
+}
+.plan-today-task:hover { background: #ffffff35; }
+.plan-today-task:focus-visible { outline: 2px solid #767598; outline-offset: -2px; }
+.plan-today-time { font-size: 12px; font-variant-numeric: tabular-nums; color: #667087; }
+.plan-today-empty { padding: 35px 0; font-size: 18px; line-height: 2; color: #667087; }
+.plan-scene .gallery-workspace {
+  position: fixed;
+  top: calc(var(--header-height, 88px) + var(--plan-motto-space) + 26px);
+  height: calc(100dvh - var(--header-height, 88px) - var(--plan-motto-space) - 42px);
+  padding: 0 0 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.plan-scene .gallery-workspace::-webkit-scrollbar { width: 0; }
+.plan-scene .gallery-main,
+.plan-scene .gallery-main.editorial-reveal {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  opacity: 1;
+  filter: none;
+  transform: none;
+  transition: none;
+}
+.plan-scene .gallery-main .time-toolbar { padding: 0 0 22px; gap: 16px; flex-wrap: wrap; }
+.plan-scene .gallery-main .gallery-range { padding: 0 0 22px; }
+.plan-scene .gallery-main .task-gallery { width: 100%; margin: 0 0 24px; }
+.plan-scene .right-task-column { top: 0; }
+.plan-scene.is-resuming .plan-motto, .plan-scene.is-resuming .plan-today { animation: none; }
+@keyframes plan-motto-in { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 800px) {
+  .plan-intro { grid-template-columns: minmax(0, 1fr) minmax(230px, 38%); gap: 28px; }
+  .plan-motto, .plan-motto-sizer { font-size: 36px; }
+}
+@media (max-width: 560px) {
+  .plan-intro { grid-template-columns: 1fr; gap: 32px; padding: 56px 0 64px; }
+  .plan-motto-slot { max-width: 340px; }
+  .plan-today-list { max-height: 35dvh; }
+  .plan-motto, .plan-motto-sizer { font-size: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan-motto, .plan-today { animation: none; }
+}

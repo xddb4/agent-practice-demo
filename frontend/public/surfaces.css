@@ -28,7 +28,7 @@ body::after {
 .landing-page.distortion-ready .landing-art,
 .landing-page:not(.distortion-ready) .landing-art,
 .landing-page .landing-distortion canvas {
-  filter: url('#floral-ink') contrast(1.22) brightness(.78) saturate(1.12);
+  filter: url('#floral-ink') contrast(1.22) brightness(.78) saturate(1.55);
 }
 .modal-backdrop,
 .quadrant-detail-backdrop,
