@@ -17,6 +17,23 @@ function setup(){
  return state;
 }
 
+test('移除课程只更新当前卡片并重排字段索引，不重建窗口',()=>{
+ const state=setup();
+ const rows=Array.from({length:3},(_,i)=>{
+  const attrs={oninput:`courseField(${i},'title',this.value)`,'aria-label':`课程${i+1} 课程名称`};
+  const field={getAttribute:key=>attrs[key],setAttribute:(key,value)=>attrs[key]=value};
+  return {attrs,heading:{},button:{},remove(){this.removed=true},querySelector(selector){return selector.endsWith(' b')?this.heading:this.button},querySelectorAll(){return [field]}};
+ });
+ const scroll={scrollTop:640,querySelectorAll:()=>rows};
+ state.document.querySelector=()=>scroll;state.courseRows=[{title:'甲'},{title:'乙'},{title:'丙'}];
+ state.reviewCourseImage=()=>assert.fail('移除课程不应重建窗口');
+ state.removeReviewedCourse(1);
+ assert.equal(rows[1].removed,true);assert.equal(scroll.scrollTop,640);
+ assert.equal(state.courseRows[1].title,'丙');assert.equal(rows[2].attrs.oninput,"courseField(1,'title',this.value)");
+ assert.equal(rows[2].attrs['aria-label'],'课程2 课程名称');
+ scroll.querySelectorAll=()=>[rows[0],rows[2]];rows[2].button.onclick();
+ assert.equal(state.courseRows.length,1);assert.equal(rows[2].removed,true);
+});
 test('周视图只显示一周，淡化下周单双周课程，确认导入全部实际课程',()=>{
  const state=setup();
  state.courseTerm='2026-11-02';
