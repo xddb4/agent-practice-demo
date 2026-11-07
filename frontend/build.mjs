@@ -1,0 +1,21 @@
+import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+mkdirSync('public',{recursive:true});
+const path=existsSync('prototype.html')?'prototype.html':'../code/frontend/StudyPilot.html';
+let html=readFileSync(path,'utf8');
+html=html.replace('<div class="notice">原型使用规则演示识别与自动分类；识别结果需要你核对。正式版需接入智能体。</div>','');
+html=html.replace('识别功能为流程演示：当前尚未接入视觉模型，点击后展示固定示例课程，不会读取图片内容。上传图片只在本页预览，不发送到服务器。','点击识别后，图片将发送给当前配置的视觉模型。请核对课程、时间和教学周后再导入。').replaceAll('演示识别并核对 →','识别并核对 →').replaceAll('点击上传课程表图片','上传图片，或按 Ctrl+V 粘贴截图').replaceAll('仅本页预览','待识别图片预览');
+html=html.replace(/<div class="form-group"><label>完成标准<\/label><input id="f-standard"[^>]*><\/div>/g,'').replaceAll("val('f-standard')","''").replaceAll("+'<br>完成标准：'+esc(t.standard)",'');
+html=html.replaceAll('let field=document.getElementById(key);if(key===','let field=document.getElementById(key);if(!field)continue;if(key===').replaceAll("' 分钟 · 完成标准：'+esc(t.standard)","' 分钟'").replaceAll('先核对完成标准，再安排专注时段。','先核对安排，再留出专注时段。');
+html=html.replace('</head>','<link rel="stylesheet" href="/ui.css"></head>');
+html=html.replace('以下是固定示例课程，与所上传图片内容无关。请核对并修改所有字段；真实版本将由视觉模型生成候选课程。若图片仅包含“第几节”，还需结合学校作息表转换为具体时间。','以下是视觉模型从当前图片提取的候选课程。请核对星期、周次和时间。若图片只标注节次，请按学校作息表补填具体时间。').replace('默认日期为演示值，请按学校校历修改。','请按学校校历填写，用于把教学周换算为实际日期。');
+html=html.replace('</body>','<script src="/bridge.js"></script><script src="/features.js"></script><script src="/notifications.js"></script><script src="/review.js"></script><script src="/plans.js"></script><script src="/plan_dialogue.js"></script><script src="/clipboard.js"></script><script src="/task_views.js"></script><script src="/model_settings.js"></script><script src="/quadrant_view.js"></script><script src="/evidence_inbox.js"></script></body>');
+html=html.replace('</body>','<script src="/course_review.js"></script></body>');
+// The prototype loads public adapters directly, outside Vite's hashed bundles.
+html=html.replace(/(src|href)="\/([\w-]+\.(?:js|css))"/g,(attribute,key,name)=>{
+ const file='public/'+name;
+ if(!existsSync(file))return attribute;
+ const version=createHash('sha256').update(readFileSync(file)).digest('hex').slice(0,12);
+ return key+'="/'+name+'?v='+version+'"';
+});
+writeFileSync('public/prototype.html',html);
