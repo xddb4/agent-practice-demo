@@ -17,6 +17,7 @@ from .services.agent_errors import diagnose
 from .services.plans import plan_title,plan_items,plan_payload
 from .services.context import bounded_context
 from .services.memory import unpack,pack,record_bytes,cleanup_candidates
+from .services.completion_stats import merge_completion_ids
 from .services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
 from .schemas.agent import output_contract
 from pydantic import ValidationError
@@ -103,8 +104,19 @@ def put_state(body:Snapshot,owner=Depends(uid)):
     for e in body.evidence:
         if e.get('dim') not in range(6) or e.get('status') not in ['待确认','已接受','已拒绝','待观察']: raise HTTPException(422,'证据维度或状态无效')
     with Session() as db:
+        previous=db.get(Record,'state:'+owner)
+        stats=db.get(Record,'completion-stats:'+owner)
+        completed=merge_completion_ids(stats.data.get('task_ids',[]) if stats else [],previous.data.get('tasks',[]) if previous else [],body.tasks)
+        db.merge(Record(id='completion-stats:'+owner,owner=owner,kind='completion-stats',data={'task_ids':completed}))
         db.merge(Record(id='state:'+owner,owner=owner,kind='state',data=body.model_dump())); db.commit()
     return {'ok':True}
+@app.get('/api/completion-stats')
+def completion_stats(owner=Depends(uid)):
+    with Session() as db:
+        stats=db.get(Record,'completion-stats:'+owner)
+        state=db.get(Record,'state:'+owner)
+        completed=merge_completion_ids(stats.data.get('task_ids',[]) if stats else [],state.data.get('tasks',[]) if state else [],[])
+        return {'completed_tasks':len(completed)}
 @app.patch('/api/profile')
 def profile(body:dict,owner=Depends(uid)):
     with Session() as db:

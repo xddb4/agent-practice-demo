@@ -68,7 +68,7 @@
   function bindGallery(root) {
     const abort = new AbortController();
     root.tabIndex = 0;
-    root.setAttribute('aria-label', '每日任务画廊，使用滚轮切换日期');
+    root.setAttribute('aria-label', '任务画廊，使用滚轮切换日期');
     root.addEventListener('focusin', () => alignGallery(root), {signal: abort.signal});
     root.addEventListener('wheel', event => {
       if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input,textarea,select,[contenteditable="true"]')) return;

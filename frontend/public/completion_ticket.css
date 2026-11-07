@@ -1,0 +1,101 @@
+.app-header-inner {
+  background: linear-gradient(110deg, #f7f8ff3d, #eeeefa29), url('/assets/frosted-glass.jpg') center 42% / cover;
+  backdrop-filter: blur(22px) saturate(125%);
+  -webkit-backdrop-filter: blur(22px) saturate(125%);
+}
+.modal.ticket-modal {
+  position: relative;
+  width: min(880px, 96vw);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.modal-backdrop:has(> .ticket-modal) { padding: 36px 12px; justify-content: center; }
+.ticket-close { position: absolute; top: -18px; right: 14px; width: 44px; height: 44px; font-size: 25px; color: #f7f8ffcc; z-index: 6; }
+.ticket-modal .tear-stage { padding: 46px 38px 30px; perspective: 1000px; }
+.ticket-modal .tear-ticket { width: 100%; height: 350px; transform: none; filter: drop-shadow(0 22px 26px #14274d33); }
+.ticket-modal .ticket-art {
+  padding: 36px 32px;
+  border-radius: 20px 0 0 20px;
+  border: 0;
+  background: linear-gradient(90deg, #142f64ba, #244f8b35 75%), url('/assets/ticket-blue-gold.jpg') center 51% / cover;
+  -webkit-mask: radial-gradient(circle 9px at 100% 50%, transparent 98%, #000) 0 0 / 100% 28px repeat-y;
+  mask: radial-gradient(circle 9px at 100% 50%, transparent 98%, #000) 0 0 / 100% 28px repeat-y;
+}
+.ticket-modal .ticket-art-content { position: relative; z-index: 1; }
+.ticket-modal .ticket-task-title { font-size: clamp(24px, 3.5vw, 38px); color: #fff; line-height: 1.45; text-wrap: balance; }
+.ticket-modal .ticket-task-meta { color: #f3f6ff; font-size: 14px; line-height: 1.8; }
+.ticket-modal .ticket-overline { color: #eef2ffc9; font-size: 10px; letter-spacing: 2px; }
+.ticket-modal .ticket-brand { color: #f7f7ee; font-size: 17px; letter-spacing: 1px; }
+.ticket-modal .ticket-stub {
+  --tear-progress: 0;
+  flex: 0 0 170px;
+  width: 170px;
+  padding: 34px 22px;
+  border: 0;
+  border-radius: 0 20px 20px 0;
+  background: linear-gradient(#f5f3e8e8, #eef1f8ed), url('/assets/ticket-blue-gold.jpg') 75% center / cover;
+  color: #3a5880;
+  overflow: hidden;
+  transform-origin: left center;
+  -webkit-mask: radial-gradient(circle 9px at 0% 50%, transparent 98%, #000) 0 0 / 100% 28px repeat-y;
+  mask: radial-gradient(circle 9px at 0% 50%, transparent 98%, #000) 0 0 / 100% 28px repeat-y;
+}
+.ticket-modal .is-dragging .ticket-stub { transition: none; }
+.ticket-curl {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: -8%;
+  height: 116%;
+  width: calc(var(--tear-progress) * 74%);
+  border-radius: 0 85% 85% 0 / 0 50% 50% 0;
+  background: linear-gradient(90deg, #203c634d, #fffff4 36%, #e4e4d7 76%, #56729873);
+  box-shadow: 12px 0 22px #1327482e;
+  transform: skewY(calc(var(--tear-progress) * -9deg));
+  opacity: var(--tear-progress);
+  pointer-events: none;
+}
+.ticket-modal .stub-top { color: #667da0; font-size: 12px; letter-spacing: 2px; }
+.ticket-modal .stub-arrow { color: #345580; font: italic 600 30px/1.2 Georgia, serif; letter-spacing: 2px; }
+.ticket-modal .stub-no { color: #657793; font-size: 13px; line-height: 1.7; }
+.ticket-modal .ticket-success-mark, .ticket-modal .ticket-art.is-torn .ticket-success-mark {
+  inset: auto 8% 24%;
+  padding: 13px 10px;
+  border: 4px double #244f81;
+  border-radius: 7px;
+  background: #fffdf0ed;
+  color: #244f81;
+  font: 800 clamp(24px, 3vw, 40px)/1.1 Georgia, serif;
+  letter-spacing: 1px;
+  text-align: center;
+  opacity: 0;
+  transform: rotate(-12deg) scale(1.7);
+}
+.ticket-modal .ticket-art.is-stamped .ticket-success-mark { animation: ticket-ink-stamp .6s cubic-bezier(.2,.8,.2,1) both; }
+.ticket-modal .tear-instructions { color: #f6f7ff; font-size: 14px; margin: 0 0 12px; text-align: center; }
+.ticket-modal .tear-progress { margin: 0 auto 18px; background: #f9fbff33; }
+.ticket-modal .tear-progress i { background: #d1e0ff; }
+.ticket-modal .ticket-actions { gap: 18px; align-items: center; }
+.ticket-modal .ticket-action { padding: 10px 18px; border: 0; border-radius: 0; color: #f5f7ff; background: transparent; font-size: 15px; transition: box-shadow .22s, background .22s; }
+.ticket-modal .ticket-action:hover { background: #f8faff1a; box-shadow: 0 8px 20px #101c3933; filter: none; }
+.ticket-action-divider { width: 1px; height: 22px; background: #ffffff66; }
+@keyframes ticket-ink-stamp { 0% { opacity: 0; transform: rotate(-12deg) scale(1.7); } 65% { opacity: 1; transform: rotate(-12deg) scale(.95); } 100% { opacity: 1; transform: rotate(-12deg) scale(1); } }
+@media(max-width: 620px) {
+  .ticket-modal .tear-stage { padding: 42px 20px 28px; }
+  .ticket-modal .tear-ticket { height: 300px; }
+  .ticket-modal .ticket-art { padding: 28px 22px; }
+  .ticket-modal .ticket-stub { flex-basis: 120px; width: 120px; padding: 30px 15px; }
+  .ticket-modal .stub-arrow { font-size: 23px; }
+  .ticket-modal .stub-top { font-size: 10px; letter-spacing: 1px; }
+  .ticket-modal .stub-no { font-size: 12px; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .ticket-modal .ticket-art.is-stamped .ticket-success-mark { animation: none; opacity: 1; transform: rotate(-12deg); }
+  .ticket-curl { display: none; }
+}
