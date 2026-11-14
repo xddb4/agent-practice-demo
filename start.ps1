@@ -1,5 +1,18 @@
 ﻿$ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
+# Docker Desktop may have been installed after this terminal was opened.
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+    $dockerPaths = @(
+        "$env:LOCALAPPDATA/Programs/DockerDesktop/resources/bin"
+        "$env:ProgramFiles/Docker/Docker/resources/bin"
+    )
+    foreach ($directory in $dockerPaths) {
+        if (Test-Path -LiteralPath (Join-Path $directory 'docker.exe')) {
+            $env:PATH = "$directory;$env:PATH"
+            break
+        }
+    }
+}
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw '请先安装 Docker Desktop 并启动，再运行本脚本。'
 }

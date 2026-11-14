@@ -7,7 +7,7 @@ RUN npm run build
 FROM python:3.12-slim
 WORKDIR /app
 COPY code/backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --timeout 120 --retries 10 -r requirements.txt
 COPY code/backend ./code/backend
 COPY code/core_engine ./code/core_engine
 RUN mkdir -p /app/logs
