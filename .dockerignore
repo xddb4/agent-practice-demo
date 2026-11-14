@@ -8,5 +8,5 @@
 *.log
 uploads
 docs/research
-frontend/dist
+code/frontend/dist
 logs

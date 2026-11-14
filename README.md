@@ -2,15 +2,63 @@
 
 启动前安装并打开 Docker Desktop。在项目根目录运行 powershell -ExecutionPolicy Bypass -File .\start.ps1，即可构建并后台启动，之后打开 http://localhost:8000。也可双击 Start-StudyPilot.cmd，或运行 .\scripts\restart_local.ps1，三个入口使用同一套 Docker Compose。首次构建需要联网。注册登录后在个人空间设置模型 API。警告写入 logs/server.warning.log，ERROR 和 CRITICAL 写入 logs/server.error.log，每个文件到 5 MB 后轮转，保留 3 份备份，日志目录已被 Git 和 Docker 构建忽略。查看实时输出运行 docker compose logs -f web，停止运行 docker compose stop。
 
-源码目录按前后端职责整理。frontend/src/pages 保存页面与推荐对话，components 保存课表核对、任务列表和弹窗逻辑，api 保存后端访问适配，types 保存共享字段声明，styles 保存样式。public 仅维护图片等静态素材，根目录 JS/CSS 由 build.mjs 生成，请修改 src 中的源文件。
+项目外层遵循课程目录，前后端内部继续按功能分层。
 
-backend/app/main.py 只负责组装应用，api/routes.py 注册接口，schemas 定义字段，services 保存业务规则，repositories 提供数据库查询，models 定义表，core 保存数据库连接、认证、配置和日志。ai 下分 workflows、tools、prompts 和 skills。
+~~~text
+StudyPilot/
+├── code/
+│   ├── frontend/src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── api/
+│   │   ├── types/
+│   │   └── styles/
+│   ├── backend/app/
+│   │   ├── main.py
+│   │   ├── api/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── integrations/
+│   │   └── core/
+│   └── core_engine/ai/
+│       ├── workflows/
+│       ├── tools/
+│       ├── prompts/
+│       └── skills/
+├── docs/
+│   ├── requirements/
+│   ├── algorithm/
+│   ├── software/
+│   ├── mgmt/
+│   └── retrospection/
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── .github/workflows/
+├── compose.yaml
+└── README.md
+~~~
 
-当前主页面仍由 src/pages/StudyPilot.html 和同源 React 外层共同运行，页面脚本迁入 src 后保持原交互。完整 React 页面组件迁移仍待后续完成。
+frontend/public 中根级 JS/CSS 由 build.mjs 从 src 生成，修改源码应在 src 中进行。
+当前页面由 src/pages/StudyPilot.html 和 React 外层共同运行，完整 React 页面组件迁移仍待后续完成。
+backend/app/main.py 负责应用组装，API 注册在 api/routes.py，Agent 引擎通过 core_engine.ai 导入。
+开发分支从最新 develop 创建，功能验证后通过 PR 合回 develop，发布时再由团队核对 main。
+已有仓库可直接使用，无需重复 git init 或重建 main、develop。
+
+本地测试命令：
+
+~~~powershell
+python -m pytest
+node --test tests/unit/frontend_*.test.cjs
+~~~
+
+Docker 构建与日志启动命令保持仓库根目录入口，详见 [本地运行说明](docs/software/LOCAL_RUN.md)。
 
 这是一个面向本科生科研成长的智能体项目。它把用户的目标、任务、时间投入、阶段成果和自我反馈关联起来，形成“计划执行—行为证据—能力评估—下一轮建议”的闭环。
 
-已增加本地运行实现。启动步骤、Agent 配置和当前验收边界见 [本地运行说明](docs/LOCAL_RUN.md)。原型文件保持不变。
+已增加本地运行实现。启动步骤、Agent 配置和当前验收边界见 [本地运行说明](docs/software/LOCAL_RUN.md)。原型文件保持不变。
 
 ## 1. 要解决的问题
 

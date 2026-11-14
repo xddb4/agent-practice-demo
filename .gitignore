@@ -8,9 +8,9 @@ __pycache__/
 *.db
 uploads/
 *.log
-frontend/public/prototype.html
+code/frontend/public/prototype.html
 logs/
 
 # Browser assets are generated from frontend/src by build.mjs.
-frontend/public/*.js
-frontend/public/*.css
+code/frontend/public/*.js
+code/frontend/public/*.css

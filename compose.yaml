@@ -16,6 +16,7 @@ services:
     restart: unless-stopped
     ports: ["127.0.0.1:8000:8000"]
     environment:
+      PYTHONPATH: /app/code
       DATABASE_URL: postgresql+psycopg://studypilot:${POSTGRES_PASSWORD:-local-study-password}@db/studypilot
       MODEL_API_KEY: ${MODEL_API_KEY:-}
       MODEL_PROVIDER: ${MODEL_PROVIDER:-qwen}

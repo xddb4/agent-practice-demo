@@ -1,14 +1,15 @@
 FROM node:22-alpine AS frontend
 WORKDIR /build
-COPY frontend/package.json ./
+COPY code/frontend/package.json ./
 RUN npm install
-COPY frontend ./
+COPY code/frontend ./
 RUN npm run build
 FROM python:3.12-slim
 WORKDIR /app
-COPY backend/requirements.txt ./
+COPY code/backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-COPY backend ./backend
+COPY code/backend ./code/backend
+COPY code/core_engine ./code/core_engine
 RUN mkdir -p /app/logs
-COPY --from=frontend /build/dist ./frontend/dist
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning", "--no-access-log", "--log-config", "backend/logging.json"]
+COPY --from=frontend /build/dist ./code/frontend/dist
+CMD ["uvicorn", "backend.app.main:app", "--app-dir", "code", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning", "--no-access-log", "--log-config", "code/backend/logging.json"]
