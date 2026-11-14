@@ -58,7 +58,7 @@ test('资源清单涵盖全部普通脚本，无遗漏、重复与无效语法',
 
 test('原版页面、全部业务与动效脚本、样式层叠和图片保持等价', async () => {
   const { bundles, styles } = await load('src/app/assets.mjs');
-  const { scriptContract, styleContract, markupContract, shellContract, hash } = await load('tools/source-contract.mjs');
+  const { scriptContract, styleContract, markupContract, shellContract, assetContract } = await load('tools/source-contract.mjs');
   const baseline = JSON.parse(readFileSync('tests/fixtures/frontend-contract-v1.json', 'utf8'));
   for (const [name, expected] of Object.entries(baseline.scripts)) {
     assert.equal(scriptContract(bundles[name].map(readSource).join('\n;\n'), name), expected, `Business code changed: ${name}`);
@@ -68,8 +68,19 @@ test('原版页面、全部业务与动效脚本、样式层叠和图片保持�
   assert.equal(await shellContract(readSource('app/AgentApp.jsx')), baseline.shell, 'React shell changed');
   assert.equal(await styleContract([readSource('styles/shell.css')]), baseline.shellStyles, 'React shell CSS changed');
   for (const [asset, expected] of Object.entries(baseline.assets)) {
-    assert.equal(hash(readFileSync(path.join(front, 'public/assets', asset))), expected, asset);
+    assert.equal(assetContract(asset, readFileSync(path.join(front, 'public/assets', asset))), expected, asset);
   }
+});
+
+test('SVG 换行兼容 Windows/Linux，实际 SVG 内容和二进制图片变化仍被检出', async () => {
+  const { assetContract, hash } = await load('tools/source-contract.mjs');
+  const lf = '<svg>\n<path fill="red"/>\n</svg>\n';
+  const crlf = lf.replaceAll('\n', '\r\n');
+  assert.equal(assetContract('image.svg', lf), assetContract('image.svg', crlf));
+  assert.notEqual(assetContract('image.svg', lf), assetContract('image.svg', lf.replace('red', 'blue')));
+  const binary = Buffer.from([0xff, 0xd8, 0x0d, 0x0a, 0x00, 0xff, 0xd9]);
+  assert.equal(assetContract('image.jpg', binary), hash(binary));
+  assert.notEqual(assetContract('image.jpg', binary), assetContract('image.jpg', Buffer.from([0xff, 0xd8, 0x0a, 0x00, 0xff, 0xd9])));
 });
 
 test('构建器可从任意工作目录生成全部资源、版本链接与正确加载顺序', async () => {

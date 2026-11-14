@@ -1,0 +1,9 @@
+# Match Prettier's LF setting on Windows checkouts and Linux CI.
+code/frontend/** text=auto eol=lf
+code/frontend/public/assets/*.svg text eol=lf
+code/frontend/public/assets/*.jpg -text
+code/frontend/public/assets/*.png -text
+tests/unit/frontend* text eol=lf
+tests/fixtures/frontend* text eol=lf
+tests/run-frontend.mjs text eol=lf
+.github/workflows/*.yml text eol=lf

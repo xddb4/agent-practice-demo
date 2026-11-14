@@ -138,7 +138,7 @@ app/assets.mjs → app/workspace.html → app/bootstrap.js → app/router.js
 
 ## 8. 测试与恢复
 
-61 项前端测试包括原有 57 项和 4 项架构/保真检查。保真检查使用 `tests/fixtures/frontend-contract-v1.json`，对比原版的业务语法结构、页面标记、1287 条 CSS 规则顺序与实际值、React 外框和 11 个素材文件。它不是像素级截图测试，也不能替代真实模型验收。
+62 项前端测试包括原有 57 项和 5 项架构/保真检查。保真检查使用 `tests/fixtures/frontend-contract-v1.json`，对比原版的业务语法结构、页面标记、1287 条 CSS 规则顺序与实际值、React 外框和 11 个素材文件。SVG 只忽略 Windows/Linux 的 CRLF/LF 换行差异，二进制图片仍逐字节比较；具体修复见 [CI 换行说明](FRONTEND_CI_FIX.md)。它不是像素级截图测试，也不能替代真实模型验收。
 
 本轮以后主动变更功能或设计时，保真快照可能合理失败。先检查差异和对应行为测试，不要为了通过测试直接替换摘要；有意改变的契约应在评审后更新并记录理由。源码读取助手已避免依赖空格和压缩排版。
 

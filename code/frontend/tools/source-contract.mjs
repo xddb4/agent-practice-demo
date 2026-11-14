@@ -7,6 +7,16 @@ import prettier from 'prettier';
 
 export const hash = (value) => createHash('sha256').update(value).digest('hex');
 
+/** Git may check text SVGs out with CRLF on Windows and LF on Linux.
+ * Normalize only that transport difference; keep binary assets byte-exact.
+ */
+export function assetContract(name, content) {
+  const bytes = Buffer.from(content);
+  return hash(
+    name.toLowerCase().endsWith('.svg') ? bytes.toString('utf8').replace(/\r\n/g, '\n') : bytes,
+  );
+}
+
 function normalizeAst(value) {
   if (Array.isArray(value)) {
     return value.filter((item) => item?.type !== 'EmptyStatement').map(normalizeAst);

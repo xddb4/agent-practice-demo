@@ -32,13 +32,14 @@
     "floral-background.jpg": "2582cdbd5c7247d407058344d5da822cf537fa2b2ecc38c2148086a48ebcf07a",
     "floral-scene.jpg": "b7cf1249fa7e2e993f346eb70077413fd002b688cf16cddc85cf420fbd965c44",
     "frosted-glass.jpg": "3ee0f18ddda583d96f0dd0e78ec51a69fe0f4202835e00d27859c57f549c0f1a",
-    "gallery-floral-1.svg": "69c06180f1a52e30d2233c081561361016c069d0da5cf3342ad07daacc0c58b4",
-    "gallery-floral-2.svg": "135c99ef9e95a3cc1b2ce34033dd9bd995cc66a559a9a380b6f9b4cb33501123",
-    "gallery-floral-3.svg": "1c650328886ccf7ecdc7b46a1866ff2e522d8c005f72938e3be64afdaa482b44",
-    "gallery-floral-4.svg": "c1ec591defe84faa57fea08e33db526f49550a697c9ba8f10d8000a59621421f",
+    "gallery-floral-1.svg": "68eebe5a93fd537b4caae8bf0e570ddbd8a2e3979e0f008b3cc2f03b75677361",
+    "gallery-floral-2.svg": "ab69162518ee57ee315b60bdb5cca1a19753daae7be4eead9cc2a0b5f602aff2",
+    "gallery-floral-3.svg": "e1631a9832c8c94deeadc04612d7ffc4944d8b113e7670680f19fa0018d2fa1f",
+    "gallery-floral-4.svg": "2a6c4df5d155a7f3986711ce600dd87197f18274b0b61c377574359bfee1db37",
     "ticket-blue-gold.jpg": "108f22347c45a333c89fd13c0af99d918d6544c0a6097d02f0183573252aace3",
     "workspace-glass.svg": "21c1f5eb23768f6f61d7889acfcec7d7fdf428f191426a78a386e0ac5654dca2"
   },
   "shell": "1e260c6e8506d958ccea89a371b713330a2a47fe4c1d02289a8d75bcd183ca64",
-  "shellStyles": "ad3541adb1557911a648cbb2272f1f8cc9abc6b1aafa3cdd57d9a5df053a6f55"
+  "shellStyles": "ad3541adb1557911a648cbb2272f1f8cc9abc6b1aafa3cdd57d9a5df053a6f55",
+  "assetTextNormalization": "SVG: CRLF to LF only; binary assets remain byte-exact"
 }
