@@ -1,7 +1,9 @@
 // Workspace source fragment: assembled in app/assets.mjs order.
 // Shared scope is retained to preserve existing inline events and function hoisting.
-function openImport(tab = 'text') {
+function openImport(tab = 'text', options = {}) {
   importTab = tab;
+  const key = options.key || 'task-import:' + tab;
+  if (typeof resumeModal === 'function' && !options.fresh && resumeModal(key)) return;
   modal(
     '<div class="modal-head"><h2>让安排，从这里开始</h2><button onclick="closeModal()">✕</button></div><p class="desc">文字通知、课程安排或一件小事，都可以成为有序的计划。</p>' +
       importTabs(tab) +
@@ -16,6 +18,7 @@ function openImport(tab = 'text') {
           '</select></div></div></div><div class="form-group"><label>四象限分类（可自行调整）</label><select id="f-q">' +
           labels.map((x, i) => '<option value="' + i + '">' + x + '</option>').join('') +
           '</select></div><div class="modal-footer"><button type="button" class="secondary" onclick="closeModal()">取消</button><button class="primary" type="submit">添加到计划</button></div></form>'),
+    { key },
   );
 }
 
@@ -217,6 +220,12 @@ function finishAdd() {
   timelineCenter = date;
   timelineMode = 'day';
   page = 'plan';
+  if (typeof discardModalDraft === 'function') {
+    discardModalDraft();
+    discardModalDraft('task-import:manual');
+    discardModalDraft('task-import:text');
+    discardModalDraft('course-review');
+  }
   render();
   closeModal();
   toast('已加入 ' + count + ' 项日程，四象限已同步');

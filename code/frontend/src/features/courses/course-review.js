@@ -6,6 +6,7 @@ const openCourseUpload = typeof openImageImport === 'function' ? openImageImport
 openImageImport = function () {
   if (courseDraftSaved && courseRows.length) {
     courseDraftSaved = false;
+    if (typeof resumeModal === 'function' && resumeModal('course-review')) return;
     return reviewCourseImage();
   }
   return openCourseUpload();

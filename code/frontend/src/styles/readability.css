@@ -378,3 +378,31 @@ body :is(input, textarea)::placeholder {
   outline: 3px solid #b59bd0;
   outline-offset: 3px;
 }
+.dialogue-job-status {
+  position: fixed;
+  right: 1rem;
+  bottom: 6rem;
+  z-index: 150;
+  max-width: min(330px, calc(100vw - 2rem));
+  padding: 0.7rem 1rem;
+  border: 1px solid #b9a5cf;
+  border-radius: 14px;
+  color: #51386c;
+  background: #f3eafa;
+  box-shadow: 0 4px 16px #67507f22;
+}
+.dialogue-job-status[hidden] {
+  display: none !important;
+}
+.dialogue-background-jobs {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+.dialogue-background-jobs [data-job-list] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  max-height: 20vh;
+  overflow: auto;
+  padding-block: 0.5rem;
+}

@@ -1,0 +1,14 @@
+uuid_utils-0.19.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+uuid_utils-0.19.0.dist-info/METADATA,sha256=XRhEAA4XhAaNdsv7V1PPu5aKtogzuW9BE5u-u3FNkkQ,6526
+uuid_utils-0.19.0.dist-info/RECORD,,
+uuid_utils-0.19.0.dist-info/WHEEL,sha256=7HL-TGvq44Ofp0yhZL-uRIIFHcJTIqqkRZVQ2wZidzM,96
+uuid_utils-0.19.0.dist-info/licenses/LICENSE.md,sha256=IJMw6B06iYYOnseem_iUvnBfB1Wjhp13qgkfxKL5GQM,1513
+uuid_utils-0.19.0.dist-info/sboms/uuid-utils.cyclonedx.json,sha256=fF_QjT82fK6K37b5tW8pI8CA-3PmXgruNvBikqSvH4o,37539
+uuid_utils/__init__.py,sha256=jlWHngERC2oJ3U25sejyEet5hP5cuIdxuVPAjml0T4c,1185
+uuid_utils/__init__.pyi,sha256=eAfgbHwuotjJ0Pt3Vx9vxPOsg74dgbvmLx_9_RIXFsw,7629
+uuid_utils/__pycache__/__init__.cpython-312.pyc,,
+uuid_utils/_uuid_utils.pyd,sha256=P2U7-J8EZ0DN4LGS9dpco0LRvBbHFx572ZwzE31Bqh4,374272
+uuid_utils/compat/__init__.py,sha256=6dNUHU0gSX1QvPd0DolvlwpN_yZUdd-qXmRP-Qyj--g,2576
+uuid_utils/compat/__init__.pyi,sha256=xQOPO_GCSrK-XORemaRL9YJLi6F19T0Ve8ueS0_7R2U,2397
+uuid_utils/compat/__pycache__/__init__.cpython-312.pyc,,
+uuid_utils/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0

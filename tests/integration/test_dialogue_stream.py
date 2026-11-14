@@ -128,3 +128,44 @@ def test_http_client_receives_reply_while_generation_is_still_running(monkeypatc
                 assert any('"type": "complete"' in line for line in lines)
     finally:
         release.set();server.should_exit=True;thread.join(4);listener.close()
+
+
+def test_disconnect_keeps_job_running_and_result_is_recoverable(monkeypatch):
+    client,path=setup(monkeypatch)
+    release=threading.Event()
+    def invoke(_):
+        emit_event({'type':'reply','text':'正在后台继续分析。'})
+        assert release.wait(5)
+        return {'result':{'reply':'后台分析已完成。','changes':[]}}
+    monkeypatch.setattr(routes.dialogue_workflow,'invoke',invoke)
+    listener=socket.socket();listener.bind(('127.0.0.1',0));listener.listen()
+    port=listener.getsockname()[1]
+    server=uvicorn.Server(uvicorn.Config(app,log_config=None,log_level='critical',access_log=False))
+    thread=threading.Thread(target=lambda:server.run(sockets=[listener]),daemon=True);thread.start()
+    request_id=str(uuid.uuid4())
+    try:
+        deadline=time.monotonic()+4
+        while not server.started and time.monotonic()<deadline:time.sleep(.01)
+        assert server.started
+        with httpx.Client(cookies={'session':client.cookies.get('session')},timeout=3,trust_env=False) as http:
+            with http.stream('POST',f'http://127.0.0.1:{port}'+path+'/stream',json={'text':'请继续分析','request_id':request_id}) as response:
+                first=next(line for line in response.iter_lines() if line.startswith('data: '))
+                assert 'reply' in first
+            # The browser connection has closed. The producer must still be alive.
+            progress=client.get('/api/agent-jobs/'+request_id)
+            assert progress.json()['status']=='running'
+            assert progress.json()['reply']=='正在后台继续分析。'
+            listed=client.get('/api/agent-jobs').json()
+            assert any(job['request_id']==request_id and job['status']=='running' for job in listed)
+            assert TestClient(app).get('/api/agent-jobs/'+request_id).status_code==401
+            release.set()
+            deadline=time.monotonic()+4
+            while time.monotonic()<deadline:
+                job=client.get('/api/agent-jobs/'+request_id).json()
+                if job['status']!='running':break
+                time.sleep(.02)
+            assert job['status']=='completed'
+            assert job['result']['messages'][-1]['text']=='后台分析已完成。'
+            assert client.get(path).json()['messages'][-1]['text']=='后台分析已完成。'
+    finally:
+        release.set();server.should_exit=True;thread.join(4);listener.close()

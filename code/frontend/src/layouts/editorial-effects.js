@@ -73,9 +73,10 @@ function revealEditorialContent() {
 
 const modalBeforeEditorial = modal;
 
-modal = function (html) {
-  modalBeforeEditorial(html);
+modal = function (html, options) {
+  const result = modalBeforeEditorial(html, options);
   decorateEditorialButtons(document.getElementById('modal-root'));
+  return result;
 };
 
 const renderBeforeEditorial = render;

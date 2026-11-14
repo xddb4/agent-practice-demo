@@ -20,7 +20,7 @@ from ..services.tasks import validate_tasks
 from ..services.context import bounded_context
 from ..schemas.requests import DialogueEvidenceReview
 from ..services.stream_events import ensure_stream_active
-from .streaming import stream_response, cancel_stream
+from .streaming import stream_response, cancel_stream, job_key, public_job
 from ..services.memory import unpack,pack,record_bytes,cleanup_candidates
 from ..services.completion_stats import merge_completion_ids
 from ..services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
@@ -544,10 +544,30 @@ def download(key:str,owner=Depends(uid)):
 @router.post('/api/agent/stream')
 def agent_stream(body:AgentInput, request:Request, owner=Depends(uid)):
     body=body.model_copy(update={'request_id':body.request_id or uuid.uuid4()})
-    return stream_response(request,owner,body.request_id,lambda:agent(body,owner))
+    return stream_response(request,owner,body.request_id,lambda:agent(body,owner),{'initial':True,'text':body.dialogue_message or body.text,'constraints':body.text})
 
 
 @router.post('/api/plans/{plan_id}/dialogue/stream')
 def dialogue_stream(plan_id:str, body:DialogueMessage, request:Request, owner=Depends(uid)):
     body=body.model_copy(update={'request_id':body.request_id or uuid.uuid4()})
-    return stream_response(request,owner,body.request_id,lambda:send_dialogue(plan_id,body,owner))
+    return stream_response(request,owner,body.request_id,lambda:send_dialogue(plan_id,body,owner),{'initial':False,'plan_id':plan_id,'text':body.text})
+
+
+@router.get('/api/agent-jobs')
+def get_agent_jobs(owner=Depends(uid)):
+    with Session() as db:
+        jobs=db.scalars(select(Record).where(Record.owner==owner,Record.kind=='agent-job').order_by(Record.data['created_at'].as_string().desc()).limit(20))
+        return [{key:data.get(key) for key in ('request_id','status','plan_id','initial','text','created_at')} for data in (public_job(row.data) for row in jobs)]
+
+
+@router.get('/api/agent-jobs/{request_id}')
+def get_agent_job(request_id:uuid.UUID, owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,job_key(owner,request_id))
+        if not row or row.owner!=owner:raise HTTPException(404,'生成任务不存在')
+        job=public_job(row.data)
+        if job.get('status')=='completed':
+            record=db.get(Record,job.get('plan_id'))
+            if not record or record.owner!=owner:raise HTTPException(404,'对应方案已删除')
+            job['result']={'id':record.id,'route':'recommend'} if job.get('initial') else dialogue_payload(record,unpack(record.data))
+        return job

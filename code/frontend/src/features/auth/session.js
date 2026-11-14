@@ -30,6 +30,8 @@ logout = async function () {
   try {
     await saveQueue;
     await api('logout', {});
+    if (typeof modalDrafts !== 'undefined') modalDrafts.clear();
+    if (typeof dialogueWorkspaceState === 'function') dialogueWorkspaceState.accounts?.clear();
     activeAccount = null;
     tasks = [];
     evidence = [];

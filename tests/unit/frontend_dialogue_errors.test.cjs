@@ -5,6 +5,23 @@ function setup(response){
  const state={fetch:async()=>response,TextDecoder,Uint8Array,esc:value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;')};
  vm.createContext(state);vm.runInContext(source,state);return state;
 }
+test('断流后查询同一后台任务，不重新发送模型请求',async()=>{
+ const events=[],calls=[];const state=setup();
+ state.fetch=async(path,options)=>{
+  calls.push([path,options?.method]);
+  if(path.endsWith('/stream'))throw new TypeError('connection lost');
+  return {ok:true,json:async()=>({status:'completed',reply:'后台已完成',result:{id:'saved-plan'}})};
+ };
+ const result=await state.dialogueStreamRequest('agent',{request_id:'same-request'},undefined,event=>events.push(event));
+ assert.equal(result.id,'saved-plan');
+ assert.deepEqual(calls,[['/api/agent/stream','POST'],['/api/agent-jobs/same-request',undefined]]);
+ assert.equal(events[0].text,'后台已完成');
+});
+
+test('后端重启导致后台任务中断时，显示明确原因而非无限等待',async()=>{
+ const state=setup({ok:true,json:async()=>({status:'interrupted',error:{code:'worker_restarted',reason:'后端服务已重启'}})});
+ await assert.rejects(state.waitForDialogueJob('request',undefined,()=>{}),error=>error.code==='worker_restarted');
+});
 test('流式读取跨字节的中文和心跳，收到完成事件才返回方案',async()=>{
  const bytes=new TextEncoder().encode(': heartbeat\n\ndata: {"type":"reply","text":"你好"}\n\ndata: {"type":"complete","result":{"id":"plan"}}\n\n');
  const events=[];let offset=0;

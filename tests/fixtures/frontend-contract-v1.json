@@ -4,19 +4,19 @@
     "grid-distortion.js": "cea9f234b9c5409deb74c0fe10ba45ddb7cba33d2ecf9983b747f3d2a50b2525",
     "gooey-navigation.js": "6942753867ee404fadc530486084e8cfab6d24f1bad975188f1265b1450fcce8",
     "local-state.js": "52a340509e4fbd90984d7a7769d6a64a1962b08b390af38e63015197e0f6f3db",
-    "workspace.js": "e19415977ae7d6a55702971ffc220c7b4356b23b7cb7dcc63f46cd00cc276ce8",
-    "bridge.js": "eb854a6c314b5990cbf85f8cf9904278690675676fc3469e322f19d500592f56",
+    "workspace.js": "5626911320377e7989005f5bd75b47c3f6cd8f99942496a35c8063ca9fb9875e",
+    "bridge.js": "58af381c283296f852c8c1de3c950e42a7ab324ba4c5300d703365558a0292a6",
     "features.js": "c58ce4a07229ee6f7e3a651b4515e16ec4d5e4bb41e4f513392bba3eed87cfb8",
     "notifications.js": "ea367bf97adc2e1a28d62a8f3540530243195d726c6fe43947ef78dd31425950",
     "review.js": "e1dc6e67566e5f2871caea7a09a99bf8ab2afd2c22e98aae250030febca112ab",
     "plans.js": "1560ce64d43b89513481cdb8e04e23a0e4fb1e19777446d31355c94279de1e2b",
-    "plan_dialogue.js": "86aaf0f116fd1e9ac9e8f4ee466322ae1d17ed5cff6f2e9c06b99c5bcfbc1e37",
+    "plan_dialogue.js": "32a6993712f4c10dd7009f647e6bd76400ee88dfc3e1e01aa82db603977ffbaa",
     "clipboard.js": "c22bfff5a65b2efd7406de8f1afba786bc0132f69b2025cb5fbfe13ac4987a10",
     "task_views.js": "6f21c1f1dcc9c60c7ba7b88848a00f65c07cc3cc1fdea038da5336c31643df38",
     "model_settings.js": "e73d8d69f2e4841cd2d9003a5cf75027e42ce11e946dbf35033abc605ccd7699",
     "quadrant_view.js": "cee8742653fa584efa0a1ceca2ea1e1a0580e36f243de81e16bca731efc422fd",
     "evidence_inbox.js": "9015b2c310599960ed534c974736f999472ee940238593d112b21e4bd044d9cb",
-    "course_review.js": "8acc4b2ae0c0dbab1e77ae1c45a49927d8be21f9570bef3bc744630bb55a9106",
+    "course_review.js": "c34f04cde0c60933a99ef89ee3c593376494023e58153e4abee7bfb4ded859a3",
     "navigation.js": "81c3f4cf27f05f8d038fb6645a907c6d44bd6eac45d87eb63384eff666b72720",
     "spheres.js": "37adeb143dfb75bd44f333b70e13cafacd4cbde81ad78543dc0477252b76e39f",
     "surfaces.js": "084033bf3c462fd7c261b87456e253c70fdd2d67d79ed2182562d37e79a66ba5",
@@ -25,7 +25,7 @@
     "plan_scene.js": "d35a60bf022d2ed8b55f7ce3a4a75381150b3855980fe42f2c17946d1ba5f203"
   },
   "markup": "843b4c93be82c565b8041f828ccbd99103c36e0828aa4e295ba9be7430b458d9",
-  "styles": "2bffa460ffcdf929c3ee9a590c2e354f336443b3f43c1ff828e14b5e4f5709f4",
+  "styles": "76816f27ac8eb7a0c94cfec61826bf8919e5467117f6c912df00ff9f548ea52d",
   "assets": {
     "dialog-floral-soft.svg": "64b922b67fbb10262135d59ea91512150200fbc2bdce7669278c9ffbe290d730",
     "dialog-floral.jpg": "638ab139009cdae43c8374a66d778d82efb1b156765afe67731cda674f222a9d",
@@ -41,5 +41,6 @@
   },
   "shell": "1e260c6e8506d958ccea89a371b713330a2a47fe4c1d02289a8d75bcd183ca64",
   "shellStyles": "ad3541adb1557911a648cbb2272f1f8cc9abc6b1aafa3cdd57d9a5df053a6f55",
-  "assetTextNormalization": "SVG: CRLF to LF only; binary assets remain byte-exact"
+  "assetTextNormalization": "SVG: CRLF to LF only; binary assets remain byte-exact",
+  "featureUpdate": "Window drafts and background dialogue jobs; behavior covered by frontend_modal_drafts and dialogue_stream tests."
 }

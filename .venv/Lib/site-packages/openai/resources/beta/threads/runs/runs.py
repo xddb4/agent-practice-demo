@@ -1,0 +1,3273 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+
+from __future__ import annotations
+
+import typing_extensions
+from typing import List, Union, Iterable, Optional
+from typing_extensions import Literal, overload
+
+import httpx2
+
+from ..... import _legacy_response
+from .steps import (
+    Steps,
+    AsyncSteps,
+    StepsWithRawResponse,
+    AsyncStepsWithRawResponse,
+    StepsWithStreamingResponse,
+    AsyncStepsWithStreamingResponse,
+)
+from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ....._utils import path_template, required_args, maybe_transform, async_maybe_transform
+from ....._compat import cached_property
+from ....._resource import SyncAPIResource, AsyncAPIResource
+from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ....._streaming import Stream, AsyncStream
+from .....pagination import SyncCursorPage, AsyncCursorPage
+from ....._base_client import AsyncPaginator, make_request_options
+from .....lib.streaming import (
+    AssistantEventHandler,
+    AssistantEventHandlerT,
+    AssistantStreamManager,
+    AsyncAssistantEventHandler,
+    AsyncAssistantEventHandlerT,
+    AsyncAssistantStreamManager,
+)
+from .....types.beta.threads import (
+    run_list_params,
+    run_create_params,
+    run_update_params,
+    run_submit_tool_outputs_params,
+)
+from .....lib._assistants_runs import (
+    runs_poll,
+    runs_stream,
+    async_runs_poll,
+    async_runs_stream,
+    runs_create_and_poll,
+    runs_create_and_stream,
+    async_runs_create_and_poll,
+    async_runs_create_and_stream,
+    runs_submit_tool_outputs_stream,
+    runs_submit_tool_outputs_and_poll,
+    async_runs_submit_tool_outputs_stream,
+    async_runs_submit_tool_outputs_and_poll,
+)
+from .....types.beta.threads.run import Run
+from .....types.shared.chat_model import ChatModel
+from .....types.shared_params.metadata import Metadata
+from .....types.shared.reasoning_effort import ReasoningEffort
+from .....types.beta.assistant_tool_param import AssistantToolParam
+from .....types.beta.assistant_stream_event import AssistantStreamEvent
+from .....types.beta.threads.runs.run_step_include import RunStepInclude
+from .....types.beta.assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
+from .....types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
+
+__all__ = ["Runs", "AsyncRuns"]
+
+
+class Runs(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
+    @cached_property
+    def steps(self) -> Steps:
+        """Build Assistants that can call models and use tools."""
+        return Steps(self._client)
+
+    @cached_property
+    def with_raw_response(self) -> RunsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return RunsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> RunsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return RunsWithStreamingResponse(self)
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_poll(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to create a run an poll for a terminal state. More information on Run
+        lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_create_and_poll(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+        return runs_create_and_stream(
+            self,
+            assistant_id=assistant_id,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def poll(
+        self,
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Run:
+        """A helper to poll a run status until it reaches a terminal state. More
+        information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_poll(
+            self,
+            run_id=run_id,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a Run stream"""
+        return runs_stream(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_and_poll(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to submit a tool output to a run and poll for a terminal run state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_submit_tool_outputs_and_poll(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return runs_submit_tool_outputs_stream(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Create a run.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
+              for more information.
+
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
+
+          instructions: Overrides the
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
+
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
+              during tool use.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
+
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the initial context window of the run.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        stream: Literal[True],
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Stream[AssistantStreamEvent]:
+        """
+        Create a run.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
+              for more information.
+
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
+
+          instructions: Overrides the
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
+
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
+              during tool use.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
+
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the initial context window of the run.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        stream: bool,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | Stream[AssistantStreamEvent]:
+        """
+        Create a run.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
+              for more information.
+
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
+
+          instructions: Overrides the
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
+
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
+              during tool use.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
+
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the initial context window of the run.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    @required_args(["assistant_id"], ["assistant_id", "stream"])
+    def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | Stream[AssistantStreamEvent]:
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._post(
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
+            body=maybe_transform(
+                {
+                    "model": model,
+                    "stream": stream,
+                    "assistant_id": assistant_id,
+                    "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
+                    "instructions": instructions,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_prompt_tokens": max_prompt_tokens,
+                    "metadata": metadata,
+                    "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
+                    "response_format": response_format,
+                    "temperature": temperature,
+                    "tool_choice": tool_choice,
+                    "tools": tools,
+                    "top_p": top_p,
+                    "truncation_strategy": truncation_strategy,
+                },
+                run_create_params.RunCreateParamsStreaming if stream else run_create_params.RunCreateParamsNonStreaming,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
+            ),
+            cast_to=Run,
+            stream=stream or False,
+            stream_cls=Stream[AssistantStreamEvent],
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def retrieve(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Retrieves a run.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._get(
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Run,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def update(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        metadata: Optional[Metadata] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Modifies a run.
+
+        Args:
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._post(
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
+            body=maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Run,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def list(
+        self,
+        thread_id: str,
+        *,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> SyncCursorPage[Run]:
+        """
+        Returns a list of runs belonging to a thread.
+
+        Args:
+          after: A cursor for use in pagination. `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          before: A cursor for use in pagination. `before` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              starting with obj_foo, your subsequent call can include before=obj_foo in order
+              to fetch the previous page of the list.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              100, and the default is 20.
+
+          order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
+              order and `desc` for descending order.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._get_api_list(
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
+            page=SyncCursorPage[Run],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "before": before,
+                        "limit": limit,
+                        "order": order,
+                    },
+                    run_list_params.RunListParams,
+                ),
+                security={"bearer_auth": True},
+            ),
+            model=Run,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def cancel(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Cancels a run that is `in_progress`.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._post(
+            path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Run,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        stream: Optional[Literal[False]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        When a run has the `status: "requires_action"` and `required_action.type` is
+        `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
+        tool calls once they're all completed. All outputs must be submitted in a single
+        request.
+
+        Args:
+          tool_outputs: A list of tools for which the outputs are being submitted.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        stream: Literal[True],
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Stream[AssistantStreamEvent]:
+        """
+        When a run has the `status: "requires_action"` and `required_action.type` is
+        `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
+        tool calls once they're all completed. All outputs must be submitted in a single
+        request.
+
+        Args:
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          tool_outputs: A list of tools for which the outputs are being submitted.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        stream: bool,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | Stream[AssistantStreamEvent]:
+        """
+        When a run has the `status: "requires_action"` and `required_action.type` is
+        `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
+        tool calls once they're all completed. All outputs must be submitted in a single
+        request.
+
+        Args:
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          tool_outputs: A list of tools for which the outputs are being submitted.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    @required_args(["thread_id", "tool_outputs"], ["thread_id", "stream", "tool_outputs"])
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | Stream[AssistantStreamEvent]:
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._post(
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
+            body=maybe_transform(
+                {
+                    "stream": stream,
+                    "tool_outputs": tool_outputs,
+                },
+                run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
+                if stream
+                else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
+            ),
+            cast_to=Run,
+            stream=stream or False,
+            stream_cls=Stream[AssistantStreamEvent],
+        )
+
+
+class AsyncRuns(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
+    @cached_property
+    def steps(self) -> AsyncSteps:
+        """Build Assistants that can call models and use tools."""
+        return AsyncSteps(self._client)
+
+    @cached_property
+    def with_raw_response(self) -> AsyncRunsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return AsyncRunsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncRunsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return AsyncRunsWithStreamingResponse(self)
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def create_and_poll(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to create a run an poll for a terminal state. More information on Run
+        lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_create_and_poll(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            poll_interval_ms=poll_interval_ms,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def create_and_stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Create a Run stream"""
+        return async_runs_create_and_stream(
+            self,
+            assistant_id=assistant_id,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def poll(
+        self,
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Run:
+        """A helper to poll a run status until it reaches a terminal state. More
+        information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_poll(
+            self,
+            run_id=run_id,
+            thread_id=thread_id,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Create a Run stream"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Create a Run stream"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def stream(
+        self,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Create a Run stream"""
+        return async_runs_stream(
+            self,
+            assistant_id=assistant_id,
+            include=include,
+            additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
+            instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
+            metadata=metadata,
+            model=model,
+            parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
+            response_format=response_format,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_p=top_p,
+            truncation_strategy=truncation_strategy,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def submit_tool_outputs_and_poll(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        poll_interval_ms: int | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """A helper to submit a tool output to a run and poll for a terminal run state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return await async_runs_submit_tool_outputs_and_poll(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            poll_interval_ms=poll_interval_ms,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def submit_tool_outputs_stream(
+        self,
+        *,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        run_id: str,
+        thread_id: str,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Submit the tool outputs from a previous run and stream the run to a terminal
+        state. More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps"""
+        return async_runs_submit_tool_outputs_stream(
+            self,
+            tool_outputs=tool_outputs,
+            run_id=run_id,
+            thread_id=thread_id,
+            event_handler=event_handler,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    async def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Create a run.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
+              for more information.
+
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
+
+          instructions: Overrides the
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
+
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
+              during tool use.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
+
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the initial context window of the run.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    async def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        stream: Literal[True],
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncStream[AssistantStreamEvent]:
+        """
+        Create a run.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
+              for more information.
+
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
+
+          instructions: Overrides the
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
+
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
+              during tool use.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
+
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the initial context window of the run.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    async def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        stream: bool,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | AsyncStream[AssistantStreamEvent]:
+        """
+        Create a run.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
+              for more information.
+
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
+
+          instructions: Overrides the
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
+
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `incomplete`. See
+              `incomplete_details` for more info.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
+
+              Deprecated values:
+
+              - "gpt-5.4-nano", "gpt-5.4-nano-2026-03-17", "gpt-5.1", "gpt-5.1-2025-11-13":
+                Announced shutdown date: 2027-04-01. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.3-chat-latest", "gpt-5.2-chat-latest": Announced shutdown date:
+                2026-08-10. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-5.1-codex", "gpt-5.1-chat-latest", "gpt-5-chat-latest",
+                "gpt-4o-search-preview", "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11", "gpt-4o-mini-search-preview-2025-03-11":
+                Announced shutdown date: 2026-07-23. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-5.1-mini": Not a supported model ID. Retained for SDK compatibility.
+              - "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07", "gpt-5-nano-2025-08-07", "o3", "o3-2025-04-16":
+                Announced shutdown date: 2026-12-11. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-2025-04-14", "gpt-4.1-mini-2025-04-14",
+                "gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-2024-08-06", "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18": Announced shutdown date: 2027-01-14. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4.1-nano", "gpt-4.1-nano-2025-04-14", "o4-mini", "o4-mini-2025-04-16",
+                "o3-mini", "o3-mini-2025-01-31", "o1", "o1-2024-12-17", "gpt-4o-2024-05-13",
+                "gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-1106-preview", "gpt-4",
+                "gpt-4-0613", "gpt-3.5-turbo", "gpt-3.5-turbo-0125": Announced shutdown date:
+                2026-10-23. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "o1-preview", "o1-preview-2024-09-12": Announced shutdown date: 2025-07-28.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "o1-mini", "o1-mini-2024-09-12": Announced shutdown date: 2025-10-27. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-audio-mini", "gpt-audio-mini-2025-12-15": Announced shutdown date:
+                2027-01-20. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03", "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17": Announced shutdown date: 2026-05-07.
+                See https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4o-audio-preview-2024-10-01": Announced shutdown date: 2025-10-10. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "chatgpt-4o-latest": Announced shutdown date: 2026-02-17. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "codex-mini-latest": Announced shutdown date: 2026-02-12. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-0125-preview", "gpt-4-turbo-preview", "gpt-4-0314": Announced shutdown
+                date: 2026-03-26. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-4-vision-preview": Announced shutdown date: 2024-12-06. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613": Announced shutdown date:
+                2025-06-06. See https://developers.openai.com/api/docs/deprecations for
+                details and recommended replacements.
+              - "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-16k-0613": Announced shutdown date: 2024-09-13. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+              - "gpt-3.5-turbo-1106": Announced shutdown date: 2026-09-28. See
+                https://developers.openai.com/api/docs/deprecations for details and
+                recommended replacements.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
+              during tool use.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
+
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the initial context window of the run.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    @required_args(["assistant_id"], ["assistant_id", "stream"])
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def create(
+        self,
+        thread_id: str,
+        *,
+        assistant_id: str,
+        include: List[RunStepInclude] | Omit = omit,
+        additional_instructions: Optional[str] | Omit = omit,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[run_create_params.TruncationStrategy] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | AsyncStream[AssistantStreamEvent]:
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._post(
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
+            body=await async_maybe_transform(
+                {
+                    "model": model,
+                    "stream": stream,
+                    "assistant_id": assistant_id,
+                    "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
+                    "instructions": instructions,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_prompt_tokens": max_prompt_tokens,
+                    "metadata": metadata,
+                    "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
+                    "response_format": response_format,
+                    "temperature": temperature,
+                    "tool_choice": tool_choice,
+                    "tools": tools,
+                    "top_p": top_p,
+                    "truncation_strategy": truncation_strategy,
+                },
+                run_create_params.RunCreateParamsStreaming if stream else run_create_params.RunCreateParamsNonStreaming,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
+            ),
+            cast_to=Run,
+            stream=stream or False,
+            stream_cls=AsyncStream[AssistantStreamEvent],
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def retrieve(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Retrieves a run.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._get(
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Run,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def update(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        metadata: Optional[Metadata] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Modifies a run.
+
+        Args:
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._post(
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
+            body=await async_maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Run,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    def list(
+        self,
+        thread_id: str,
+        *,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncPaginator[Run, AsyncCursorPage[Run]]:
+        """
+        Returns a list of runs belonging to a thread.
+
+        Args:
+          after: A cursor for use in pagination. `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          before: A cursor for use in pagination. `before` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              starting with obj_foo, your subsequent call can include before=obj_foo in order
+              to fetch the previous page of the list.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              100, and the default is 20.
+
+          order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
+              order and `desc` for descending order.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._get_api_list(
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
+            page=AsyncCursorPage[Run],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "before": before,
+                        "limit": limit,
+                        "order": order,
+                    },
+                    run_list_params.RunListParams,
+                ),
+                security={"bearer_auth": True},
+            ),
+            model=Run,
+        )
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def cancel(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        Cancels a run that is `in_progress`.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._post(
+            path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Run,
+        )
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    async def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        stream: Optional[Literal[False]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run:
+        """
+        When a run has the `status: "requires_action"` and `required_action.type` is
+        `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
+        tool calls once they're all completed. All outputs must be submitted in a single
+        request.
+
+        Args:
+          tool_outputs: A list of tools for which the outputs are being submitted.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    async def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        stream: Literal[True],
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncStream[AssistantStreamEvent]:
+        """
+        When a run has the `status: "requires_action"` and `required_action.type` is
+        `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
+        tool calls once they're all completed. All outputs must be submitted in a single
+        request.
+
+        Args:
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          tool_outputs: A list of tools for which the outputs are being submitted.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API", category=None)
+    async def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        stream: bool,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | AsyncStream[AssistantStreamEvent]:
+        """
+        When a run has the `status: "requires_action"` and `required_action.type` is
+        `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
+        tool calls once they're all completed. All outputs must be submitted in a single
+        request.
+
+        Args:
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          tool_outputs: A list of tools for which the outputs are being submitted.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    @required_args(["thread_id", "tool_outputs"], ["thread_id", "stream", "tool_outputs"])
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
+    async def submit_tool_outputs(
+        self,
+        run_id: str,
+        *,
+        thread_id: str,
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Run | AsyncStream[AssistantStreamEvent]:
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not run_id:
+            raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._post(
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
+            body=await async_maybe_transform(
+                {
+                    "stream": stream,
+                    "tool_outputs": tool_outputs,
+                },
+                run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
+                if stream
+                else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
+            ),
+            cast_to=Run,
+            stream=stream or False,
+            stream_cls=AsyncStream[AssistantStreamEvent],
+        )
+
+
+class RunsWithRawResponse:
+    def __init__(self, runs: Runs) -> None:
+        self._runs = runs
+
+        self.create = _legacy_response.to_raw_response_wrapper(
+            runs.create,
+        )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            runs.retrieve,
+        )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            runs.update,
+        )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            runs.list,
+        )
+        self.cancel = _legacy_response.to_raw_response_wrapper(
+            runs.cancel,
+        )
+        self.submit_tool_outputs = _legacy_response.to_raw_response_wrapper(
+            runs.submit_tool_outputs,
+        )
+
+    @cached_property
+    def steps(self) -> StepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
+        return StepsWithRawResponse(self._runs.steps)
+
+
+class AsyncRunsWithRawResponse:
+    def __init__(self, runs: AsyncRuns) -> None:
+        self._runs = runs
+
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            runs.create,
+        )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            runs.retrieve,
+        )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            runs.update,
+        )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            runs.list,
+        )
+        self.cancel = _legacy_response.async_to_raw_response_wrapper(
+            runs.cancel,
+        )
+        self.submit_tool_outputs = _legacy_response.async_to_raw_response_wrapper(
+            runs.submit_tool_outputs,
+        )
+
+    @cached_property
+    def steps(self) -> AsyncStepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
+        return AsyncStepsWithRawResponse(self._runs.steps)
+
+
+class RunsWithStreamingResponse:
+    def __init__(self, runs: Runs) -> None:
+        self._runs = runs
+
+        self.create = to_streamed_response_wrapper(
+            runs.create,
+        )
+        self.retrieve = to_streamed_response_wrapper(
+            runs.retrieve,
+        )
+        self.update = to_streamed_response_wrapper(
+            runs.update,
+        )
+        self.list = to_streamed_response_wrapper(
+            runs.list,
+        )
+        self.cancel = to_streamed_response_wrapper(
+            runs.cancel,
+        )
+        self.submit_tool_outputs = to_streamed_response_wrapper(
+            runs.submit_tool_outputs,
+        )
+
+    @cached_property
+    def steps(self) -> StepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
+        return StepsWithStreamingResponse(self._runs.steps)
+
+
+class AsyncRunsWithStreamingResponse:
+    def __init__(self, runs: AsyncRuns) -> None:
+        self._runs = runs
+
+        self.create = async_to_streamed_response_wrapper(
+            runs.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            runs.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            runs.update,
+        )
+        self.list = async_to_streamed_response_wrapper(
+            runs.list,
+        )
+        self.cancel = async_to_streamed_response_wrapper(
+            runs.cancel,
+        )
+        self.submit_tool_outputs = async_to_streamed_response_wrapper(
+            runs.submit_tool_outputs,
+        )
+
+    @cached_property
+    def steps(self) -> AsyncStepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
+        return AsyncStepsWithStreamingResponse(self._runs.steps)

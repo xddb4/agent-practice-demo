@@ -130,7 +130,82 @@ function dialoguePreviewHTML(change) {
   );
 }
 
+function dialogueWorkspaceState() {
+  const owner = activeAccount?.id;
+  dialogueWorkspaceState.accounts ||= new Map();
+  if (!dialogueWorkspaceState.accounts.has(owner))
+    dialogueWorkspaceState.accounts.set(owner, { sessions: new Map(), last: null });
+  return dialogueWorkspaceState.accounts.get(owner);
+}
+
+async function openDialogueJob(requestId) {
+  const workspace = dialogueWorkspaceState();
+  const cached = [...workspace.sessions.entries()].find(
+    ([, session]) => session.requestId === requestId && !session.disposed,
+  );
+  if (cached) {
+    if (cached[1].completedId) return openPlanDialogue(cached[1].completedId);
+    workspace.last = cached[0];
+    if (resumeModal(cached[1].key)) return;
+  }
+  try {
+    const job = await dialogueRequest('agent-jobs/' + requestId);
+    if (job.status === 'completed') return openPlanDialogue(job.plan_id);
+    openPlanDialogue(job.plan_id || null, null, { job, newConversation: true });
+  } catch (error) {
+    showStudyAlert(error.message);
+  }
+}
+
+function monitorDialogueActivity() {
+  if (monitorDialogueActivity.started) return;
+  monitorDialogueActivity.started = true;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'dialogue-job-status';
+  button.hidden = true;
+  button.onclick = () => {
+    openPlanDialogue();
+    const jobs = document.querySelector('#plan-dialogue [data-background-jobs]');
+    if (jobs) jobs.open = true;
+  };
+  document.body.append(button);
+  let loading = false;
+  const update = async () => {
+    if (loading || !activeAccount) {
+      button.hidden = true;
+      return;
+    }
+    const owner = activeAccount.id;
+    loading = true;
+    try {
+      const jobs = await dialogueRequest('agent-jobs');
+      if (activeAccount?.id !== owner) return;
+      const count = jobs.filter((job) => job.status === 'running').length;
+      button.hidden = !count;
+      button.textContent = '对话正在后台生成（' + count + '）';
+    } catch {
+    } finally {
+      loading = false;
+    }
+  };
+  update();
+  setInterval(update, 3000);
+}
+
 function openPlanDialogue(id = null, reference = null, view = {}) {
+  monitorDialogueActivity();
+  const workspace = dialogueWorkspaceState();
+  let key = view.job ? 'job:' + view.job.request_id : id ? 'plan:' + id : null;
+  if (!key && !reference && !view.newConversation) key = workspace.last;
+  let session = key && workspace.sessions.get(key);
+  if (session && !session.disposed && typeof resumeModal === 'function' && resumeModal(session.key))
+    return;
+  if (!id && key?.startsWith('plan:')) id = key.slice(5);
+  key ||= 'new:' + crypto.randomUUID();
+  session = { key: 'dialogue:' + key, id, disposed: false, scrollTop: view.scrollTop || 0 };
+  workspace.sessions.set(key, session);
+  workspace.last = key;
   const creating = !id;
   const planPath = 'plans/' + encodeURIComponent(id);
   const path = planPath + '/dialogue';
@@ -140,6 +215,7 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       '<button type="button" onclick="closeModal()" aria-label="关闭方案对话">✕</button></div>' +
       '<nav class="dialogue-switch" aria-label="方案对话切换"><label class="tiny">切换对话 <select data-dialogue-switch><option value="">新对话</option></select></label>' +
       '<button type="button" class="dialogue-new" data-dialogue-new aria-label="新对话" title="新对话">＋</button></nav>' +
+      '<details data-background-jobs class="dialogue-background-jobs"><summary>后台生成记录</summary><div data-job-list>正在读取…</div></details>' +
       '<p class="desc" data-dialogue-title></p><div class="dialogue-workspace">' +
       '<section class="dialogue-chat" aria-label="与 Agent 对话"><div class="dialogue-messages" role="log" aria-label="对话记录"></div>' +
       '<p class="tiny" role="status" data-dialogue-status>正在读取对话…</p>' +
@@ -168,6 +244,7 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       '</div>' +
       '<div data-dialogue-proposal></div><details class="dialogue-plan-summary"><summary>当前任务 <span data-dialogue-count></span></summary>' +
       '<div data-dialogue-tasks>正在读取方案…</div></details></aside></div></div>',
+    { key: session.key, retainNode: true, fresh: true },
   );
   const root = document.getElementById('plan-dialogue');
   const form = root.querySelector('form');
@@ -189,7 +266,63 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     failed = null,
     visibleMessages = [],
     flight = null;
-  const active = () => root.isConnected && activeAccount?.id === owner;
+  const active = () => !session.disposed && activeAccount?.id === owner;
+  const visible = () => root.isConnected && root.closest('#modal-root');
+  if (typeof currentModalDraft !== 'undefined' && currentModalDraft) {
+    currentModalDraft.onHide = () => {
+      session.scrollTop = history.scrollTop;
+    };
+    currentModalDraft.onShow = () => {
+      history.scrollTop = session.scrollTop;
+      if (!creating) refreshPlanSummary();
+    };
+  }
+  history.addEventListener(
+    'scroll',
+    () => {
+      if (visible()) session.scrollTop = history.scrollTop;
+    },
+    { passive: true },
+  );
+  const jobList = root.querySelector('[data-job-list]');
+  async function refreshBackgroundJobs() {
+    try {
+      const jobs = await dialogueRequest('agent-jobs');
+      if (!active()) return;
+      const statusLabel = {
+        running: '生成中',
+        completed: '已完成',
+        failed: '失败，可查看原因',
+        cancelled: '已停止',
+        interrupted: '已中断，可重新发送',
+      };
+      jobList.innerHTML = jobs.length
+        ? jobs
+            .slice(0, 8)
+            .map(
+              (job) =>
+                '<button type="button" class="secondary" data-open-job="' +
+                esc(job.request_id) +
+                '">' +
+                esc((job.text || '对话').slice(0, 24)) +
+                ' · ' +
+                esc(statusLabel[job.status] || job.status) +
+                '</button>',
+            )
+            .join('')
+        : '暂无后台生成记录';
+    } catch (error) {
+      if (active()) jobList.textContent = error.message;
+    }
+  }
+  root.querySelector('[data-background-jobs]').addEventListener('toggle', (event) => {
+    if (event.target.open) refreshBackgroundJobs();
+  });
+  jobList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-open-job]');
+    if (button) openDialogueJob(button.dataset.openJob);
+  });
+  refreshBackgroundJobs();
   function setBusy(value, message = '') {
     busy = value;
     const stop = root.querySelector('[data-stop-stream]');
@@ -202,11 +335,9 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     attachmentList.querySelectorAll('button').forEach((button) => {
       button.disabled = input.disabled;
     });
-    root
-      .querySelectorAll('[data-dialogue-switch],[data-dialogue-new],[data-dialogue-plan]')
-      .forEach((control) => {
-        control.disabled = busy;
-      });
+    root.querySelectorAll('[data-dialogue-plan]').forEach((control) => {
+      control.disabled = busy;
+    });
     history.querySelectorAll('[data-record-plan]').forEach((button) => {
       button.disabled = busy;
     });
@@ -546,17 +677,18 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       if (active()) setBusy(false, error.message);
     }
   }
-  async function sendMessage(message, profile = skill.value) {
+  async function sendMessage(message, profile = skill.value, recovery = null) {
     if (!message || busy || current?.pending) return;
-    if (creating && !form.reportValidity()) return;
+    if (creating && !recovery && !form.reportValidity()) return;
     failed = null;
     const request = {
-      id: crypto.randomUUID(),
+      id: recovery?.request_id || crypto.randomUUID(),
       controller: new AbortController(),
       message,
-      started: false,
+      started: Boolean(recovery),
     };
     flight = request;
+    session.requestId = request.id;
     showMessages([
       ...current.messages,
       { role: 'user', text: message, waiting: true },
@@ -571,7 +703,8 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
         return;
       }
       if (event.type !== 'reply') return;
-      const follow = history.scrollHeight - history.scrollTop - history.clientHeight < 60;
+      const follow =
+        visible() && history.scrollHeight - history.scrollTop - history.clientHeight < 60;
       request.partialText = event.text;
       visibleMessages[visibleMessages.length - 1].text = event.text;
       const reply = history.querySelector('[data-streaming] .dialogue-reply');
@@ -585,10 +718,12 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     };
     try {
       await saveQueue;
-      const materialIds = await uploadPlanMaterials(
-        attachments.filter((file) => !isImage(file)),
-        owner,
-      );
+      const materialIds = recovery
+        ? []
+        : await uploadPlanMaterials(
+            attachments.filter((file) => !isImage(file)),
+            owner,
+          );
       const images = await Promise.all(
         attachments.filter(isImage).map(
           (file) =>
@@ -608,47 +743,60 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
         request_id: request.id,
       };
       if (creating) {
-        const result = await dialogueStreamRequest(
-          'agent',
-          {
-            route: 'recommend',
-            dialogue_message: message,
-            text: JSON.stringify({
-              目标: reference?.title || message,
-              截止日期: deadline.value,
-              每周小时: hours.value,
-              情况备注: reference ? message : '',
-            }),
-            skill_profile: profile,
-            ...filesPayload,
-            base_plan_id: reference?.id,
-          },
-          request.controller.signal,
-          onStreamEvent,
-        );
+        const result = recovery
+          ? await waitForDialogueJob(request.id, request.controller.signal, onStreamEvent)
+          : await dialogueStreamRequest(
+              'agent',
+              {
+                route: 'recommend',
+                dialogue_message: message,
+                text: JSON.stringify({
+                  目标: reference?.title || message,
+                  截止日期: deadline.value,
+                  每周小时: hours.value,
+                  情况备注: reference ? message : '',
+                }),
+                skill_profile: profile,
+                ...filesPayload,
+                base_plan_id: reference?.id,
+              },
+              request.controller.signal,
+              onStreamEvent,
+            );
         if (active() && flight === request) {
           flight = null;
-          openPlanDialogue(result.id, null, {
-            follow: history.scrollHeight - history.scrollTop - history.clientHeight < 60,
-            scrollTop: history.scrollTop,
-          });
+          if (workspace.last === key) workspace.last = 'plan:' + result.id;
+          session.completedId = result.id;
+          if (visible())
+            openPlanDialogue(result.id, null, {
+              follow: history.scrollHeight - history.scrollTop - history.clientHeight < 60,
+              scrollTop: history.scrollTop,
+            });
+          else {
+            setBusy(false, '准备方案已完成，再次打开即可查看。');
+            toast('后台准备方案已完成');
+          }
         }
         return;
       }
-      const result = await dialogueStreamRequest(
-        path,
-        { text: message, skill_profile: profile, ...filesPayload },
-        request.controller.signal,
-        onStreamEvent,
-      );
+      const result = recovery
+        ? await waitForDialogueJob(request.id, request.controller.signal, onStreamEvent)
+        : await dialogueStreamRequest(
+            path,
+            { text: message, skill_profile: profile, ...filesPayload },
+            request.controller.signal,
+            onStreamEvent,
+          );
       if (active() && flight === request) {
-        const follow = history.scrollHeight - history.scrollTop - history.clientHeight < 60;
+        const follow =
+          visible() && history.scrollHeight - history.scrollTop - history.clientHeight < 60;
         flight = null;
         attachments.length = 0;
         showAttachments();
         display(result, follow);
         setBusy(false);
         refreshPlanSummary();
+        if (!visible()) toast('后台对话已完成，返回个性化推荐可查看。');
       }
     } catch (error) {
       if (!active() || flight !== request) return;
@@ -790,10 +938,14 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     }
   });
   root.querySelector('[data-dialogue-plan]')?.addEventListener('click', viewCurrentPlan);
-  root.querySelector('[data-dialogue-new]').addEventListener('click', () => openPlanDialogue());
+  root
+    .querySelector('[data-dialogue-new]')
+    .addEventListener('click', () => openPlanDialogue(null, null, { newConversation: true }));
   const switcher = root.querySelector('[data-dialogue-switch]');
   if (id) switcher.add(new Option('当前对话', id, true, true));
-  switcher.addEventListener('change', () => openPlanDialogue(switcher.value || null));
+  switcher.addEventListener('change', () =>
+    openPlanDialogue(switcher.value || null, null, { newConversation: !switcher.value }),
+  );
   dialogueRequest('plans')
     .then((plans) => {
       if (!active()) return;
@@ -824,6 +976,14 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     });
     setBusy(false);
     input.focus();
+    if (view.job) {
+      try {
+        const constraints = JSON.parse(view.job.constraints || '{}');
+        deadline.value = constraints['截止日期'] || '';
+        hours.value = constraints['每周小时'] || 6;
+      } catch {}
+      sendMessage(view.job.text || '继续生成', 'auto', view.job);
+    }
   } else {
     setBusy(true, '正在读取对话…');
     refreshPlanSummary();
@@ -833,6 +993,8 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
           display(result, view.follow !== false);
           if (view.follow === false) history.scrollTop = view.scrollTop || 0;
           setBusy(false);
+          if (view.job)
+            sendMessage(view.job.text || '继续生成', result.skill_profile || 'auto', view.job);
         }
       })
       .catch((error) => {

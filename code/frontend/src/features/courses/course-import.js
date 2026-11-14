@@ -225,6 +225,14 @@ function reviewCourseImage() {
       '<button class="secondary" onclick="courseRows.push({title:\'\',day:1,start:\'08:00\',end:\'09:40\',location:\'\',from:1,to:16,pattern:\'all\',q:1});reviewCourseImage()">＋ 补充漏识别课程</button><p class="tiny">按周次生成具体日期，仅在所选周次出现；导入前会检查与已有固定任务的时间冲突。</p><div class="modal-footer"><button class="secondary" onclick="openImageImport()">返回图片</button><button class="primary" onclick="importReviewedCourses()">确认 ' +
       courseRows.length +
       ' 门课程并检查冲突</button></div>',
+    {
+      key: 'course-review',
+      retainNode: true,
+      fresh: true,
+      onHide: (reason) => {
+        if (reason === 'close' && typeof courseDraftSaved !== 'undefined') courseDraftSaved = true;
+      },
+    },
   );
 }
 

@@ -1,4 +1,32 @@
 /** Read real SSE frames; only a complete event returns a saved result to the caller. */
+async function waitForDialogueJob(requestId, signal, onEvent) {
+  while (!signal?.aborted) {
+    const job = await dialogueRequest('agent-jobs/' + requestId);
+    if (job.reply) onEvent({ type: 'reply', text: job.reply });
+    if (job.status === 'completed') return job.result;
+    if (['failed', 'interrupted'].includes(job.status))
+      throw Object.assign(new Error(job.error?.reason || '后台生成失败'), {
+        diagnostic: job.error,
+        code: job.error?.code,
+      });
+    if (job.status === 'cancelled')
+      throw Object.assign(new Error('已停止生成'), { name: 'AbortError' });
+    onEvent({ type: 'status', message: job.message || '正在后台生成…' });
+    await new Promise((resolve, reject) => {
+      const abort = () => {
+        clearTimeout(timer);
+        reject(Object.assign(new Error('已停止读取'), { name: 'AbortError' }));
+      };
+      const timer = setTimeout(() => {
+        signal?.removeEventListener('abort', abort);
+        resolve();
+      }, 600);
+      signal?.addEventListener('abort', abort, { once: true });
+    });
+  }
+  throw Object.assign(new Error('已停止读取'), { name: 'AbortError' });
+}
+
 async function dialogueStreamRequest(path, body, signal, onEvent) {
   let response;
   try {
@@ -10,6 +38,7 @@ async function dialogueStreamRequest(path, body, signal, onEvent) {
     });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
+    if (body.request_id) return waitForDialogueJob(body.request_id, signal, onEvent);
     throw Object.assign(new Error('无法连接 StudyPilot，请检查容器状态并重新打开对话核对结果。'), {
       code: 'backend_connection',
     });
@@ -68,6 +97,13 @@ async function dialogueStreamRequest(path, body, signal, onEvent) {
         });
     }
   } catch (error) {
+    if (
+      body.request_id &&
+      error.name !== 'AbortError' &&
+      (!error.code || error.code === 'stream_interrupted') &&
+      !error.diagnostic
+    )
+      return waitForDialogueJob(body.request_id, signal, onEvent);
     if (error.name === 'AbortError' || error.code || error.diagnostic) throw error;
     throw Object.assign(new Error('回复连接中断，请重新打开对话核对保存状态后重试。'), {
       code: 'stream_interrupted',

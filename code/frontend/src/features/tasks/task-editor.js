@@ -3,7 +3,8 @@
 function editTask(id) {
   let t = tasks.find((x) => x.id === id);
   if (!t) return toast('任务不存在');
-  openImport('manual');
+  if (typeof resumeModal === 'function' && resumeModal('task-edit:' + id)) return;
+  openImport('manual', { key: 'task-edit:' + id });
   let form = document.querySelector('#modal-root form');
   form.dataset.editId = String(id);
   document.querySelector('#modal-root h2').textContent = '编辑任务';
@@ -106,6 +107,7 @@ manualSubmit = function (e) {
   date = dt;
   timelineCenter = dt;
   timelineMode = 'day';
+  if (typeof discardModalDraft === 'function') discardModalDraft();
   closeModal();
   render();
   toast('任务已更新，时间轴与四象限已同步');

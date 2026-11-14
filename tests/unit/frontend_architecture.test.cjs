@@ -56,7 +56,7 @@ test('资源清单涵盖全部普通脚本，无遗漏、重复与无效语法',
   assert.equal(extensions.at(-1), 'plan_scene.js');
 });
 
-test('原版页面、全部业务与动效脚本、样式层叠和图片保持等价', async () => {
+test('页面资源、动效及已批准功能更新的脚本基准保持一致', async () => {
   const { bundles, styles } = await load('src/app/assets.mjs');
   const { scriptContract, styleContract, markupContract, shellContract, assetContract } = await load('tools/source-contract.mjs');
   const baseline = JSON.parse(readFileSync('tests/fixtures/frontend-contract-v1.json', 'utf8'));
