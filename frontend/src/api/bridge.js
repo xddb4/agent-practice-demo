@@ -1,4 +1,9 @@
 // 原型兼容适配层。保留既有 DOM 与动效，服务端持久化及 React 管理智能流程。
+/**
+ * @param {string} path
+ * @param {import('../types/domain').StudySnapshot | object | undefined} body
+ * @param {string} [method]
+ */
 async function api(path,body,method){const r=await fetch('/api/'+path,{method:method||(body?'POST':'GET'),headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const data=await r.json();if(!r.ok)throw Error(typeof data.detail==='string'?data.detail:'输入无效，请核对字段');return data}
 let saveQueue=Promise.resolve();
 save=function(){if(!activeAccount)return false;const snapshot=structuredClone({tasks,evidence});saveQueue=saveQueue.catch(()=>{}).then(()=>api('state',snapshot,'PUT')).catch(e=>{toast('保存失败：'+e.message+'；当前内容仍保留，请重试');throw e});return true};

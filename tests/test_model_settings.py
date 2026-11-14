@@ -54,7 +54,7 @@ def test_config_validation_never_echoes_keys():
         assert 'secret' not in result.text and 'xxxx' not in result.text and 'api_key' not in result.json()['detail'].get('message','')
 
 def test_run_uses_own_configuration_and_resets_context(monkeypatch):
-    import backend.app.main as main
+    import backend.app.api.routes as main
     a,b=client(),client()
     a.put('/api/model-settings',json=config())
     b.put('/api/model-settings',json=config(api_key='second-private-key'))

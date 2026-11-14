@@ -9,7 +9,7 @@ def client():
 def plan(c):return c.post('/api/agent',json={'route':'recommend','text':json.dumps({'目标':'准备缓存实验','每周小时':4},ensure_ascii=False)}).json()
 
 def test_recommendation_reads_only_owned_materials(monkeypatch,tmp_path):
-    import backend.app.main as main
+    import backend.app.api.routes as main
     a,b=client(),client()
     monkeypatch.setattr(main,'root',tmp_path)
     upload=a.post('/api/files',files={'file':('results.txt',('听力失分较多。'*800).encode(),'text/plain')})
@@ -77,4 +77,4 @@ import pytest
 @pytest.fixture(autouse=True)
 def offline_model_configuration(monkeypatch):
     # 这些既有业务测试使用离线工作流；真实配置入口与账号隔离单独测试。
-    monkeypatch.setattr("backend.app.main.runtime_settings", lambda owner: {})
+    monkeypatch.setattr("backend.app.api.routes.runtime_settings", lambda owner: {})

@@ -165,4 +165,4 @@ import pytest
 @pytest.fixture(autouse=True)
 def offline_model_configuration(monkeypatch):
     # 这些既有业务测试使用离线工作流；真实配置入口与账号隔离单独测试。
-    monkeypatch.setattr("backend.app.main.runtime_settings", lambda owner: {})
+    monkeypatch.setattr("backend.app.api.routes.runtime_settings", lambda owner: {})

@@ -1,7 +1,13 @@
-import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,existsSync,readdirSync,copyFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 mkdirSync('public',{recursive:true});
-const path=existsSync('prototype.html')?'prototype.html':'../code/frontend/StudyPilot.html';
+// Keep the deployed classic-script order while editing sources under src.
+for (const directory of ['pages', 'components', 'api', 'styles']) {
+ for (const name of readdirSync('src/'+directory)) {
+  if (/\.(js|css)$/.test(name)) copyFileSync('src/'+directory+'/'+name, 'public/'+name);
+ }
+}
+const path='src/pages/StudyPilot.html';
 let html=readFileSync(path,'utf8');
 html=html.replace('<div class="notice">原型使用规则演示识别与自动分类；识别结果需要你核对。正式版需接入智能体。</div>','');
 html=html.replace('识别功能为流程演示：当前尚未接入视觉模型，点击后展示固定示例课程，不会读取图片内容。上传图片只在本页预览，不发送到服务器。','点击识别后，图片将发送给当前配置的视觉模型。请核对课程、时间和教学周后再导入。').replaceAll('演示识别并核对 →','识别并核对 →').replaceAll('点击上传课程表图片','上传图片，或按 Ctrl+V 粘贴截图').replaceAll('仅本页预览','待识别图片预览');

@@ -3,7 +3,7 @@ const {readFileSync}=require('node:fs');
 function setup(){
  const fields={'edit-title':'修改后标题','edit-body':'新内容','edit-desc':'补充说明','edit-dim':'2'};
  const state={structuredClone,Date,evidence:[{id:1,title:'新证据',body:'内容',dim:0,status:'待确认'},{id:2,title:'观察证据',dim:1,status:'待观察'},{id:3,title:'已接受证据',dim:2,status:'已接受'},{id:4,title:'已拒绝证据',dim:3,status:'已拒绝'}],abilities:['一','二','三','四','五','六'],esc:s=>String(s),saveQueue:Promise.resolve(),save(){state.persisted=structuredClone(state.evidence);return true},async report(){state.reportCount=(state.reportCount||0)+1},modal:html=>state.html=html,closeModal(){state.closed=true},toast(){},showStudyAlert(){},async confirmStudyAction(){return true},val:key=>fields[key]};
- vm.createContext(state);vm.runInContext(readFileSync('frontend/public/evidence_inbox.js','utf8'),state);return state;
+ vm.createContext(state);vm.runInContext(readFileSync('frontend/src/pages/evidence_inbox.js','utf8'),state);return state;
 }
 test('收件箱仅显示待确认及单独分组的待观察，已处理证据在弹窗中',()=>{
  const state=setup(),html=state.evidenceInboxHTML();assert.match(html,/新证据|观察证据|待观察（1）|已处理证据（2）/);assert.doesNotMatch(html,/已接受证据|已拒绝证据/);

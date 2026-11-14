@@ -9,7 +9,7 @@ function setup(){
  const dialog=node();
  const state={Map,Set,Promise,structuredClone,owner:'a',tasks:[{id:1,title:'待完成任务',q:1,date:'2026-11-07',done:false},{id:2,title:'历史完成',done:true}],labels:['紧急','重要','其他','低优先'],completionTicket:null,saveQueue:Promise.resolve(),applied:0,closed:0,
  dataKey:()=>state.owner,esc:s=>String(s),ticketTaskMeta:()=>'',modal:html=>state.html=html,closeModal(){state.closed++;state.completionTicket=null},render(){},applyTaskChange(id,patch){Object.assign(state.tasks.find(t=>t.id===id),patch);state.applied++;return true},api:async()=>({completed_tasks:state.tasks.filter(t=>t.done).length}),matchMedia:()=>({matches:false}),document:{getElementById:id=>nodes[id],querySelector:()=>dialog},setTimeout(fn){const id=++timer;timers.set(id,fn);return id},clearTimeout:id=>timers.delete(id)};
- vm.createContext(state);vm.runInContext(readFileSync('frontend/public/completion_ticket.js','utf8'),state);
+ vm.createContext(state);vm.runInContext(readFileSync('frontend/src/components/completion_ticket.js','utf8'),state);
  async function advance(){const batch=[...timers.values()];timers.clear();batch.forEach(fn=>fn());await new Promise(resolve=>setImmediate(resolve))}
  state.openCompletionTicket(1);state.closed=0;
  return{state,nodes,advance};

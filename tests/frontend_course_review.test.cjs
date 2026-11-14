@@ -10,10 +10,10 @@ function setup(){
   minutes(time){const [hours,minutes]=time.split(':').map(Number);return hours*60+minutes},
  };
  vm.createContext(state);
- const prototype=readFileSync('code/frontend/StudyPilot.html','utf8');
+ const prototype=readFileSync('frontend/src/pages/StudyPilot.html','utf8');
  vm.runInContext(prototype.slice(prototype.indexOf('function layoutEvents('),prototype.indexOf('function dayFocusHTML(')),state);
- vm.runInContext(readFileSync('frontend/public/task_views.js','utf8'),state);
- vm.runInContext(readFileSync('frontend/public/course_review.js','utf8'),state);
+ vm.runInContext(readFileSync('frontend/src/components/task_views.js','utf8'),state);
+ vm.runInContext(readFileSync('frontend/src/components/course_review.js','utf8'),state);
  return state;
 }
 

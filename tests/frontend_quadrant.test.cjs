@@ -6,7 +6,7 @@ function setup(){
  document:{getElementById:id=>nodes[id],querySelector:()=>null,querySelectorAll:()=>[]},modal:html=>state.modalHTML=html,toggle:id=>state.tasks.find(t=>t.id===id).done=true,render(){state.matrix()},login(){},detail(){}};
  vm.createContext(state);
  state.taskPriority=(a,b)=>(a.ddl||'9999').localeCompare(b.ddl||'9999');
- vm.runInContext(readFileSync('frontend/public/quadrant_view.js','utf8'),state);
+ vm.runInContext(readFileSync('frontend/src/pages/quadrant_view.js','utf8'),state);
  return {state,nodes};
 }
 test('象限排除完成记录，点击象限弹窗列出实际条目',()=>{

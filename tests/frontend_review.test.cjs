@@ -5,7 +5,7 @@ const vm=require('node:vm');
 function setup(api){
  const nodes={'review-error':{textContent:'',isConnected:true},'review-confirm':{},'review-select-all':{}};
  const state={Intl,Date,structuredClone,labels:['重要且紧急','重要不紧急','不重要但紧急','不重要不紧急'],esc:value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])),modal:html=>state.html=html,closeModal(){nodes['review-error'].isConnected=false},showStudyAlert:message=>state.popup=message,document:{getElementById:id=>nodes[id],querySelectorAll:()=>[]},api:api||(async()=>{}),commitParsed(){state.saved=state.parsed},evidence:[],abilities:[],save(){},render(){}};
- vm.createContext(state);vm.runInContext(readFileSync('frontend/public/review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
+ vm.createContext(state);vm.runInContext(readFileSync('frontend/src/components/review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
 }
 test('直接显示唯一的任务核对表单，不展示模型说明或JSON编辑器',()=>{
  const {state}=setup();

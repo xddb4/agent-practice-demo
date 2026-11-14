@@ -10,3 +10,7 @@ uploads/
 *.log
 frontend/public/prototype.html
 logs/
+
+# Browser assets are generated from frontend/src by build.mjs.
+frontend/public/*.js
+frontend/public/*.css

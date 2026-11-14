@@ -3,7 +3,6 @@ WORKDIR /build
 COPY frontend/package.json ./
 RUN npm install
 COPY frontend ./
-COPY code/frontend/StudyPilot.html ./prototype.html
 RUN npm run build
 FROM python:3.12-slim
 WORKDIR /app

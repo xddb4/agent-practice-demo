@@ -3,7 +3,8 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-import backend.app.main as main
+from backend.app.main import app
+import backend.app.api.routes as main
 from backend.app.core.db import Record, Session
 
 

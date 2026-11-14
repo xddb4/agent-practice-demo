@@ -17,6 +17,7 @@ from openai import APIError
 from ...services.agent_errors import AgentOutputError, AgentOutputTooLongError
 from ...integrations.search import search_public,search_provider
 from ...services.scheduling import planning_slots, schedule_plan
+from ..tools.profile import profile_tool
 from ..skills import SKILL_LABELS, SkillProfile, skill_instructions, skills_for_request
 
 DIMENSIONS = ['问题发现与研究设计','计算与系统思维','实验验证与数据素养','批判性与独立思考','信息素养与学术规范','表达协作与反思']
@@ -60,10 +61,7 @@ def generate(s):
         if r=='recommend':output['items'],output['planning']=schedule_plan(items,text,s.get('schedule_tasks',s['context'].get('tasks',[])))
         output['metrics']={'total_seconds':round(perf_counter()-started,3),'model_calls':0,'stages':[],'context_characters':len(json.dumps(s['context'],ensure_ascii=False))}
         return {'result':output}
-    @tool
-    def profile() -> str:
-        """查询当前用户已确认的能力证据和已有日程。"""
-        return json.dumps(s['context'],ensure_ascii=False)
+    profile = profile_tool(s['context'])
     @tool
     def search(query: str) -> str:
         """使用公开主题关键词检索参考资料，关键词不得包含个人资料、私有证据或具体个人日程。"""

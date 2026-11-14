@@ -3,7 +3,7 @@ const {readFileSync}=require('node:fs');
 function setup(){
  const readers=[],nodes={'course-image-preview':{},'course-recognize':{disabled:true}};
  const state={courseImage:null,active:true,openImageImport(){},useDemoCourseImage(){},courseImagePreview:()=>state.courseImage.name,showStudyAlert:message=>state.alert=message,FileReader:class{constructor(){readers.push(this)}readAsDataURL(file){this.result='data:'+file.type+';base64,'+file.name}},document:{addEventListener:(name,handler)=>state[name]=handler,querySelector:()=>state.active?{}:null,getElementById:id=>nodes[id]}};
- vm.createContext(state);vm.runInContext(readFileSync('frontend/public/clipboard.js','utf8'),state);return {state,readers,nodes};
+ vm.createContext(state);vm.runInContext(readFileSync('frontend/src/components/clipboard.js','utf8'),state);return {state,readers,nodes};
 }
 function imageEvent(name='screenshot.png',type='image/png'){
  const file={name,type,size:1024};return {clipboardData:{items:[{kind:'file',getAsFile:()=>file}]},preventDefault(){this.prevented=true}};

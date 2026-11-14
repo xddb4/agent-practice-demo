@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {readFileSync}=require('node:fs');
 const vm=require('node:vm');
-const source=readFileSync('frontend/public/features.js','utf8');
+const source=readFileSync('frontend/src/components/features.js','utf8');
 test('回到今天重置日期、画廊中心与时间轴，并抑制重绘时误悬停',()=>{
  const fn=source.slice(source.indexOf('centerToday=function(){'),source.indexOf('const renderPlanWithOriginalToolbar'));
  let cleared,listener;
