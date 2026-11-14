@@ -1,8 +1,6 @@
 # StudyPilot：能力与时间规划智能体
 
-首次启动：安装并启动 Docker Desktop，将本仓库克隆到本机，在仓库根目录执行 `docker compose up -d --build`，构建完成后打开 [http://localhost:8000](http://localhost:8000)。注册并登录后，在“个人空间 → 模型 API 设置”中填写自己的 API 密钥与模型名称，即可使用 Agent。以后启动执行 `docker compose up -d`，停止执行 `docker compose stop`。首次构建需要联网下载依赖；Docker 配置尚未完成实际容器启动验证。
-
-当前开发电脑可双击 `Start-StudyPilot.cmd`，或在仓库根目录运行 `powershell -File .\start.ps1`。等终端显示 Uvicorn 正在运行后，打开 [http://127.0.0.1:8000](http://127.0.0.1:8000)，使用期间保持终端窗口开启。关闭窗口或重启电脑后需重新启动。此脚本默认使用本机的 `D:/codeapp/anaconda/python.exe` 与已安装的 `.runtime` 依赖，其他电脑请优先使用 Docker 方式。详细说明见 [本地运行说明](docs/LOCAL_RUN.md)。
+启动前安装并打开 Docker Desktop。在项目根目录运行 powershell -ExecutionPolicy Bypass -File .\start.ps1，即可构建并后台启动，之后打开 http://localhost:8000。也可双击 Start-StudyPilot.cmd，或运行 .\scripts\restart_local.ps1，三个入口使用同一套 Docker Compose。首次构建需要联网。注册登录后在个人空间设置模型 API。警告写入 logs/server.warning.log，ERROR 和 CRITICAL 写入 logs/server.error.log，每个文件到 5 MB 后轮转，保留 3 份备份，日志目录已被 Git 和 Docker 构建忽略。查看实时输出运行 docker compose logs -f web，停止运行 docker compose stop。
 
 这是一个面向本科生科研成长的智能体项目。它把用户的目标、任务、时间投入、阶段成果和自我反馈关联起来，形成“计划执行—行为证据—能力评估—下一轮建议”的闭环。
 

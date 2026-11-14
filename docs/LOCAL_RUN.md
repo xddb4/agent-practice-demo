@@ -10,33 +10,26 @@
 
 ## 启动
 
-推荐安装 Docker Desktop 后在仓库根目录执行：
+安装并启动 Docker Desktop，然后在项目根目录执行：
 
 ```powershell
-Copy-Item .env.example .env
-# 在 .env 中填写 MODEL_API_KEY；不要提交此文件
-docker compose up --build -d
+powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
 
-打开 http://127.0.0.1:8000 ，API 文档为 http://127.0.0.1:8000/docs 。Docker 模式使用 PostgreSQL 16，附件和数据库分别持久化到命名卷。停止用 `docker compose down`，不要加 `-v`，后者会删除持久数据。
+打开 http://localhost:8000。以后启动仍使用同一命令，或双击 Start-StudyPilot.cmd。
+scripts/restart_local.ps1 也调用同一入口。脚本等待 PostgreSQL 和网页健康检查通过后提示就绪。
+首次无需创建 .env，在个人空间配置自己的模型 API。已有 .env 可继续供 Compose 读取。
 
-本机已准备 `.runtime` Python 依赖和 `frontend/dist` 静态构建，可以执行：
+Docker 模式的 PostgreSQL 和附件使用命名卷持久化。
+原本 SQLite 的账户与日程需要单独迁移，首次容器启动会使用独立 PostgreSQL 数据库。
 
-```powershell
-.\start.ps1
-```
+警告输出到 logs/server.warning.log，ERROR 和 CRITICAL 输出到 logs/server.error.log。
+文件每到 5 MB 轮转，分别保留 3 份备份。文件保存在本机，日志目录已在 .gitignore 和 .dockerignore 中排除。
+容器输出同时保留，执行 docker compose logs -f web 查看。PostgreSQL 诊断执行 docker compose logs db。
 
-此方式默认使用 SQLite，便于没有 Docker 时验证本地交互；它不能证明 PostgreSQL 集成已经通过。可通过 `DATABASE_URL` 指向真实 PostgreSQL。Python 默认路径为本机 Anaconda，也可使用 `start.ps1 -Python 其他Python路径`。
-
-重新准备依赖与构建：
-
-```powershell
-python -m pip install --target .runtime -r backend/requirements.txt
-cd frontend
-npm install
-npm run build
-cd ..
-```
+停止执行 docker compose stop。日志级别为 WARNING 及以上，HTTP 访问日志关闭。
+更新源码后再运行启动脚本即可重新构建。Docker Desktop 未安装或引擎未启动时，脚本会提示处理方式。
+容器实际启动尚待安装 Docker Desktop 后验证。
 
 ## 配置 Agent
 

@@ -10,5 +10,6 @@ WORKDIR /app
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend ./backend
+RUN mkdir -p /app/logs
 COPY --from=frontend /build/dist ./frontend/dist
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning", "--no-access-log", "--log-config", "backend/logging.json"]

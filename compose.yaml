@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: studypilot
       POSTGRES_USER: studypilot
@@ -12,6 +13,7 @@ services:
       retries: 10
   web:
     build: .
+    restart: unless-stopped
     ports: ["127.0.0.1:8000:8000"]
     environment:
       DATABASE_URL: postgresql+psycopg://studypilot:${POSTGRES_PASSWORD:-local-study-password}@db/studypilot
@@ -28,7 +30,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    volumes: [attachments:/app/uploads]
+    volumes:
+      - attachments:/app/uploads
+      - ./logs:/app/logs
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
 volumes:
   pgdata:
   attachments:

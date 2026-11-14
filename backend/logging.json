@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "standard": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}
+  },
+  "filters": {
+    "warning_only": {"()": "backend.app.core.logging_filters.WarningOnly"}
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler", "level": "WARNING",
+      "formatter": "standard", "stream": "ext://sys.stderr"
+    },
+    "warning_file": {
+      "class": "logging.handlers.RotatingFileHandler", "level": "WARNING",
+      "filters": ["warning_only"], "formatter": "standard",
+      "filename": "/app/logs/server.warning.log", "encoding": "utf-8",
+      "maxBytes": 5242880, "backupCount": 3
+    },
+    "error_file": {
+      "class": "logging.handlers.RotatingFileHandler", "level": "ERROR",
+      "formatter": "standard", "filename": "/app/logs/server.error.log",
+      "encoding": "utf-8", "maxBytes": 5242880, "backupCount": 3
+    }
+  },
+  "root": {"level": "WARNING", "handlers": ["console", "warning_file", "error_file"]},
+  "loggers": {
+    "uvicorn": {"level": "WARNING", "handlers": [], "propagate": true},
+    "uvicorn.error": {"level": "WARNING", "handlers": [], "propagate": true},
+    "uvicorn.access": {"handlers": [], "propagate": false},
+    "studypilot": {"level": "WARNING", "handlers": [], "propagate": true}
+  }
+}

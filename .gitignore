@@ -9,3 +9,4 @@ __pycache__/
 uploads/
 *.log
 frontend/public/prototype.html
+logs/
