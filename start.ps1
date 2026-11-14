@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw '请先安装 Docker Desktop 并启动，再运行本脚本。'
