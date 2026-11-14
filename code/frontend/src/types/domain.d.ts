@@ -1,6 +1,7 @@
 export interface StudyTask {
   id: string | number;
   title: string;
+  description?: string;
   date?: string;
   start?: string;
   end?: string;

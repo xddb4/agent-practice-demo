@@ -12,12 +12,15 @@ import httpx
 from time import perf_counter
 from backend.app.schemas.agent import GeneratedRecommendation, output_contract
 from backend.app.integrations.model import create_model, structured_model
+from backend.app.integrations.model_stream import invoke_with_reply_stream
 from pydantic import ValidationError
 from openai import APIError
 from backend.app.services.agent_errors import AgentOutputError, AgentOutputTooLongError
 from backend.app.integrations.search import search_public, search_provider
 from backend.app.services.scheduling import planning_slots, schedule_plan
 from core_engine.ai.tools.profile import profile_tool
+from core_engine.ai.workflows.task_review import review_tasks
+from core_engine.ai.prompts.task_review import TASK_REVIEW_POLICY
 from core_engine.ai.skills import SKILL_LABELS, SkillProfile, skill_instructions, skills_for_request
 
 DIMENSIONS = ['问题发现与研究设计','计算与系统思维','实验验证与数据素养','批判性与独立思考','信息素养与学术规范','表达协作与反思']
@@ -48,7 +51,8 @@ def generate(s):
     schedule_tasks=s.get('schedule_tasks',s['context'].get('tasks',[]))
     started=perf_counter();timings=[]
     def timed_invoke(llm,messages,stage):
-        stamp=perf_counter();reply=llm.invoke(messages)
+        stamp=perf_counter()
+        reply=invoke_with_reply_stream(llm,messages,'dialogue_reply') if r=='recommend' and s.get('dialogue_message') else llm.invoke(messages)
         timings.append({'stage':stage,'seconds':round(perf_counter()-stamp,3)})
         return reply
     if not model_env('MODEL_API_KEY'):
@@ -82,6 +86,7 @@ def generate(s):
     if r=='recommend':
         availability=planning_slots(text,schedule_tasks,now)
         prompt+=' 本次可用时间摘要：'+json.dumps(availability[1],ensure_ascii=False)
+        prompt+='\n'+TASK_REVIEW_POLICY+'\n每项填写stage阶段名称。'
     if s.get('image'):
         prompt+=' 图片课表的items字段改用title,day(星期1-7),start,end(HH:MM),location,from_week,to_week(教学起止周),pattern(all/odd/even),q(0-3)。未知字段填null，notice列出歧义，不编造教学周或节次时间。'
     skills=skills_for_request(r,s.get('skill_profile','auto'),text) if not s.get('image') else []
@@ -96,7 +101,9 @@ def generate(s):
     content.extend({'type':'image_url','image_url':{'url':image}} for image in attachment_images)
     vision=bool(s.get('image') or attachment_images)
     if r=='recommend' and s.get('dialogue_message'):
-        prompt+=' JSON 请附 dialogue_title，将用户目标提炼为十字以内的小标题，例如「六级备考计划」，不要照抄完整消息。另附 dialogue_reply。用自然中文直接回应用户，简述方案优先事项并邀请继续讨论。不要展示内部推理、具体时段或声称已加入日程。'
+        prompt+=' 最终JSON把dialogue_reply放在第一个字段，先回答，再输出任务字段，便于流式显示正文。'
+        prompt+=' dialogue_reply 请用空行分隔短段落，每段1至3句；多个建议逐条编号。不要输出一整块长段文字。'
+        prompt+=' JSON 请附 dialogue_title，将用户目标提炼为十字以内的小标题，例如「六级备考计划」，不要照抄完整消息。另附 dialogue_reply。先用自然中文回答用户：说明已知情况与依据、尚不确定之处、长期方向和近期取舍；简单问题简短回答。不要展示内部逐步推理、具体时段或声称已加入日程。长期方向不全部细化为任务；近期items与回答的范围及时间预算必须一致。'
     contract=GeneratedRecommendation if r=='recommend' and not s.get('image') else output_contract(r,bool(s.get('image')))
     prompt+=' 最终输出严格遵循此JSON Schema，禁止额外字段；未知时间为null。'+json.dumps(contract.model_json_schema(),ensure_ascii=False)
     messages=[SystemMessage(content=prompt),HumanMessage(content=content)]
@@ -122,9 +129,15 @@ def generate(s):
             except ValidationError as error:
                 trace.append('Schema校验失败，重试1次')
                 issues=[{'loc':list(x['loc']),'type':x['type'],'message':x['msg']} for x in error.errors()]
-                if attempt:raise AgentOutputError(issues) from None
+                if attempt:raise AgentOutputError(issues,repair_attempted=True) from None
                 messages.extend([reply,HumanMessage(content='JSON字段校验失败，请根据Schema修复。错误位置：'+json.dumps(issues,ensure_ascii=False))])
     if r=='recommend':
+        result, quality = review_tasks(result, {
+            'request': text, 'availability': availability[1],
+            'profile': s['context'], 'materials': s.get('materials', []),
+        }, timed_invoke, vision)
+        result['quality_review'] = quality
+        trace.append('任务粒度与材料依赖审查：'+quality['status'])
         draft=result['items']
         result['items'],result['planning']=schedule_plan(draft,text,schedule_tasks,now,availability)
         planning=result['planning']
@@ -146,9 +159,13 @@ def generate(s):
                 if revised_planning['feasible']:
                     revised_planning['scope_adjustment']=revised['notice'] or '已根据可用时间调整本轮任务范围。'
                     result.update(items=items,planning=revised_planning,notice=revised['notice'])
+                    if s.get('dialogue_message'):
+                        result['dialogue_reply']=revised.get('dialogue_reply') or '已根据你的可用时间缩减近期任务范围。'+revised['notice']+' 可以查看近期任务，也可以继续补充情况。'
                     trace.append('根据试排结果调整任务范围')
             except (APIError,ValidationError,TypeError):
                 trace.append('任务范围调整未完成，保留首次试排结果')
+        if quality['status']=='unavailable':
+            result['planning'].setdefault('warnings',[]).append('任务细化检查未完成，请核对练习范围和材料。')
     result['metrics']={'total_seconds':round(perf_counter()-started,3),'stages':timings,'model_calls':sum(item['stage'].startswith('model_') for item in timings),'context_characters':len(json.dumps(s['context'],ensure_ascii=False))}
     result.update(sources=sources,search_status=search_state,trace=trace+['等待用户确认'],
                   skills=[{'id':name,'label':SKILL_LABELS[name]} for name in skills])

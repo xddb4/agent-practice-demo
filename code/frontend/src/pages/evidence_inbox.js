@@ -1,7 +1,7 @@
 let evidenceBusy=false;
 function evidenceGroups(){return {pending:evidence.filter(e=>e.status==='待确认'),watch:evidence.filter(e=>e.status==='待观察'),processed:evidence.filter(e=>['已接受','已拒绝'].includes(e.status))}}
 function evidenceRowHTML(item,processed=false){
- return '<div class="evidence-row '+(item.status==='待观察'?'evidence-watch':'')+'"><div class="grow"><h4>'+esc(item.title)+' <span class="evidence-status">'+esc(item.status)+'</span></h4><p>'+esc(item.body)+'</p><p>'+esc(item.desc||'')+'</p></div><button onclick="evidenceState('+item.id+',\'已接受\','+processed+')">接受</button><button onclick="editEvidence('+item.id+')">修改</button><button onclick="evidenceState('+item.id+',\'已拒绝\','+processed+')">拒绝</button>'+(processed?'<button onclick="deleteProcessedEvidence('+item.id+')">删除</button>':'<button onclick="evidenceState('+item.id+',\'待观察\')">待观察</button>')+'</div>';
+ return '<div class="evidence-row '+(item.status==='待观察'?'evidence-watch':'')+'"><div class="grow"><h4>'+esc(item.title)+' <span class="evidence-status">'+esc(item.status)+'</span></h4>'+(item.source_type==='dialogue'?'<p class="tiny">来源：方案对话 · '+esc(item.kind==='self_report'?'用户自述，非客观测评':'用户报告的过程或成果，需核对')+'</p>':'')+'<p>'+esc(item.body)+'</p><p>'+esc(item.desc||'')+'</p></div><button onclick="evidenceState('+item.id+',\'已接受\','+processed+')">接受</button><button onclick="editEvidence('+item.id+')">修改</button><button onclick="evidenceState('+item.id+',\'已拒绝\','+processed+')">拒绝</button>'+(processed?'<button onclick="deleteProcessedEvidence('+item.id+')">删除</button>':'<button onclick="evidenceState('+item.id+',\'待观察\')">待观察</button>')+'</div>';
 }
 function evidenceInboxHTML(){
  const groups=evidenceGroups();

@@ -95,6 +95,7 @@ def test_memory_cleanup_and_plan_read_after_compression():
 
 def test_valid_tool_answer_is_not_generated_twice(monkeypatch):
     import core_engine.ai.workflows.pilot as pilot
+    import core_engine.ai.workflows.task_review as task_review
     monkeypatch.setenv('MODEL_API_KEY','test-only-key')
     answer={'items':[{'title':'写作','estimated_minutes':30,'important':True,'urgent':False,'rationale':'基础训练','task_key':'write','depends_on':[],'requires_contiguous':False}],'notice':''}
     class FakeModel:
@@ -107,8 +108,14 @@ def test_valid_tool_answer_is_not_generated_twice(monkeypatch):
     monkeypatch.setattr(pilot,'model',lambda:FakeModel())
     def forbidden(_):raise AssertionError('不应再调用模型重写已通过校验的答案')
     monkeypatch.setattr(pilot,'structured_model',forbidden)
+    class Reviewer:
+        def invoke(self,messages):
+            assert '可执行性' in messages[0].content
+            return AIMessage(content='{"issues":[],"revised":null}')
+    monkeypatch.setattr(task_review,'structured_model',lambda _:Reviewer())
     result=pilot.generate({'route':'recommend','skill_profile':'english-prep','text':json.dumps({'目标':'论文写作','截止日期':'2026-12-01','每周小时':2}),'context':{'tasks':[],'evidence':[]}})['result']
-    assert result['metrics']['model_calls']==1 and result['items'][0]['deadline']
+    assert result['metrics']['model_calls']==2 and result['items'][0]['deadline']
+    assert result['quality_review']['status']=='accepted'
     assert [skill['id'] for skill in result['skills']]==['task-breakdown','english-prep']
 
 def test_automatic_skills_follow_route_and_goal():
@@ -120,6 +127,7 @@ def test_automatic_skills_follow_route_and_goal():
 
 def test_recommendation_revises_task_scope_when_trial_schedule_fails(monkeypatch):
     import core_engine.ai.workflows.pilot as pilot
+    import core_engine.ai.workflows.task_review as task_review
     monkeypatch.setenv('MODEL_API_KEY','test-only-key')
     draft={'title':'整卷模拟','estimated_minutes':130,'important':True,'urgent':False,
            'rationale':'限时训练','task_key':'mock','requires_contiguous':True}
@@ -138,13 +146,16 @@ def test_recommendation_revises_task_scope_when_trial_schedule_fails(monkeypatch
 
     monkeypatch.setattr(pilot,'model',DraftModel)
     monkeypatch.setattr(pilot,'structured_model',lambda _:RevisionModel())
+    class Reviewer:
+        def invoke(self,_):return AIMessage(content='{"issues":[],"revised":null}')
+    monkeypatch.setattr(task_review,'structured_model',lambda _:Reviewer())
     deadline=(datetime.now(ZoneInfo('Asia/Shanghai')).date()+timedelta(days=6)).isoformat()
     result=pilot.generate({'route':'recommend','text':json.dumps({'截止日期':deadline,'每周小时':1}),'context':{'tasks':[],'evidence':[]}})['result']
     assert result['planning']['feasible']
     assert result['planning']['scope_adjustment']=='本轮先练听力，整卷模拟延后。'
     assert result['items'][0]['estimated_minutes']==40
     assert len(result['items'][0]['suggested_sessions'])==1
-    assert result['metrics']['model_calls']==2
+    assert result['metrics']['model_calls']==3
 
 def test_memory_operations_do_not_affect_other_accounts():
     def make():

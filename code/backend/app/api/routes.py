@@ -18,6 +18,9 @@ from ..services.plans import plan_title,plan_payload,dialogue_title
 from ..services.plan_dialogue import dialogue_context, prepare_changes, apply_changes
 from ..services.tasks import validate_tasks
 from ..services.context import bounded_context
+from ..schemas.requests import DialogueEvidenceReview
+from ..services.stream_events import ensure_stream_active
+from .streaming import stream_response, cancel_stream
 from ..services.memory import unpack,pack,record_bytes,cleanup_candidates
 from ..services.completion_stats import merge_completion_ids
 from ..services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
@@ -115,6 +118,7 @@ def lock_dialogue_request(db, owner, request_id):
 
 
 def begin_dialogue_request(owner, request_id):
+    ensure_stream_active()
     if request_id is None:
         return
     with Session() as db:
@@ -134,10 +138,12 @@ def cancel_dialogue_request(request_id:uuid.UUID,owner=Depends(uid)):
         row.data={'status':'cancelled'}
         try: db.commit()
         except IntegrityError: raise HTTPException(409,'请求状态已变化，请重试撤回') from None
+    cancel_stream(owner,request_id)
     return {'ok':True}
 
 
 def finish_dialogue_request(db, owner, request_id):
+    ensure_stream_active()
     row=lock_dialogue_request(db,owner,request_id)
     if row:
         if row.data['status']!='running': raise HTTPException(409,'消息已撤回')
@@ -232,7 +238,9 @@ def agent(body:AgentInput,owner=Depends(uid)):
     with Session() as db:
         if body.request_id and db.bind.dialect.name=='sqlite': db.execute(text('BEGIN IMMEDIATE'))
         finish_dialogue_request(db,owner,body.request_id)
-        db.add(Record(id=run_id,owner=owner,kind='run',data={'route':result['route'],'image':bool(body.image),'input_source':body.text,'created_at':datetime.now(timezone.utc).isoformat(),'parent_plan_id':body.base_plan_id,'material_names':[item['name'] for item in materials],**result['result'],**dialogue,'status':'pending'}));db.commit()
+        db.add(Record(id=run_id,owner=owner,kind='run',data={'route':result['route'],'image':bool(body.image),'input_source':body.text,'created_at':datetime.now(timezone.utc).isoformat(),'parent_plan_id':body.base_plan_id,'material_names':[item['name'] for item in materials],**result['result'],**dialogue,'status':'pending'}))
+        ensure_stream_active()
+        db.commit()
     metrics=result['result'].get('metrics',{})
     log.info('agent_completed run=%s route=%s seconds=%s model_calls=%s context_characters=%s',run_id,result['route'],metrics.get('total_seconds'),metrics.get('model_calls'),metrics.get('context_characters'))
     return {'id':run_id,'route':result['route'],**result['result']}
@@ -290,9 +298,9 @@ def dialogue_payload(record, data):
     chat = data.get('dialogue', {})
     pending = chat.get('pending')
     messages = chat.get('messages', [])
-    can_withdraw = len(messages) >= 2 and [turn['role'] for turn in messages[-2:]] == ['user', 'assistant']
+    can_withdraw = len(messages) >= 2 and [turn['role'] for turn in messages[-2:]] == ['user', 'assistant'] and not any(item.get('status')=='submitted' for item in messages[-1].get('evidence_candidates', []))
     token = hashlib.sha256(json.dumps(messages, sort_keys=True).encode()).hexdigest() if can_withdraw else None
-    public_messages = [{key: value for key, value in turn.items() if key in ('role', 'text', 'skills')} for turn in messages]
+    public_messages = [{key: value for key, value in turn.items() if key in ('role', 'text', 'skills', 'turn_id', 'evidence_candidates')} for turn in messages]
     return {'id': record.id, 'title': plan_title(data), 'dialogue_title': dialogue_title(data), 'messages': public_messages, 'withdraw_token': token,
             'skill_profile': chat.get('skill_profile', 'auto'),
             'pending': {'id': pending['id'], 'preview': pending['preview']} if pending else None}
@@ -303,6 +311,35 @@ def get_dialogue(plan_id: str, owner=Depends(uid)):
     with Session() as db:
         record, data = dialogue_plan(db, owner, plan_id)
         return dialogue_payload(record, data)
+
+
+@router.post('/api/plans/{plan_id}/dialogue/evidence/{candidate_id}')
+def submit_dialogue_evidence(plan_id: str, candidate_id: str, body: DialogueEvidenceReview, owner=Depends(uid)):
+    if not body.title.strip() or not body.body.strip():
+        raise HTTPException(422, '请填写证据标题和内容')
+    with Session() as db:
+        record, data = dialogue_plan(db, owner, plan_id, write=True)
+        data=json.loads(json.dumps(data))
+        chat=data.get('dialogue', {})
+        target=next(((turn,item) for turn in chat.get('messages', []) for item in turn.get('evidence_candidates', []) if item['id']==candidate_id),None)
+        if not target:raise HTTPException(404, '候选证据不存在，请重新打开对话')
+        turn, candidate=target
+        snapshot=db.get(Record, 'state:'+owner, with_for_update=True)
+        state=snapshot.data if snapshot else {'tasks':[], 'evidence':[]}
+        if candidate.get('status')!='submitted':
+            if len(state.get('evidence', []))>=5000:raise HTTPException(422, '证据数量已达上限，请先整理证据')
+            evidence_id=max(int(datetime.now(timezone.utc).timestamp()*1000),max((e['id'] for e in state.get('evidence',[]) if type(e.get('id')) is int),default=0)+1)
+            evidence={**body.model_dump(), 'title':body.title.strip(), 'body':body.body.strip(),
+                      'id':evidence_id, 'status':'待确认', 'source_type':'dialogue', 'kind':candidate['kind'],
+                      'source_plan_id':plan_id, 'source_turn_id':turn['turn_id'], 'source_quote':candidate['quote'],
+                      'created_at':datetime.now(timezone.utc).isoformat()}
+            state={**state, 'evidence':[evidence,*state.get('evidence', [])]}
+            candidate.update(status='submitted', evidence_id=evidence_id)
+            db.merge(Record(id='state:'+owner,owner=owner,kind='state',data=state))
+            record.data={**data,'dialogue':chat}
+        payload=dialogue_payload(record, data)
+        db.commit()
+        return {**payload,'evidence':state.get('evidence', [])}
 
 
 
@@ -335,8 +372,9 @@ def send_dialogue(plan_id: str, body: DialogueMessage, owner=Depends(uid)):
     if chat.get('pending'):
         raise HTTPException(409, '请先确认或放弃上一轮调整建议')
     messages = chat.get('messages', [])
-    tasks = get_state(owner)['tasks']
-    context = dialogue_context(baseline, tasks, plan_id, messages, message)
+    latest_state = get_state(owner)
+    tasks = latest_state['tasks']
+    context = dialogue_context(baseline, tasks, plan_id, messages, message, latest_state.get('evidence', []))
     skills = skills_for_request('recommend', body.skill_profile, plan_title(baseline))
     settings = runtime_settings(owner)
     materials = read_plan_attachments(owner, body.material_ids, body.attachment_images)
@@ -349,8 +387,8 @@ def send_dialogue(plan_id: str, body: DialogueMessage, owner=Depends(uid)):
             result = dialogue_workflow.invoke(state)['result']
     except Exception as error:
         error_id = uuid.uuid4().hex[:12]
-        detail = diagnose(error, error_id)
-        log.warning('dialogue_failed request_id=%s code=%s error_type=%s upstream_status=%s', error_id, detail['code'], type(error).__name__, getattr(error,'status_code',None))
+        detail = diagnose(error, error_id, operation='dialogue')
+        log.warning('dialogue_failed request_id=%s code=%s error_type=%s upstream_status=%s validation=%s', error_id, detail['code'], type(error).__name__, getattr(error,'status_code',None), detail.get('validation', []))
         raise HTTPException(502, detail)
     with Session() as db:
         record, data = dialogue_plan(db, owner, plan_id, write=True)
@@ -359,18 +397,21 @@ def send_dialogue(plan_id: str, body: DialogueMessage, owner=Depends(uid)):
             raise HTTPException(409, '方案或对话已有更新，请重新打开后再发送')
         snapshot = db.get(Record, 'state:' + owner, with_for_update=True)
         current_tasks = snapshot.data['tasks'] if snapshot else []
-        if dialogue_context(data, current_tasks, plan_id, messages, message) != context:
-            raise HTTPException(409, '相关日程已有更新，请重新发送')
+        if dialogue_context(data, current_tasks, plan_id, messages, message, snapshot.data.get('evidence', []) if snapshot else []) != context:
+            raise HTTPException(409, '相关日程或能力证据已有更新，请重新发送')
         preview = prepare_changes(data, current_tasks, plan_id, result['changes'])
         pending = {'id': str(uuid.uuid4()), 'changes': result['changes'], 'preview': preview} if preview else None
         memory = result.get('memory') if result.get('memory') is not None else chat.get('memory', '')
+        candidates=[{**item,'id':uuid.uuid4().hex,'status':'pending'} for item in result.get('evidence_candidates', [])
+                    if item.get('quote') and item['quote'] in message]
         data = {**data, 'dialogue': {'messages': [*messages, {'role': 'user', 'text': message},
                 {'role': 'assistant', 'text': result['reply'], 'skills': [SKILL_LABELS[key] for key in skills],
-                 'turn_id': uuid.uuid4().hex, 'previous_memory': chat.get('memory', '')}],
+                 'turn_id': uuid.uuid4().hex, 'evidence_candidates':candidates, 'previous_memory': chat.get('memory', '')}],
                 'skill_profile': body.skill_profile, 'pending': pending,
                 'memory': memory}}
         record.data = data
         payload = dialogue_payload(record, data)
+        ensure_stream_active()
         db.commit()
         return payload
 
@@ -498,3 +539,15 @@ def download(key:str,owner=Depends(uid)):
         row=db.get(Record,'file:'+key)
         if not row or row.owner!=owner: raise HTTPException(404,'附件不存在')
         return FileResponse(root/'uploads'/key,filename=row.data['name'],media_type='application/octet-stream')
+
+
+@router.post('/api/agent/stream')
+def agent_stream(body:AgentInput, request:Request, owner=Depends(uid)):
+    body=body.model_copy(update={'request_id':body.request_id or uuid.uuid4()})
+    return stream_response(request,owner,body.request_id,lambda:agent(body,owner))
+
+
+@router.post('/api/plans/{plan_id}/dialogue/stream')
+def dialogue_stream(plan_id:str, body:DialogueMessage, request:Request, owner=Depends(uid)):
+    body=body.model_copy(update={'request_id':body.request_id or uuid.uuid4()})
+    return stream_response(request,owner,body.request_id,lambda:send_dialogue(plan_id,body,owner))

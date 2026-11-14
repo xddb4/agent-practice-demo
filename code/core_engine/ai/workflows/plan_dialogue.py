@@ -4,18 +4,20 @@ import json
 from datetime import date as Date
 from typing import Literal, TypedDict
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 from pydantic import Field, ValidationError, model_validator
 
 from backend.app.integrations.model import structured_model
-from backend.app.schemas.agent import Contract
-from backend.app.services.agent_errors import AgentOutputError
+from backend.app.integrations.model_stream import invoke_with_reply_stream
+from backend.app.schemas.agent import Contract, Dimension
+from backend.app.services.agent_errors import AgentOutputError, AgentOutputTooLongError
 from core_engine.ai.prompts.dialogue import dialogue_instructions
 
 
 class TaskPatch(Contract):
     title: str | None = Field(default=None, min_length=1, max_length=300)
+    description: str | None = Field(default=None, max_length=3000)
     date: Date | None = None
     deadline: Date | None = None
     estimated_minutes: int | None = Field(default=None, gt=0, le=10080)
@@ -41,10 +43,19 @@ class Change(Contract):
         return self
 
 
+class DialogueEvidence(Contract):
+    title: str = Field(min_length=1, max_length=150)
+    quote: str = Field(min_length=8, max_length=1500)
+    dimension: Dimension
+    rationale: str = Field(min_length=1, max_length=1000)
+    kind: Literal['self_report', 'work_result']
+
+
 class DialogueOutput(Contract):
     reply: str = Field(min_length=1, max_length=2500)
-    changes: list[Change] = Field(max_length=12)
+    changes: list[Change] = Field(max_length=100)
     memory: str | None = Field(default=None, max_length=1800)
+    evidence_candidates: list[DialogueEvidence] = Field(default_factory=list, max_length=3)
 
 
 class DialogueState(TypedDict, total=False):
@@ -56,7 +67,7 @@ class DialogueState(TypedDict, total=False):
 
 
 def propose(state: DialogueState):
-    instructions = dialogue_instructions(state['skills'])
+    instructions = dialogue_instructions(state['skills']) + '\n严格遵守以下 JSON Schema，不要添加未定义字段：\n' + json.dumps(DialogueOutput.model_json_schema(), ensure_ascii=False)
     images = state.get('attachment_images', [])
     context = json.dumps(state['context'], ensure_ascii=False)
     materials = state.get('materials', [])
@@ -65,15 +76,27 @@ def propose(state: DialogueState):
     content = [{'type':'text','text':context}, *[
         {'type':'image_url','image_url':{'url':image}} for image in images
     ]] if images else context
-    response = structured_model(bool(images)).invoke([
+    model = structured_model(bool(images))
+    messages = [
         SystemMessage(content=instructions),
         HumanMessage(content=content),
-    ])
-    try:
-        output = DialogueOutput.model_validate_json(response.content)
-    except ValidationError as error:
-        raise AgentOutputError(error.errors()) from error
-    return {'result': output.model_dump(mode='json', exclude_unset=True)}
+    ]
+    for attempt in range(2):
+        response = invoke_with_reply_stream(model,messages,'reply')
+        if response.response_metadata.get('finish_reason') == 'length':
+            raise AgentOutputTooLongError()
+        try:
+            output = DialogueOutput.model_validate_json(response.content)
+            result = output.model_dump(mode='json', exclude_unset=True)
+            # Only literal user statements can become candidates; inferred explanations cannot.
+            message = state['context'].get('本轮消息', '')
+            result['evidence_candidates'] = [item for item in result.get('evidence_candidates', []) if item['quote'] in message]
+            return {'result': result}
+        except ValidationError as error:
+            if attempt:
+                raise AgentOutputError(error.errors(), repair_attempted=True) from error
+            issues=[{'loc':list(issue['loc']), 'type':issue['type']} for issue in error.errors()[:10]]
+            messages.extend([AIMessage(content=response.content), HumanMessage(content='上次结果未通过校验。仅修复以下结构问题，保留用户意图，返回完整 JSON；不要声称已写入日程：'+json.dumps(issues,ensure_ascii=False))])
 
 
 graph = StateGraph(DialogueState)

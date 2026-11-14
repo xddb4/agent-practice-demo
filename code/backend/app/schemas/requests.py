@@ -48,6 +48,13 @@ class DialogueWithdrawal(BaseModel):
     token: str = Field(min_length=64, max_length=64)
 
 
+class DialogueEvidenceReview(BaseModel):
+    title: str = Field(min_length=1, max_length=150)
+    body: str = Field(min_length=1, max_length=3000)
+    desc: str = Field(default='', max_length=1500)
+    dim: int = Field(ge=0, le=5)
+
+
 class ArchiveInput(BaseModel):
     archived:bool=True
 

@@ -7,6 +7,17 @@ function setup(api){
  const state={Intl,Date,structuredClone,labels:['重要且紧急','重要不紧急','不重要但紧急','不重要不紧急'],esc:value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])),modal:html=>state.html=html,closeModal(){nodes['review-error'].isConnected=false},showStudyAlert:message=>state.popup=message,document:{getElementById:id=>nodes[id],querySelectorAll:()=>[]},api:api||(async()=>{}),commitParsed(){state.saved=state.parsed},evidence:[],abilities:[],save(){},render(){}};
  vm.createContext(state);vm.runInContext(readFileSync('code/frontend/src/components/review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
 }
+
+test('短任务名与执行说明分别保存，加入日程后仍保留完整做法',async()=>{
+ const {state,run}=setup();
+ state.handleAgentResult({id:'short-title',route:'recommend',items:[{title:'卷A连读精听',description:'对照诊断卷A原文，标出两段长对话中的漏听处，再脱稿复听。',date:'2090-01-02',estimated_minutes:30,important:true,urgent:false,rationale:'针对用户反馈安排。'}]});
+ const html=run('reviewTaskDetails(reviewRows[0],0,true)');
+ assert.match(html,/执行说明/);assert.match(html,/对照诊断卷A原文/);
+ run("reviewRows[0].description='校正后的独立执行步骤'");
+ await state.confirmTaskReview();
+ assert.equal(state.saved[0].title,'卷A连读精听');
+ assert.equal(state.saved[0].description,'校正后的独立执行步骤');
+});
 test('直接显示唯一的任务核对表单，不展示模型说明或JSON编辑器',()=>{
  const {state}=setup();
  state.handleAgentResult({id:'run1',route:'schedule',notice:'internal-model-notice',items:[{title:'讨论',start:'2026-11-02T18:30:00+08:00',end:null},{title:'准备材料',date:'2026-11-03'}]});

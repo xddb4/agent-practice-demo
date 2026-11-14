@@ -6,6 +6,28 @@ from fastapi.testclient import TestClient
 from backend.app.main import app
 import backend.app.api.routes as main
 from backend.app.core.db import Record, Session
+from backend.app.services.agent_errors import AgentOutputError
+
+
+def test_dialogue_validation_failure_explains_cause_without_writing(monkeypatch, caplog):
+    client, owner = account()
+    path = f'/api/plans/{seed_plan(owner)}/dialogue'
+    before = client.get(path).json()
+    monkeypatch.setattr(main, 'runtime_settings', lambda _: {})
+
+    def fail(_):
+        raise AgentOutputError([{'type': 'too_long', 'loc': ['changes'],
+                                'ctx': {'max_length': 100}, 'input': 'private-input-marker'}], repair_attempted=True)
+
+    monkeypatch.setattr(main.dialogue_workflow, 'invoke', fail)
+    response = client.post(path, json={'text': '调整后续任务'})
+    assert response.status_code == 502
+    detail = response.json()['detail']
+    assert detail['title'] == '方案调整结果校验失败'
+    assert detail['problems'] == ['调整列表：超过允许的数量或长度（上限 100）']
+    assert 'too_long' in caplog.text and detail['request_id'] in caplog.text
+    assert 'private-input-marker' not in response.text + caplog.text
+    assert client.get(path).json() == before
 
 
 def account():

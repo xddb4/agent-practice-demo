@@ -47,6 +47,8 @@ class EvidenceCandidate(Contract):
     source:str=Field(min_length=1,max_length=30000)
 class ProposedTask(Contract):
     title:str=Field(min_length=1,max_length=300)
+    description:str|None=Field(default=None,max_length=3000,description='执行说明，明确材料、具体动作及范围；不把说明挤进任务名称')
+    stage:str|None=Field(default=None,min_length=1,max_length=60)
     estimated_minutes:int=Field(gt=0,le=10080)
     completion_criteria:str|None=Field(default=None,max_length=5000)
     important:bool
@@ -86,7 +88,7 @@ class GeneratedProposedTask(ProposedTask):
 
 class GeneratedRecommendation(RecommendationOutput):
     items:list[GeneratedProposedTask]=Field(min_length=1,max_length=16)
-    dialogue_reply:str|None=Field(default=None,max_length=600)
+    dialogue_reply:str|None=Field(default=None,max_length=1500)
     dialogue_title:str|None=Field(default=None,min_length=1,max_length=10,description="提炼用户目标的十字以内对话小标题，不包含分数、个人情况或日期")
 
     @model_validator(mode='after')

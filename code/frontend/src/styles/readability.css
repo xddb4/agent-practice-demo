@@ -83,3 +83,20 @@ body :is(input, textarea)::placeholder { color: #6e7282; opacity: 1; }
   .header-account { flex-wrap: wrap; justify-content: flex-end; max-width: 180px; }
   .app-header #recommend-entry {  }
 }
+
+/* Replies use the available chat width; user messages keep their narrower bubbles. */
+.plan-dialogue .dialogue-turn[data-role="assistant"] { width: 100%; max-width: 100%; }
+.plan-dialogue .dialogue-turn .dialogue-reply p { margin: .8rem 0; line-height: 1.8; white-space: normal; }
+.plan-dialogue .dialogue-turn .dialogue-reply p:first-child { margin-top: .35rem; }
+.plan-dialogue .dialogue-turn .dialogue-reply ul { margin: .8rem 0; padding-left: 1.3rem; }
+.plan-dialogue .dialogue-turn .dialogue-reply li { margin: .45rem 0; line-height: 1.8; }
+.plan-dialogue .dialogue-record-actions { justify-content: flex-start; flex-wrap: wrap; gap: .75rem; }
+.plan-dialogue .dialogue-record-actions .dialogue-plan-cta {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  min-height: 48px; max-width: 100%; padding: .7rem 1rem;
+  border: 1px solid #765b94; border-radius: 12px;
+  background: #80649d; color: #fff; font-size: .95rem; font-weight: 600;
+  box-shadow: 0 4px 12px #67507f24; cursor: pointer;
+}
+.plan-dialogue .dialogue-record-actions .dialogue-plan-cta:hover { background: #6c5088; color: #fff; }
+.plan-dialogue .dialogue-record-actions .dialogue-plan-cta:focus-visible { outline: 3px solid #b59bd0; outline-offset: 3px; }

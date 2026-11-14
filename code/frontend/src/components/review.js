@@ -10,7 +10,7 @@ function localMoment(iso){
 }
 function candidateRow(raw,index){
  const start=localMoment(raw.start),end=localMoment(raw.end),ddl=localMoment(raw.deadline);
- return {id:Date.now()+index,raw,selected:true,title:raw.title,date:raw.date||start.date||ddl.date||'',type:raw.start?'fixed':'flex',start:start.time,end:end.time,location:raw.location||'',ddl:ddl.date,duration:raw.estimated_minutes??'',standard:raw.completion_criteria||'',q:raw.important?(raw.urgent?0:1):(raw.urgent?2:3)};
+ return {id:Date.now()+index,raw,selected:true,title:raw.title,description:raw.description||'',date:raw.date||start.date||ddl.date||'',type:raw.start?'fixed':'flex',start:start.time,end:end.time,location:raw.location||'',ddl:ddl.date,duration:raw.estimated_minutes??'',standard:raw.completion_criteria||'',q:raw.important?(raw.urgent?0:1):(raw.urgent?2:3)};
 }
 function handleAgentResult(result){
  if(result.route==='evidence'){
@@ -29,7 +29,7 @@ function handleAgentResult(result){
   row.selected=!row.adopted;
   if(row.calendar){
    const task=row.calendar;
-   Object.assign(row,{title:task.title,date:task.date||'',start:task.start||'',end:task.end||'',
+   Object.assign(row,{title:task.title,description:task.description??item.description??'',date:task.date||'',start:task.start||'',end:task.end||'',
     type:task.start?'fixed':'flex',ddl:task.ddl||'',duration:task.duration??'',location:task.location||''});
    row.raw={...item,suggested_sessions:task.suggested_sessions||[]};
   }
@@ -97,6 +97,7 @@ function reviewTaskDetails(row,index,isRecommendation=false){
  return '<section class="preview-item">'+
  (isRecommendation?'':'<label class="review-task-choice">'+reviewCheckbox(row,index)+(row.adopted?'已加入计划':'加入这项任务')+'</label>')+
  reviewInput(row,index,'title','任务名称')+
+ (isRecommendation?'<div class="form-group"><label>执行说明<textarea aria-label="第'+(index+1)+'项执行说明" maxlength="3000" oninput="reviewField('+index+',\'description\',this.value)">'+esc(row.description||'')+'</textarea></label></div>':'')+
  '<div class="form-grid"><div class="form-group"><label>任务类型<select aria-label="第'+(index+1)+'项任务类型" onchange="reviewField('+index+',\'type\',this.value)"><option value="fixed" '+(row.type==='fixed'?'selected':'')+'>固定时间任务</option><option value="flex" '+(row.type==='flex'?'selected':'')+'>灵活任务</option></select></label></div>'+
  reviewInput(row,index,'date','计划日期','date')+'</div>'+
  (isRecommendation?recommendedTimesHTML(row):'')+
@@ -111,7 +112,7 @@ function recommendationDetailsHTML(){
   const row=reviewRows[reviewPane];
   if(!row.adopted)return reviewTaskDetails(row,reviewPane,true);
   return '<section class="preview-item"><h4>'+esc(row.title)+'</h4><p>'+esc(calendarTaskStatus(row))+'</p><p>'+
-   esc([row.date||'日期待定',row.start&&row.end?row.start+'–'+row.end:'',row.duration?row.duration+' 分钟':''].filter(Boolean).join(' · '))+'</p>'+
+   esc([row.date||'日期待定',row.start&&row.end?row.start+'–'+row.end:'',row.duration?row.duration+' 分钟':''].filter(Boolean).join(' · '))+'</p>'+(row.description?'<p>执行说明：'+esc(row.description)+'</p>':'')+
    (row.ddl?'<p>截止日期 '+esc(row.ddl)+'</p>':'')+(row.location?'<p>地点 '+esc(row.location)+'</p>':'')+
    (recommendationSessions(row).length?recommendedTimesHTML(row):'')+
    (row.calendar?.done?'':'<p class="tiny">可以继续聊，告诉 Agent 这项任务需要怎样调整。</p>')+'</section>';
@@ -173,7 +174,7 @@ function renderTaskReview(){
   '<div class="review-plan-layout"><section class="review-plan-list"><h3>选择任务</h3>'+(pending?'':selectAll)+
    reviewRows.map((row,index)=>{
     const count=recommendationSessions(row).length;
-    const status=row.adopted?calendarTaskStatus(row)+(row.date?' · '+row.date:''):'建议执行 '+(count||1)+' 次'+(count?'':' · 时段待定');
+    const status=(row.raw.stage?row.raw.stage+' · ':'')+(row.adopted?calendarTaskStatus(row)+(row.date?' · '+row.date:''):'建议执行 '+(count||1)+' 次'+(count?'':' · 时段待定'));
     return '<div class="review-plan-option"><label class="review-task-choice">'+(pending||row.calendar?'':reviewCheckbox(row,index))+'<span><b id="review-task-title-'+index+'">'+esc(row.title)+'</b><small>'+esc(status)+'</small></span></label>'+
      (pending&&!row.adopted?'':'<button type="button" class="tiny" onclick="showRecommendationPane('+index+')">'+(row.adopted?'查看':'编辑')+'</button>')+'</div>';
    }).join('')+
@@ -208,12 +209,13 @@ function renderTaskReview(){
 function reviewedTask(row){
  const duration=row.duration===''?null:Number(row.duration);
  const keepSuggestion=row.type==='flex'&&row.date===row.raw.date&&row.ddl===localMoment(row.raw.deadline).date;
- return {id:row.id,title:row.title.trim(),date:row.date,start:row.type==='fixed'?row.start:'',end:row.type==='fixed'?row.end:'',location:row.location,ddl:row.ddl,duration,standard:'',q:row.q,done:false,repeat:'不重复',suggest:keepSuggestion&&row.raw.suggested_finish?'建议完成 '+localMoment(row.raw.suggested_finish).date+' '+localMoment(row.raw.suggested_finish).time:'未设置',suggested_sessions:keepSuggestion?(row.raw.suggested_sessions||[]):[],ability:0,source:row.raw.source||'',agent_run_id:reviewContext?.id,proposal_index:row.proposalIndex};
+ return {id:row.id,title:row.title.trim(),...(row.description?{description:row.description.trim()}:{}),date:row.date,start:row.type==='fixed'?row.start:'',end:row.type==='fixed'?row.end:'',location:row.location,ddl:row.ddl,duration,standard:'',q:row.q,done:false,repeat:'不重复',suggest:keepSuggestion&&row.raw.suggested_finish?'建议完成 '+localMoment(row.raw.suggested_finish).date+' '+localMoment(row.raw.suggested_finish).time:'未设置',suggested_sessions:keepSuggestion?(row.raw.suggested_sessions||[]):[],ability:0,source:row.raw.source||'',agent_run_id:reviewContext?.id,proposal_index:row.proposalIndex};
 }
 function reviewedCandidate(row,route){
  const fixed=row.type==='fixed';const stamp=time=>row.date+'T'+time+':00+08:00';
  const item={...row.raw,title:row.title.trim(),date:row.date,start:fixed?stamp(row.start):null,end:fixed?stamp(row.end):null,important:row.q===0||row.q===1,urgent:row.q===0||row.q===2,estimated_minutes:row.duration===''?null:Number(row.duration)};
  delete item.completion_criteria;
+ if(route==='recommend')item.description=(row.description||'').trim()||null;
  if(route==='recommend'&&(fixed||row.date!==row.raw.date||row.ddl!==localMoment(row.raw.deadline).date)){item.suggested_finish=null;item.suggested_sessions=[]}
  item.deadline=row.ddl?(row.ddl===localMoment(row.raw.deadline).date?row.raw.deadline:row.ddl+'T23:59:00+08:00'):null;
  if(route==='schedule')item.location=row.location||null;

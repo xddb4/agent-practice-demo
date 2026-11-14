@@ -692,3 +692,8 @@ body { font-size: 15px; line-height: 1.7; }
   .dialogue-sidebar { max-height: 24dvh; }
   .dialogue-sidebar-tools { display: flex; align-items: end; flex-wrap: wrap; }
 }
+.dialogue-evidence-candidates { margin-top: 1rem; border-top: 1px solid #d3c2e2; padding-top: .8rem; }
+.dialogue-evidence-review { width: min(560px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; }
+.dialogue-evidence-review label { display: block; margin-top: .8rem; }
+.dialogue-evidence-review input, .dialogue-evidence-review textarea, .dialogue-evidence-review select { width: 100%; box-sizing: border-box; }
+.dialogue-evidence-review textarea { min-height: 5rem; }

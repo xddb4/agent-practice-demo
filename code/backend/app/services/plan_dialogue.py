@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from fastapi import HTTPException
 
 from .plans import linked_tasks, plan_items, plan_title
+from .context import ability_context
 
 LOCAL = ZoneInfo('Asia/Shanghai')
 
@@ -17,15 +18,15 @@ def local_time(value):
 
 def task_view(item, official=None):
     if official:
-        return {key: official.get(key) for key in ('title', 'date', 'start', 'end', 'duration', 'ddl', 'done')}
+        return {key: official.get(key) for key in ('title', 'description', 'date', 'start', 'end', 'duration', 'ddl', 'done')}
     return {
-        'title': item['title'], 'date': item.get('date'),
+        'title': item['title'], 'description': item.get('description'), 'date': item.get('date'),
         'start': local_time(item.get('start')), 'end': local_time(item.get('end')),
         'duration': item.get('estimated_minutes'), 'ddl': (item.get('deadline') or '')[:10],
     }
 
 
-def dialogue_context(data, tasks, plan_id, messages, text):
+def dialogue_context(data, tasks, plan_id, messages, text, evidence=None):
     items = plan_items(data)
     linked = linked_tasks(tasks, plan_id, items)
     cancelled = set(data.get('cancelled_indices', []))
@@ -46,6 +47,7 @@ def dialogue_context(data, tasks, plan_id, messages, text):
         '近期固定安排': [task_view({}, task) for task in upcoming[:60]],
         '近期对话': [{key: turn[key][:1600] for key in ('role', 'text')} for turn in messages[-10:]],
         '本轮消息': text,
+        '能力证据参考': ability_context(evidence or [], plan_title(data)+' '+text),
     }
 
 
@@ -155,6 +157,8 @@ def apply_changes(data, tasks, plan_id, previews):
             item = {**previous, 'title': after['title'],
                     'important': previous.get('important', True), 'urgent': previous.get('urgent', False),
                     'rationale': previous.get('rationale') or '根据本次对话新增'}
+            if 'description' in after:
+                item['description'] = after['description']
             before = change['before']
             if action == 'add' or any(after.get(key) != before.get(key) for key in ('date', 'start', 'end')):
                 item.update(date=day, start=f"{day}T{after['start']}:00+08:00" if after.get('start') else None,
