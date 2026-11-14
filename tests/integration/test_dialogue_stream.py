@@ -117,7 +117,7 @@ def test_http_client_receives_reply_while_generation_is_still_running(monkeypatc
         deadline=time.monotonic()+4
         while not server.started and time.monotonic()<deadline:time.sleep(.01)
         assert server.started
-        with httpx.Client(cookies=client.cookies,timeout=3,trust_env=False) as http:
+        with httpx.Client(cookies={'session':client.cookies.get('session')},timeout=3,trust_env=False) as http:
             with http.stream('POST',f'http://127.0.0.1:{port}'+path+'/stream',json={'text':'帮我分析'}) as response:
                 lines=response.iter_lines()
                 first=next(line for line in lines if line.startswith('data: '))
