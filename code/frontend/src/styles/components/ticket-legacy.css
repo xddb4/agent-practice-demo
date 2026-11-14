@@ -1,0 +1,361 @@
+.ticket-modal {
+  width: 560px;
+  overflow: visible;
+  padding: 28px;
+  background: #f8faf7;
+}
+.ticket-modal .modal-head {
+  margin-bottom: 8px;
+}
+.ticket-modal .modal-head h2 {
+  font-size: 20px;
+}
+.ticket-intro {
+  font-size: 12px;
+  color: #8b998f;
+  margin: 0 0 26px;
+}
+.tear-stage {
+  perspective: 1000px;
+  padding: 10px 0 28px;
+  position: relative;
+}
+.tear-ticket {
+  --ticket-rx: 0deg;
+  --ticket-ry: 0deg;
+  position: relative;
+  width: 460px;
+  max-width: 100%;
+  height: 250px;
+  margin: auto;
+  display: flex;
+  transform: rotateX(var(--ticket-rx)) rotateY(var(--ticket-ry));
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+  filter: drop-shadow(0 15px 18px #17251d20);
+}
+.ticket-art {
+  flex: 1;
+  min-width: 0;
+  background: #27272a;
+  color: #f5f5f5;
+  border-radius: 16px 0 0 16px;
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #ffffff24;
+  border-right: 0;
+}
+.ticket-spectrum {
+  position: absolute;
+  inset: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #242b36 5%, #354a44 34%, #7d8c65 58%, #d5a379 78%, #493f55);
+  isolation: isolate;
+}
+.ticket-spectrum:before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  background: repeating-linear-gradient(
+    112deg,
+    transparent 0px,
+    transparent 21px,
+    #ffffff20 22px,
+    #ffffff20 25px,
+    #10242165 26px,
+    #10242165 30px
+  );
+  transform: translateX(var(--ticket-px, 0px));
+  transition: transform 0.15s;
+}
+.ticket-spectrum:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #182a2233, #101b1570 55%, #111b15e6);
+}
+.ticket-art-content {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.ticket-overline {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  color: #e1e9dcbd;
+}
+.ticket-task-title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 17px 0 12px;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ticket-task-meta {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #edf2e0ba;
+}
+.ticket-brand {
+  font-size: 12px;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+  color: #edf2e0c9;
+}
+.ticket-stub {
+  position: relative;
+  flex: 0 0 150px;
+  width: 150px;
+  background: #f2f2eb;
+  color: #384a3e;
+  border-radius: 0 16px 16px 0;
+  text-align: left;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: grab;
+  touch-action: none;
+  transform-origin: left center;
+  will-change: transform;
+  border: 1px solid #dfe6d8;
+  border-left: 0;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.35s;
+  z-index: 3;
+}
+.ticket-stub:active {
+  cursor: grabbing;
+}
+.ticket-stub:focus-visible {
+  outline: 2px solid #72977b;
+  outline-offset: 5px;
+}
+.ticket-stub .stub-top {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #91a08d;
+}
+.ticket-stub h3 {
+  font-size: 24px;
+  line-height: 1.3;
+  margin: 9px 0 8px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+.ticket-stub p {
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 0;
+  color: #8a9788;
+}
+.ticket-stub .stub-arrow {
+  font-size: 22px;
+  color: #739078;
+  display: block;
+  margin: 12px 0 3px;
+}
+.ticket-stub .stub-no {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #99a38f;
+  word-break: break-all;
+}
+.ticket-perforation {
+  position: absolute;
+  left: -3px;
+  top: 10px;
+  bottom: 10px;
+  width: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  pointer-events: none;
+}
+.ticket-perforation i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d3d9cf;
+  box-shadow: inset 0 1px 2px #263d2c24;
+}
+.ticket-notch {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #f8faf7;
+  border-radius: 50%;
+  left: -7px;
+  z-index: 4;
+  pointer-events: none;
+}
+.ticket-notch.top {
+  top: -7px;
+}
+.ticket-notch.bottom {
+  bottom: -7px;
+}
+.ticket-tear-edge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: #f8faf7;
+  clip-path: polygon(
+    0 0,
+    100% 3%,
+    0 7%,
+    100% 11%,
+    0 15%,
+    100% 19%,
+    0 23%,
+    100% 27%,
+    0 31%,
+    100% 35%,
+    0 39%,
+    100% 43%,
+    0 47%,
+    100% 51%,
+    0 55%,
+    100% 59%,
+    0 63%,
+    100% 67%,
+    0 71%,
+    100% 75%,
+    0 79%,
+    100% 83%,
+    0 87%,
+    100% 91%,
+    0 95%,
+    100% 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+.tear-ticket.is-dragging .ticket-stub {
+  transition: none;
+}
+.tear-ticket.is-tearing .ticket-tear-edge {
+  opacity: 1;
+}
+.tear-ticket.is-tearing .ticket-stub {
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.45s;
+}
+.tear-ticket.is-tearing .ticket-perforation {
+  opacity: 0;
+}
+.tear-instructions {
+  min-height: 19px;
+  text-align: center;
+  font-size: 11px;
+  color: #81917f;
+  margin: 0 0 10px;
+}
+.tear-progress {
+  height: 3px;
+  background: #e4e9df;
+  border-radius: 4px;
+  max-width: 160px;
+  margin: 0 auto 18px;
+  overflow: hidden;
+}
+.tear-progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: #73937a;
+  transition: width 0.08s;
+}
+.ticket-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.ticket-direct {
+  font-size: 11px;
+  color: #879582;
+  padding: 7px 10px;
+}
+.ticket-shortcut {
+  font-size: 9px;
+  text-align: center;
+  color: #a5afa0;
+  margin: 14px 0 0;
+}
+.ticket-success-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #e0eddc;
+  opacity: 0;
+  z-index: 2;
+  font-size: 45px;
+  pointer-events: none;
+  transform: scale(0.7);
+  transition:
+    opacity 0.3s,
+    transform 0.4s;
+}
+.is-tearing .ticket-success-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+.ticket-ticket-label {
+  position: absolute;
+  left: 20px;
+  bottom: 16px;
+  color: #8f9e89;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+.ticket-art.is-torn {
+  border-radius: 16px 8px 8px 16px;
+}
+@media (max-width: 560px) {
+  .ticket-modal {
+    padding: 21px 16px;
+    width: 100%;
+    max-width: 490px;
+  }
+  .tear-ticket {
+    height: 235px;
+  }
+  .ticket-stub {
+    flex-basis: 115px;
+    width: 115px;
+    padding: 21px 13px;
+  }
+  .ticket-stub h3 {
+    font-size: 20px;
+  }
+  .ticket-art {
+    padding: 18px;
+  }
+  .ticket-task-title {
+    font-size: 18px;
+  }
+  .ticket-overline {
+    letter-spacing: 1px;
+  }
+  .ticket-shortcut {
+    font-size: 9px;
+  }
+  .ticket-intro {
+    font-size: 11px;
+  }
+}

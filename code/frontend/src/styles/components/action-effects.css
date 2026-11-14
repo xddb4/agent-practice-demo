@@ -1,0 +1,55 @@
+/* Shared GooeyNav behavior for nested views; moving StarBorder action. */
+.subdivision-tabs.app-nav {
+  display: inline-flex;
+  justify-self: auto;
+  margin: 0 0 28px;
+  padding: 5px;
+  gap: 0;
+  isolation: isolate;
+  --gn-pill: #7d849b;
+  --gn-muted: #9690a4;
+  --gn-frame: #eae6ef;
+  --gn-frame-shadow: inset 0 0 0 1px #ccc4d330;
+  --gn-active-ink: #fff;
+}
+.subdivision-tabs.app-nav button[aria-selected] {
+  background: none;
+  box-shadow: none;
+  color: var(--gn-muted);
+  padding: var(--gn-y) var(--gn-x);
+  font: inherit;
+  border: 0;
+}
+.subdivision-tabs.app-nav .gooey-nav__list--active button {
+  color: #fff;
+}
+.task-fab {
+  isolation: isolate;
+  overflow: visible;
+  background: #858298;
+  box-shadow: 0 10px 28px #605a772e;
+  border: 1px solid #b5adca70;
+}
+.task-fab:hover {
+  background: #77788f;
+  box-shadow: 0 12px 32px #605a7740;
+}
+.task-fab:focus-visible {
+  outline-color: #b5adc9;
+}
+.task-fab .star-border-light {
+  position: absolute;
+  top: -48px;
+  left: -48px;
+  width: calc(100% + 96px);
+  height: calc(100% + 96px);
+  pointer-events: none;
+  z-index: 0;
+}
+.task-fab > span {
+  position: relative;
+  z-index: 1;
+}
+.task-fab:active > span {
+  transform: scale(0.9);
+}

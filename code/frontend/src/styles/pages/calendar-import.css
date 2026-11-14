@@ -1,0 +1,162 @@
+.calendar-controls {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+.calendar-controls label {
+  flex: 1;
+  min-width: 0;
+}
+.calendar-controls label span {
+  display: block;
+  margin-bottom: 3px;
+}
+.calendar-controls button {
+  height: 40px;
+  white-space: nowrap;
+}
+.calendar-controls input {
+  min-width: 70px;
+}
+.calendar button {
+  position: relative;
+  padding: 10px 5px 5px;
+}
+.calendar button.calendar-today {
+  box-shadow: inset 0 0 0 1.5px var(--green);
+}
+.calendar-dot {
+  display: block;
+  font-size: 12px;
+  height: 12px;
+  line-height: 12px;
+  color: #8eae8f;
+}
+.calendar .selected .calendar-dot {
+  color: white;
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+@media (max-width: 450px) {
+  .calendar-controls {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .calendar-controls label {
+    flex: 1;
+  }
+  .calendar-controls button {
+    padding: 8px 10px;
+  }
+  .calendar-controls button:last-child {
+    margin-left: auto;
+  }
+}
+.tabs {
+  overflow-x: auto;
+}
+.tabs button {
+  white-space: nowrap;
+  padding: 9px 10px;
+}
+.image-steps {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0 20px;
+  font-size: 11px;
+  color: #a0aa9d;
+}
+.image-steps b {
+  color: var(--green);
+}
+.image-drop {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  border: 1.5px dashed #c2d3bd;
+  border-radius: var(--radius-panel);
+  padding: 23px;
+  cursor: pointer;
+  background: #f7faf4;
+  color: #57795c;
+  font-size: 13px;
+}
+.image-drop span:last-of-type {
+  font-size: 10px;
+  color: #8c9e86;
+}
+.image-drop input {
+  margin-top: 12px;
+  max-width: 340px;
+  font-size: 11px;
+  background: white;
+}
+.course-image-preview {
+  margin-top: 16px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px;
+}
+.course-image-preview img {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 5px;
+}
+.course-image-preview .tiny {
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+.course-review {
+  border: 1px solid #e0e8dc;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 15px;
+}
+.course-row-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #688463;
+}
+.course-review label {
+  font-size: 11px;
+  color: #84927d;
+}
+.course-review input,
+.course-review select {
+  margin-top: 4px;
+}
+.course-review .form-grid {
+  gap: var(--space-3);
+}
+.heading h1 {
+  overflow-wrap: anywhere;
+  max-width: 850px;
+}
+.profile:focus-visible {
+  outline: 2px solid var(--green);
+}
+@media (max-width: 650px) {
+  nav button {
+    font-size: 11px;
+  }
+  .heading {
+    gap: var(--space-3);
+  }
+  .heading h1 {
+    font-size: 21px;
+  }
+  .heading > div:last-child {
+    flex-shrink: 0;
+  }
+  .modal .notice {
+    line-height: 1.8;
+  }
+}

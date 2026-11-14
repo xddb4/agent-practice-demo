@@ -1,0 +1,77 @@
+[data-task-id] {
+  cursor: grab;
+}
+.scheduled-event[data-task-id] {
+  touch-action: none;
+}
+.drag-handle {
+  cursor: grab;
+  touch-action: none;
+  color: #9caaa0;
+  padding: 0 3px;
+  align-self: center;
+  font-size: 19px;
+}
+.drag-source {
+  opacity: 0.3 !important;
+}
+.quad {
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+.quad.drop-active {
+  box-shadow:
+    0 0 0 2px #7d849b,
+    0 8px 24px #315b4020;
+  transform: translateY(-2px);
+}
+.drag-ghost {
+  position: fixed;
+  z-index: 200;
+  pointer-events: none;
+  max-width: 280px;
+  background: #fff;
+  border: 1px solid #c7d9cc;
+  border-left: 4px solid var(--q, #7d849b);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px #223a3030;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.drag-ghost small {
+  display: block;
+  color: #7d8c81;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.drag-slot {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  z-index: 5;
+  pointer-events: none;
+  background: #7d849b12;
+  border: 1.5px dashed #7d849b;
+  border-radius: var(--radius-button);
+  padding: 4px 8px;
+  color: #7d849b;
+  font-size: 11px;
+}
+.toast button {
+  color: #e4f2df;
+  text-decoration: underline;
+  margin-left: 18px;
+  font-size: 12px;
+}
+.dragging-body {
+  user-select: none;
+  cursor: grabbing !important;
+}
+.dragging-body * {
+  cursor: grabbing !important;
+}
+.drag-note {
+  font-size: 10px;
+  color: #8b998e;
+}

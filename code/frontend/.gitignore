@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.verification/
+public/*.js
+public/*.css
+public/prototype.html

@@ -2,11 +2,9 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const {readFileSync}=require('node:fs');
-const source=readFileSync('code/frontend/src/pages/AgentApp.jsx','utf8');
-const start=source.indexOf('async function runAgent(');
-const end=source.indexOf('\n useEffect(',start);
-assert.ok(start>=0&&end>start,'找不到 Agent 请求函数');
-const run=source.slice(start,end);
+const source=readFileSync('code/frontend/src/app/AgentApp.jsx','utf8');
+const {namedFunction}=require('./frontend-source.cjs');
+const run=namedFunction(source,'runAgent');
 function fixture(configured){
  const calls=[],messages=[];
  const state={AbortController,activeRequest:{current:null},requestData:{current:null},location:{origin:'http://localhost'},frame:{current:{contentWindow:{postMessage:value=>messages.push(value)}}},setRequest(){},setError(){},setElapsed(){},setBusy(){},toDiagnostic:e=>e,

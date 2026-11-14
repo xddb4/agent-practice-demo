@@ -5,7 +5,7 @@ const vm=require('node:vm');
 function setup(api){
  const nodes={'review-error':{textContent:'',isConnected:true},'review-confirm':{},'review-select-all':{}};
  const state={Intl,Date,structuredClone,labels:['重要且紧急','重要不紧急','不重要但紧急','不重要不紧急'],esc:value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])),modal:html=>state.html=html,closeModal(){nodes['review-error'].isConnected=false},showStudyAlert:message=>state.popup=message,document:{getElementById:id=>nodes[id],querySelectorAll:()=>[]},api:api||(async()=>{}),commitParsed(){state.saved=state.parsed},evidence:[],abilities:[],save(){},render(){}};
- vm.createContext(state);vm.runInContext(readFileSync('code/frontend/src/components/review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
+ vm.createContext(state);vm.runInContext(readFileSync('code/frontend/src/features/agent/candidate-review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
 }
 
 test('短任务名与执行说明分别保存，加入日程后仍保留完整做法',async()=>{

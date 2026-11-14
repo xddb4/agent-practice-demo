@@ -1,0 +1,324 @@
+.task-fab {
+  position: fixed;
+  z-index: 22;
+  right: 32px;
+  bottom: 40px;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #7d849b;
+  color: #fff;
+  border: 1px solid #ffffff40;
+  box-shadow: 0 7px 25px #214d3838;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  transition:
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.task-fab span {
+  font-size: 31px;
+  font-weight: 300;
+  line-height: 1;
+  pointer-events: none;
+}
+.task-fab:hover {
+  background: #30684f;
+  box-shadow: 0 9px 28px #214d3845;
+}
+.task-fab.is-moving {
+  cursor: grabbing;
+  box-shadow: 0 12px 30px #214d3855;
+  transition: none;
+}
+.task-fab:focus-visible {
+  outline: 3px solid #9fc4ab;
+  outline-offset: 4px;
+}
+.task-fab[hidden] {
+  display: none;
+}
+.shredder {
+  padding-bottom: 12px !important;
+  position: relative;
+  background: #f8faf7;
+}
+.shred-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 95px;
+  max-height: 410px;
+  overflow: auto;
+  padding: 8px 3px 16px;
+  scrollbar-width: thin;
+  overscroll-behavior-y: contain;
+}
+.shred-list .task-row {
+  border: 1px solid #e5ebe1 !important;
+  border-radius: 10px;
+  padding: 13px 11px;
+  background: #fff;
+  box-shadow: 0 2px 4px #304d3505;
+  flex-shrink: 0;
+  transition:
+    opacity 0.18s,
+    box-shadow 0.2s;
+}
+.shred-list .task-row:hover {
+  box-shadow: 0 4px 12px #304d3510;
+}
+.shred-drop {
+  --danger: 0;
+  min-height: 108px;
+  border-radius: 0 0 12px 12px;
+  position: relative;
+  text-align: center;
+  padding: 24px 12px 10px;
+  margin-top: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(202, 65, 63, calc(var(--danger) * 0.24)),
+    rgba(228, 100, 88, calc(var(--danger) * 0.07)) 70%,
+    transparent
+  );
+  transition: background 0.1s;
+}
+.shred-mouth {
+  height: 5px;
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  border-radius: 99px;
+  background: #7a877d;
+  box-shadow:
+    0 2px 0 #fff,
+    0 -2px 5px #26352b0d;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s;
+}
+.shred-prompt {
+  font-size: 11px;
+  margin: 4px 0 3px;
+  color: #899789;
+  transition:
+    color 0.12s,
+    transform 0.12s;
+}
+.shred-caption {
+  font-size: 9px;
+  color: #a4aea0;
+}
+.shred-drop.is-ready .shred-mouth {
+  background: #c34f48;
+  box-shadow: 0 0 14px #cf514636;
+}
+.shred-drop.is-ready .shred-prompt {
+  color: #b33e39;
+  font-weight: 600;
+  transform: translateY(-2px);
+}
+.shred-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 9px;
+  color: #a1ada0;
+  padding: 0 2px;
+}
+.shred-footer button {
+  color: #7d927e;
+}
+.task-delete-dock {
+  --danger: 0;
+  position: fixed;
+  z-index: 90;
+  bottom: 12px;
+  left: 50%;
+  transform: translate(-50%, 18px);
+  width: min(440px, calc(100vw - 32px));
+  height: 94px;
+  border-radius: 18px;
+  background: linear-gradient(
+    0deg,
+    rgba(192, 56, 49, calc(0.08 + var(--danger) * 0.23)),
+    rgba(255, 250, 246, 0.98)
+  );
+  border: 1px solid rgba(203, 97, 85, calc(0.1 + var(--danger) * 0.6));
+  box-shadow: 0 12px 40px #7d292515;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+  color: #b04b44;
+  backdrop-filter: blur(12px);
+}
+.task-delete-dock.is-visible {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.task-delete-dock.is-ready {
+  box-shadow:
+    0 0 0 2px #b7564c30,
+    0 12px 40px #7d29252a;
+}
+.task-delete-dock strong {
+  font-size: 13px;
+}
+.task-delete-dock small {
+  font-size: 10px;
+  opacity: 0.7;
+}
+.delete-dock-slot {
+  height: 4px;
+  background: #cba39a;
+  border-radius: 99px;
+  width: calc(100% - 32px);
+  margin-bottom: 5px;
+}
+.task-delete-dock.is-ready .delete-dock-slot {
+  background: #b4413c;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.shred-feed-layer,
+.shred-fall-layer {
+  position: fixed;
+  pointer-events: none;
+  z-index: 210;
+  overflow: hidden;
+}
+.shred-feed-paper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  animation: paper-feed var(--feed-ms) cubic-bezier(0.35, 0, 0.8, 0.8) forwards;
+}
+.shred-feed-layer .task-row,
+.shred-strip .task-row {
+  box-sizing: border-box;
+  margin: 0;
+  background: #fff;
+  border: 1px solid #e0e7dc;
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 13px 11px;
+  width: var(--paper-width) !important;
+  min-height: var(--paper-height);
+}
+.shred-feed-layer .task-row button,
+.shred-strip .task-row button {
+  color: inherit;
+}
+.shred-strip {
+  position: absolute;
+  top: 0;
+  overflow: hidden;
+  transform-origin: top center;
+  width: var(--strip-width);
+  height: var(--paper-height);
+  animation: paper-strip-fall var(--strip-ms) cubic-bezier(0.25, 0.3, 0.45, 1) both;
+  animation-delay: var(--strip-delay);
+  box-shadow: 1px 0 0 #d5dece55;
+  will-change: transform, opacity;
+}
+.shred-strip-inner {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--strip-x));
+  width: var(--paper-width);
+}
+.shred-busy .shred-mouth {
+  animation: shred-rattle 0.09s infinite;
+  background: #c34f48;
+}
+.trash-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.trash-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px;
+}
+.trash-row b {
+  font-size: 12px;
+}
+.trash-row p {
+  font-size: 10px;
+  color: #97a18e;
+  margin: 3px 0 0;
+}
+@keyframes paper-feed {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(105%);
+  }
+}
+@keyframes paper-strip-fall {
+  0% {
+    transform: translateY(calc(-1 * var(--paper-height))) rotate(0);
+    opacity: 1;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--strip-drift), 155px) rotate(var(--strip-rotate));
+    opacity: 0;
+  }
+}
+@keyframes shred-rattle {
+  50% {
+    transform: translateX(0.7px);
+  }
+}
+@media (max-width: 650px) {
+  .task-fab {
+    width: 56px;
+    height: 56px;
+    right: 20px;
+    bottom: 24px;
+  }
+  .shred-list {
+    max-height: 360px;
+  }
+  .shredder {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

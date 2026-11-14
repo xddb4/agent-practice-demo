@@ -1,8 +1,8 @@
 name: agent-practice-integration
-services:
-  db:
+services: #要启动的服务列表
+  db: #数据库服务
     image: postgres:16-alpine
-    restart: unless-stopped
+    restart: unless-stopped #除非手动停止才不重启
     environment:
       POSTGRES_DB: studypilot
       POSTGRES_USER: studypilot

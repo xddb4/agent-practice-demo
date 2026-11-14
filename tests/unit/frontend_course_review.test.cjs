@@ -1,3 +1,5 @@
+const {readBundle}=require('./frontend-source.cjs');
+const {namedFunction}=require('./frontend-source.cjs');
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const vm=require('node:vm');
@@ -10,10 +12,10 @@ function setup(){
   minutes(time){const [hours,minutes]=time.split(':').map(Number);return hours*60+minutes},
  };
  vm.createContext(state);
- const prototype=readFileSync('code/frontend/src/pages/StudyPilot.html','utf8');
- vm.runInContext(prototype.slice(prototype.indexOf('function layoutEvents('),prototype.indexOf('function dayFocusHTML(')),state);
- vm.runInContext(readFileSync('code/frontend/src/components/task_views.js','utf8'),state);
- vm.runInContext(readFileSync('code/frontend/src/components/course_review.js','utf8'),state);
+ const prototype=readFileSync('code/frontend/src/pages/plan/plan-page.js','utf8');
+ vm.runInContext(namedFunction(prototype,'layoutEvents'),state);
+ vm.runInContext(readBundle('task_views.js'),state);
+ vm.runInContext(readFileSync('code/frontend/src/features/courses/course-review.js','utf8'),state);
  return state;
 }
 

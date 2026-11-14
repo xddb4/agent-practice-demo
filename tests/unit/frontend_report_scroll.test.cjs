@@ -7,7 +7,7 @@ function setup(report=async()=>undefined){
  const grid={};
  const state={report,window:{addEventListener(){},scrollTo:value=>{state.scroll=value}},document:{querySelector:selector=>selector==='#content > .report-grid'?grid:state.existingReport}};
  vm.createContext(state);
- vm.runInContext(readFileSync('code/frontend/src/components/report_scroll.js','utf8'),state);
+ vm.runInContext(readFileSync('code/frontend/src/components/report/report-scroll.js','utf8'),state);
  return {state,grid};
 }
 

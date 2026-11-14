@@ -14,3 +14,4 @@ logs/
 # Browser assets are generated from frontend/src by build.mjs.
 code/frontend/public/*.js
 code/frontend/public/*.css
+code/frontend/.verification/

@@ -30,7 +30,7 @@ function simulation(width, counts) {
     ResizeObserver: class {observe() {} disconnect() {}}
   };
   vm.createContext(state);
-  vm.runInContext(readFileSync('code/frontend/src/components/spheres.js', 'utf8'), state);
+  vm.runInContext(readFileSync('code/frontend/src/components/quadrants/spheres.js', 'utf8'), state);
   state.mountQuadrantSpheres(stage);
   function checkFrames(number) {
     for (let n = 0; n < number; n++) {

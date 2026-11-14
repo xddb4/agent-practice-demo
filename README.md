@@ -41,8 +41,9 @@ StudyPilot/
 └── README.md
 ~~~
 
-frontend/public 中根级 JS/CSS 由 build.mjs 从 src 生成，修改源码应在 src 中进行。
-当前页面由 src/pages/StudyPilot.html 和 React 外层共同运行，完整 React 页面组件迁移仍待后续完成。
+frontend/public 中根级 JS/CSS 由 build.mjs 按 src/app/assets.mjs 的资源清单生成，修改源码应在 src 中进行。
+当前页面由 src/app/workspace.html、按职责拆出的工作台脚本和 React 外层共同运行，完整 React 页面组件迁移仍待后续完成。
+前端开发、UI 修改入口和重构验证见 [前端开发指南](docs/software/FRONTEND_GUIDE.md) 与 [重构交付报告](docs/software/FRONTEND_REFACTOR_REPORT.md)。前端依赖统一使用 npm ci 和 package-lock.json。
 backend/app/main.py 负责应用组装，API 注册在 api/routes.py，Agent 引擎通过 core_engine.ai 导入。
 开发分支从最新 develop 创建，功能验证后通过 PR 合回 develop，发布时再由团队核对 main。
 已有仓库可直接使用，无需重复 git init 或重建 main、develop。

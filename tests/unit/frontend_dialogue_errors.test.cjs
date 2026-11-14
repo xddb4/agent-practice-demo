@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm');
 const {readFileSync}=require('node:fs');
-const source=readFileSync('code/frontend/src/pages/plan_dialogue.js','utf8');
+const source=readFileSync('code/frontend/src/api/dialogue-client.js','utf8')+'\n'+readFileSync('code/frontend/src/pages/recommendations/plan-dialogue.js','utf8');
 function setup(response){
  const state={fetch:async()=>response,TextDecoder,Uint8Array,esc:value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;')};
  vm.createContext(state);vm.runInContext(source,state);return state;

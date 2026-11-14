@@ -1,0 +1,456 @@
+.auth-landing {
+  overflow: hidden;
+  background: #f9f7f1;
+}
+.auth-landing > .app {
+  display: none;
+}
+.landing-page {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  background: #f9f7f1;
+  isolation: isolate;
+  opacity: 1;
+  transition:
+    opacity 0.6s,
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.landing-page[hidden] {
+  display: none;
+}
+.landing-page.is-leaving {
+  opacity: 0;
+  transform: scale(1.035);
+  pointer-events: none;
+}
+.landing-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: -3;
+}
+.landing-wash {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(90deg, #faf8f14d, transparent 48%, #faf8f126),
+    linear-gradient(0deg, #faf8f1c4, transparent 40%, transparent 70%, #faf8f13d);
+}
+.landing-distortion {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.55;
+  pointer-events: none;
+  overflow: hidden;
+}
+.landing-distortion canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  display: block;
+}
+.landing-brand {
+  position: absolute;
+  top: 42px;
+  left: 52px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: #2d4f41;
+  font-size: 25px;
+  letter-spacing: -0.5px;
+  font-weight: 650;
+}
+.landing-brand small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  color: #7f9282;
+  margin-top: 4px;
+}
+.landing-logo {
+  width: 43px;
+  height: 43px;
+  background: #7d849b;
+  color: #fcf9ee;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  font-size: 27px;
+  box-shadow: 0 4px 16px #2b513c10;
+}
+.landing-copy {
+  position: absolute;
+  left: 6.5%;
+  bottom: 13%;
+  max-width: 560px;
+  color: #2b4b3c;
+}
+.landing-eyebrow {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #7b927f;
+}
+.landing-copy h1 {
+  font-family: 'Microsoft YaHei', sans-serif;
+  font-size: clamp(31px, 3.1vw, 52px);
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 4px;
+  margin: 17px 0 14px;
+  text-shadow: 0 2px 20px #ffffff99;
+}
+.landing-copy p {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #7f9385;
+  margin: 0;
+}
+.landing-entry {
+  position: absolute;
+  right: 10%;
+  top: 50%;
+  transform: translateY(-40%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 29px;
+}
+.entry-caption {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #607e6e;
+}
+.landing-login-orb {
+  position: relative;
+  isolation: isolate;
+  width: 164px;
+  height: 164px;
+  border-radius: 50%;
+  border: 1px solid #ffffffb3;
+  background:
+    radial-gradient(circle at 25% 18%, #eaf4e4cc, transparent 48%),
+    conic-gradient(from 35deg, #86b5b9, #b0c9af, #edcf83, #a1b998, #86b5b9);
+  color: #294c3d;
+  box-shadow:
+    0 16px 55px #547d6030,
+    inset 0 0 35px #ffffff73;
+  transition:
+    transform 0.45s,
+    box-shadow 0.45s;
+  overflow: visible;
+  backdrop-filter: blur(8px);
+}
+.landing-login-orb:before,
+.landing-login-orb:after {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border: 1px solid #89a9984d;
+  border-radius: 50%;
+  pointer-events: none;
+  transition:
+    transform 0.6s,
+    border-color 0.6s;
+}
+.landing-login-orb:after {
+  inset: -28px;
+  border-color: #a8bb9d30;
+}
+.landing-login-orb:hover,
+.landing-login-orb:focus-visible {
+  transform: translateY(-5px) scale(1.045);
+  box-shadow:
+    0 20px 60px #547d6040,
+    inset 0 0 35px #ffffff88;
+}
+.landing-login-orb:hover:before {
+  transform: scale(1.04);
+  border-color: #89a99888;
+}
+.landing-login-orb:hover:after {
+  transform: scale(1.07);
+}
+.landing-login-orb:focus-visible {
+  outline: 2px solid #416d57;
+  outline-offset: 8px;
+}
+.orb-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  height: 100%;
+  z-index: 2;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.orb-arrow {
+  font-size: 32px;
+  font-weight: 300;
+  margin-bottom: 3px;
+  transition: transform 0.4s;
+}
+.landing-login-orb:hover .orb-arrow {
+  transform: translate(3px, -3px);
+}
+.orb-content small {
+  font-size: 9px;
+  color: #4c7162;
+  letter-spacing: 2px;
+}
+.orb-fibers {
+  position: absolute;
+  inset: 7px;
+  overflow: hidden;
+  border-radius: 50%;
+  opacity: 0.38;
+  background: repeating-radial-gradient(
+    ellipse at 20% 10%,
+    transparent 0,
+    transparent 8px,
+    #ffffff70 9px,
+    transparent 10px
+  );
+  animation: orb-fiber-drift 15s linear infinite;
+}
+.landing-footer {
+  position: absolute;
+  left: 52px;
+  right: 52px;
+  bottom: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #859787;
+}
+.landing-motion {
+  border: 1px solid #93a68c50;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  color: #67836f;
+  background: #faf8f180;
+  font-size: 11px;
+}
+.landing-page.motion-paused .orb-fibers {
+  animation-play-state: paused;
+}
+.landing-page.auth-opening .landing-login-orb {
+  transform: scale(1.1);
+  box-shadow: 0 0 85px #c0cc9366;
+}
+.auth-landing #modal-root .modal-backdrop {
+  z-index: 100;
+  background: #314d3e1a;
+  backdrop-filter: blur(6px);
+  justify-content: flex-end;
+  padding-right: 7vw;
+}
+.landing-auth-dialog {
+  width: 420px;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 32px;
+  border-radius: 22px;
+  border: 1px solid #ffffffa6;
+  background: #fffef9ed;
+  box-shadow: 0 24px 90px #263f3026;
+  animation: auth-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.landing-auth-dialog h2 {
+  font-size: 24px;
+  color: #345542;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.auth-kicker {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #94a28e;
+  margin: 0 0 12px;
+}
+.auth-subtitle {
+  font-size: 11px;
+  color: #8c9b88;
+  margin: 7px 0 25px;
+}
+.landing-auth-dialog .tabs {
+  gap: 20px;
+  margin-bottom: 22px;
+}
+.landing-auth-dialog .tabs button {
+  padding: 9px 0;
+  font-size: 12px;
+}
+.landing-auth-dialog input {
+  padding: 12px 13px;
+  border-radius: 9px;
+  background: #ffffffbd;
+  border-color: #e1e7da;
+  font-size: 12px;
+}
+.landing-auth-dialog .form-group label {
+  font-size: 11px;
+  color: #7b8e79;
+}
+.auth-submit {
+  width: 100%;
+  border-radius: 10px;
+  padding: 12px;
+  background: linear-gradient(110deg, #81879e, #a198ac);
+  color: white;
+  margin-top: 6px;
+  font-size: 12px;
+  box-shadow: 0 4px 12px #81879e1a;
+}
+.auth-local-note {
+  font-size: 9px;
+  line-height: 1.9;
+  color: #9b9e8d;
+  margin: 19px 0 0;
+  border-top: 1px solid #e6e9dc;
+  padding-top: 13px;
+}
+.auth-error {
+  min-height: 16px;
+  font-size: 11px;
+  color: #b45d48;
+  margin: 5px 0;
+}
+.auth-landing .task-fab {
+  display: none !important;
+}
+.board-enter {
+  animation: board-in 0.65s ease both;
+}
+@keyframes orb-fiber-drift {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes auth-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(22px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes board-in {
+  from {
+    opacity: 0.2;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 900px) {
+  .landing-brand {
+    top: 30px;
+    left: 30px;
+  }
+  .landing-copy {
+    left: 6%;
+    bottom: 15%;
+  }
+  .landing-copy h1 {
+    font-size: 34px;
+  }
+  .landing-entry {
+    right: 9%;
+  }
+  .landing-login-orb {
+    width: 140px;
+    height: 140px;
+  }
+  .landing-footer {
+    left: 30px;
+    right: 30px;
+  }
+  .auth-landing #modal-root .modal-backdrop {
+    padding-right: 4vw;
+  }
+}
+@media (max-width: 600px) {
+  .landing-art {
+    object-position: 45% center;
+  }
+  .landing-brand {
+    top: 26px;
+    left: 25px;
+    font-size: 22px;
+  }
+  .landing-brand small {
+    font-size: 9px;
+  }
+  .landing-copy {
+    top: 22%;
+    bottom: auto;
+    left: 8%;
+  }
+  .landing-copy h1 {
+    font-size: 31px;
+    letter-spacing: 3px;
+  }
+  .landing-eyebrow {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+  .landing-entry {
+    top: auto;
+    bottom: 16%;
+    right: 12%;
+    transform: none;
+    gap: var(--space-6);
+  }
+  .landing-login-orb {
+    width: 123px;
+    height: 123px;
+  }
+  .orb-arrow {
+    font-size: 26px;
+  }
+  .orb-content {
+    font-size: 11px;
+  }
+  .entry-caption {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .landing-footer {
+    left: 25px;
+    right: 25px;
+    bottom: 22px;
+    font-size: 8px;
+  }
+  .auth-landing #modal-root .modal-backdrop {
+    justify-content: center;
+    padding: 16px;
+  }
+  .landing-auth-dialog {
+    padding: 25px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .landing-distortion {
+    opacity: 0.4;
+  }
+}

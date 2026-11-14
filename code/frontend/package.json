@@ -1,1 +1,25 @@
-{"name":"studypilot","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"node build.mjs && vite build"},"dependencies":{"react":"^19.0.0","react-dom":"^19.0.0"},"devDependencies":{"vite":"^6.0.0"}}
+{
+  "name": "studypilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "node build.mjs && vite build",
+    "preview": "vite preview",
+    "test": "node ../../tests/run-frontend.mjs",
+    "format:check": "prettier --check src tools build.mjs vite.config.mjs index.html .prettierrc.json",
+    "format": "prettier --write src tools build.mjs vite.config.mjs index.html .prettierrc.json"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "acorn": "8.15.0",
+    "parse5": "7.3.0",
+    "postcss": "8.5.33",
+    "prettier": "3.6.2",
+    "vite": "^6.0.0"
+  }
+}
