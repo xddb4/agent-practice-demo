@@ -768,7 +768,13 @@ function referenceStatusHTML(context) {
     return (
       '<section class="preview-item"><b>参考资料（' +
       sources.length +
-      '条）</b>' +
+      '条检索结果）</b><p class="tiny">以下为搜索取得的资料；具体建议的依据以回答中的引用为准。</p>' +
+      (status?.requests?.some((request) => request.status === 'failed')
+        ? '<p class="tiny">部分补充检索失败，请留意回答中尚未核实的信息。</p>'
+        : '') +
+      (status?.budget_exhausted
+        ? '<p class="tiny">已达到本轮检索上限，未核实的信息需后续补充。</p>'
+        : '') +
       sources
         .map(
           (source) =>

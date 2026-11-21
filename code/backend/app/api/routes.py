@@ -300,7 +300,7 @@ def dialogue_payload(record, data):
     messages = chat.get('messages', [])
     can_withdraw = len(messages) >= 2 and [turn['role'] for turn in messages[-2:]] == ['user', 'assistant'] and not any(item.get('status')=='submitted' for item in messages[-1].get('evidence_candidates', []))
     token = hashlib.sha256(json.dumps(messages, sort_keys=True).encode()).hexdigest() if can_withdraw else None
-    public_messages = [{key: value for key, value in turn.items() if key in ('role', 'text', 'skills', 'turn_id', 'evidence_candidates')} for turn in messages]
+    public_messages = [{key: value for key, value in turn.items() if key in ('role', 'text', 'skills', 'turn_id', 'evidence_candidates', 'sources', 'search_status')} for turn in messages]
     return {'id': record.id, 'title': plan_title(data), 'dialogue_title': dialogue_title(data), 'messages': public_messages, 'withdraw_token': token,
             'skill_profile': chat.get('skill_profile', 'auto'),
             'pending': {'id': pending['id'], 'preview': pending['preview']} if pending else None}
@@ -406,7 +406,8 @@ def send_dialogue(plan_id: str, body: DialogueMessage, owner=Depends(uid)):
                     if item.get('quote') and item['quote'] in message]
         data = {**data, 'dialogue': {'messages': [*messages, {'role': 'user', 'text': message},
                 {'role': 'assistant', 'text': result['reply'], 'skills': [SKILL_LABELS[key] for key in skills],
-                 'turn_id': uuid.uuid4().hex, 'evidence_candidates':candidates, 'previous_memory': chat.get('memory', '')}],
+                 'turn_id': uuid.uuid4().hex, 'evidence_candidates':candidates, 'previous_memory': chat.get('memory', ''),
+                 'sources':result.get('sources', []), 'search_status':result.get('search_status', {})}],
                 'skill_profile': body.skill_profile, 'pending': pending,
                 'memory': memory}}
         record.data = data
