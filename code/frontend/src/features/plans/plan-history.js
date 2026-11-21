@@ -278,8 +278,12 @@ async function uploadPlanMaterials(files, owner) {
     form.append('file', file);
     const response = await fetch('/api/files', { method: 'POST', body: form });
     const result = await response.json();
-    if (!response.ok)
-      throw Error(typeof result.detail === 'string' ? result.detail : '辅助资料上传失败。');
+    if (!response.ok && result.detail?.code === 'safety_refusal')
+      showStudyAlert(attachmentPrivacyMessage(result.detail), '附件需要修改');
+    if (!response.ok) throw Error(apiErrorMessage(result.detail, '辅助资料上传失败。'));
+    if (result.privacy?.redacted) toast(result.privacy.message);
+    if (!(await reviewAttachmentPrivacy(result.privacy, result.name)))
+      throw Error('已取消使用附件，请修改或更换后重新上传。');
     if (!result.text?.trim())
       throw Error(
         '「' + file.name + '」没有可读取的正文，请移除该文件并把关键信息粘贴到情况备注。',
