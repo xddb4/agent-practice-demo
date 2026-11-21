@@ -18,8 +18,8 @@ class FileRepository:
             raise HTTPException(404, detail)
         return row
 
-    def add(self, key, name, text):
+    def add(self, key, name, text, privacy=None):
         self.db.add(Record(
             id=self.KEY_PREFIX + key, owner=self.owner, kind='file',
-            data={'name': name, 'text': text},
+            data={'name': name, 'text': text, 'privacy': privacy or {}},
         ))

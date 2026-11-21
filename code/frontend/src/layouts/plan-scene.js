@@ -1,5 +1,37 @@
 // A quiet first screen, followed by the existing date gallery. Task data stays shared.
 (() => {
+  function fitPlanMotto(sizer, motto, width, height) {
+    sizer.style.fontSize = '';
+    const style = getComputedStyle(sizer);
+    const maximum = parseFloat(style.fontSize);
+    const text = sizer.textContent;
+    let size = Math.max(16, maximum * Math.sqrt(24 / Math.max(24, Array.from(text).length)));
+    // Explicit line breaks remain intact; fit those lines before allowing extra wrapping.
+    if (text.includes('\n')) {
+      const context = document.createElement('canvas').getContext('2d');
+      if (context) {
+        context.font = style.fontWeight + ' ' + maximum + 'px ' + style.fontFamily;
+        const longest = Math.max(
+          ...text
+            .split(/\r?\n/)
+            .map(
+              (line) =>
+                context.measureText(line).width +
+                Array.from(line).length * (parseFloat(style.letterSpacing) || 0),
+            ),
+        );
+        if (longest)
+          size = Math.max(16, Math.min(size, (maximum * Math.max(1, width - 2)) / longest));
+      }
+    }
+    sizer.style.fontSize = size + 'px';
+    while (size > 16 && sizer.getBoundingClientRect().height > height) {
+      size = Math.max(16, size - 1);
+      sizer.style.fontSize = size + 'px';
+    }
+    motto.style.fontSize = size + 'px';
+  }
+
   const content = document.getElementById('content');
   if (!content || typeof renderPlan !== 'function') return;
   const original = renderPlan;
@@ -111,7 +143,8 @@
       originY = 0,
       targetY = 0,
       scale = 1,
-      distance = 1;
+      distance = 1,
+      mottoLayoutKey = '';
     function update() {
       frame = 0;
       if (!root.isConnected) return;
@@ -137,6 +170,11 @@
       if (!frame) frame = requestAnimationFrame(update);
     }
     function measure() {
+      const layoutKey = slot.clientWidth + ':' + innerWidth + ':' + innerHeight;
+      if (layoutKey !== mottoLayoutKey) {
+        mottoLayoutKey = layoutKey;
+        fitPlanMotto(sizer, motto, slot.clientWidth, Math.min(420, innerHeight * 0.45));
+      }
       const box = sizer.getBoundingClientRect();
       const headerHeight = document.querySelector('.app-header')?.offsetHeight || 88;
       originX = box.left;
@@ -155,12 +193,14 @@
       if (innerWidth > 900) workspace.scrollTop = 0;
       dock.style.left = originX + 'px';
       dock.style.top = targetY + 'px';
-      const dockFont = Math.min(
-        19,
-        (innerWidth - originX * 2) / Math.max(1, Array.from(dock.textContent).length * 1.06),
+      const dockWidth = Math.max(1, innerWidth - originX * 2);
+      dock.style.width = dockWidth + 'px';
+      const longestLine = Math.max(
+        ...dock.textContent.split(/\r?\n/).map((line) => Array.from(line).length),
       );
+      const dockFont = Math.min(19, Math.max(12, dockWidth / Math.max(1, longestLine * 1.06)));
       dock.style.fontSize = dockFont + 'px';
-      const space = Math.ceil(dockFont * 1.6 + 28);
+      const space = Math.ceil(dock.getBoundingClientRect().height + 28);
       root.dataset.mottoSpace = String(space);
       root.style.setProperty('--plan-motto-space', space + 'px');
       update();

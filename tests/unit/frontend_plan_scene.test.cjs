@@ -3,6 +3,23 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const { readSource, namedFunction } = require('./frontend-source.cjs');
 
+test('格言保留原换行，长文降低字号，适配后与占位测量一致',()=>{
+ const state={getComputedStyle:()=>({fontSize:'60px',fontWeight:'400',fontFamily:'serif',letterSpacing:'2.4px'}),document:{createElement:()=>({getContext:()=>({measureText:text=>({width:text.length*60})})})}};
+ vm.createContext(state);vm.runInContext(namedFunction(readSource('layouts/plan-scene.js'),'fitPlanMotto'),state);
+ const sizeFor=text=>{
+  const sizer={textContent:text,style:{},getBoundingClientRect(){const size=parseFloat(this.style.fontSize)||60;return {height:text.split('\n').reduce((n,line)=>n+Math.max(1,Math.ceil(line.length*size/400)),0)*size*1.6}}};
+  const motto={style:{}};state.fitPlanMotto(sizer,motto,400,220);
+  assert.equal(sizer.textContent,text);assert.equal(motto.style.fontSize,sizer.style.fontSize);
+  assert.ok(sizer.getBoundingClientRect().height<=220);
+  return parseFloat(motto.style.fontSize);
+ };
+ const short=sizeFor('把今天的一小步，走成明天的底气。');
+ const long=sizeFor('认真学习与思考，记录过程并不断反思。'.repeat(5));
+ assert.ok(long<short);
+ const poem=sizeFor('无冥冥之志者，无昭昭之明；\n无惛惛之事者，无赫赫之功。');
+ assert.ok(13*poem*1.04<400,'显式换行应计入末尾字距，留出舍入空间，避免额外折行');
+});
+
 test('慢速滚动时画廊完全显示后才接管交互，返回首页后恢复过渡', () => {
   const state = {
     frame: 0, window: { scrollY: 0 }, distance: 500,

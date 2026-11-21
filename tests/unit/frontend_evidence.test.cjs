@@ -1,9 +1,12 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm');
 const {readFileSync}=require('node:fs');
+const {readSource,namedFunction}=require('./frontend-source.cjs');
 function setup(){
  const fields={'edit-title':'修改后标题','edit-body':'新内容','edit-desc':'补充说明','edit-dim':'2'};
  const state={structuredClone,Date,evidence:[{id:1,title:'新证据',body:'内容',dim:0,status:'待确认'},{id:2,title:'观察证据',dim:1,status:'待观察'},{id:3,title:'已接受证据',dim:2,status:'已接受'},{id:4,title:'已拒绝证据',dim:3,status:'已拒绝'}],abilities:['一','二','三','四','五','六'],esc:s=>String(s),saveQueue:Promise.resolve(),save(){state.persisted=structuredClone(state.evidence);return true},async report(){state.reportCount=(state.reportCount||0)+1},modal:html=>state.html=html,closeModal(){state.closed=true},toast(){},showStudyAlert(){},async confirmStudyAction(){return true},val:key=>fields[key]};
- vm.createContext(state);vm.runInContext(readFileSync('code/frontend/src/features/evidence/evidence-inbox.js','utf8'),state);return state;
+ vm.createContext(state);
+ for(const name of ['uiSymbol','informationHTML']) vm.runInContext(namedFunction(readSource('components/ui/primitives.js'),name),state);
+ vm.runInContext(readFileSync('code/frontend/src/features/evidence/evidence-inbox.js','utf8'),state);return state;
 }
 
 test('完成记录需补充实际成果和能力方向后才能接受，修改后仍须确认',async()=>{
@@ -14,6 +17,19 @@ test('完成记录需补充实际成果和能力方向后才能接受，修改�
  await state.saveEditedEvidence(9);
  const updated=state.evidence[0];assert.equal(updated.status,'待确认');assert.equal(updated.completion_details_confirmed,true);
  await state.evidenceState(updated.id,'已接受');assert.equal(state.evidence[0].status,'已接受');
+});
+
+test('收件箱正文与观察标准收进信息面板，列表操作和已处理详情保留',()=>{
+ const state=setup();
+ const item={id:7,title:'证据标题',body:'用户已将此任务标记完成。',desc:'补充实际成果后再接受',status:'待确认',source_type:'task_completion'};
+ state.evidence=[item];
+ const compact=state.evidenceRowHTML(item,false,true);
+ assert.match(compact,/证据标题|修改|拒绝|待观察/);
+ assert.doesNotMatch(compact,/用户已将|补充实际成果/);
+ const inbox=state.evidenceInboxHTML();
+ assert.match(inbox,/popovertarget="evidence-information"/);
+ assert.match(inbox,/用户已将此任务标记完成。/);assert.match(inbox,/补充实际成果后再接受/);
+ assert.match(state.evidenceRowHTML(item,true),/用户已将此任务标记完成。/);
 });
 test('收件箱仅显示待确认及单独分组的待观察，已处理证据在弹窗中',()=>{
  const state=setup(),html=state.evidenceInboxHTML();assert.match(html,/新证据|观察证据|待观察（1）|已处理证据（2）/);assert.doesNotMatch(html,/已接受证据|已拒绝证据/);
