@@ -58,6 +58,8 @@ test('参考资料提示区分未配置、未调用、空结果与真实来源',
  assert.match(state.referenceStatusHTML({sources:[],search_status:{status:'failed',message:'联网检索超时'}}),/联网检索超时/);
  const html=state.referenceStatusHTML({sources:[{title:'真实资料',url:'https://example.com/paper',checked_at:'2026-10-29T12:00:00Z'}],search_status:{status:'success'}});
  assert.match(html,/真实资料/);assert.match(html,/检索时间/);assert.doesNotMatch(html,/未取得/);
+ const partial=state.referenceStatusHTML({sources:[{title:'已取得资料',url:'https://example.com/rules'}],search_status:{status:'success',requests:[{status:'failed'}],budget_exhausted:true}});
+ assert.match(partial,/部分补充检索失败/);assert.match(partial,/检索上限/);assert.match(partial,/以回答中的引用为准/);
 });
 test('继续历史方案时排除已采纳项，保留原始条目索引用于复检',async()=>{
  const calls=[];const {state,nodes}=setup(async(path,body)=>calls.push(body));

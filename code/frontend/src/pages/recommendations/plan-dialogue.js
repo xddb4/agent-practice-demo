@@ -436,6 +436,9 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
               (turn.skills?.length
                 ? '<small>辅导方式 · ' + esc(turn.skills.join('、')) + '</small>'
                 : '') +
+              (turn.sources?.length || turn.search_status?.status === 'failed'
+                ? referenceStatusHTML(turn)
+                : '') +
               (turn.role !== 'system'
                 ? '<div class="dialogue-message-actions"><button type="button" class="tiny" data-copy="' +
                   index +

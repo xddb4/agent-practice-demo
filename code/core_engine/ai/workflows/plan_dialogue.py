@@ -4,15 +4,17 @@ import json
 from datetime import date as Date
 from typing import Literal, TypedDict
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, START, StateGraph
 from pydantic import Field, ValidationError, model_validator
 
-from backend.app.integrations.model import structured_model
+from backend.app.integrations.model import structured_model, create_model
+from backend.app.integrations.search import search_provider
 from backend.app.integrations.model_stream import invoke_with_reply_stream
 from backend.app.schemas.agent import Contract, Dimension
 from backend.app.services.agent_errors import AgentOutputError, AgentOutputTooLongError
 from core_engine.ai.prompts.dialogue import dialogue_instructions
+from core_engine.ai.tools.research import RESEARCH_POLICY, ResearchSession
 
 
 class TaskPatch(Contract):
@@ -67,7 +69,7 @@ class DialogueState(TypedDict, total=False):
 
 
 def propose(state: DialogueState):
-    instructions = dialogue_instructions(state['skills']) + '\n严格遵守以下 JSON Schema，不要添加未定义字段：\n' + json.dumps(DialogueOutput.model_json_schema(), ensure_ascii=False)
+    instructions = dialogue_instructions(state['skills']) + '\n' + RESEARCH_POLICY + '\n严格遵守以下 JSON Schema，不要添加未定义字段：\n' + json.dumps(DialogueOutput.model_json_schema(), ensure_ascii=False)
     images = state.get('attachment_images', [])
     context = json.dumps(state['context'], ensure_ascii=False)
     materials = state.get('materials', [])
@@ -81,8 +83,27 @@ def propose(state: DialogueState):
         SystemMessage(content=instructions),
         HumanMessage(content=content),
     ]
+    research = ResearchSession()
+    response = None
+    # Images retain the existing structured vision path: do not assume every
+    # user-configured vision API supports combining images and function calls.
+    if search_provider() and not images:
+        search = research.tool()
+        tool_model = create_model().bind_tools([search])
+        for _ in range(4):
+            response = invoke_with_reply_stream(tool_model, messages, 'reply')
+            if not response.tool_calls:
+                break
+            messages.append(response)
+            for call in response.tool_calls:
+                value = search.invoke(call['args']) if call['name'] == 'search' else '未知工具，请直接回答。'
+                messages.append(ToolMessage(content=str(value), tool_call_id=call['id']))
+            response = None
+        if response is None:
+            messages.append(HumanMessage(content='停止工具调用，根据已有资料输出最终JSON，说明尚未核实的信息。'))
     for attempt in range(2):
-        response = invoke_with_reply_stream(model,messages,'reply')
+        if response is None:
+            response = invoke_with_reply_stream(model,messages,'reply')
         if response.response_metadata.get('finish_reason') == 'length':
             raise AgentOutputTooLongError()
         try:
@@ -91,12 +112,14 @@ def propose(state: DialogueState):
             # Only literal user statements can become candidates; inferred explanations cannot.
             message = state['context'].get('本轮消息', '')
             result['evidence_candidates'] = [item for item in result.get('evidence_candidates', []) if item['quote'] in message]
+            result.update(sources=research.sources, search_status=research.status())
             return {'result': result}
         except ValidationError as error:
             if attempt:
                 raise AgentOutputError(error.errors(), repair_attempted=True) from error
             issues=[{'loc':list(issue['loc']), 'type':issue['type']} for issue in error.errors()[:10]]
             messages.extend([AIMessage(content=response.content), HumanMessage(content='上次结果未通过校验。仅修复以下结构问题，保留用户意图，返回完整 JSON；不要声称已写入日程：'+json.dumps(issues,ensure_ascii=False))])
+            response = None
 
 
 graph = StateGraph(DialogueState)

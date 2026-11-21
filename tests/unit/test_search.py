@@ -36,3 +36,20 @@ def test_failure_is_not_empty(configured,status):
 def test_search_can_be_disabled(configured):
     configured.setenv('SEARCH_PROVIDER','off')
     assert search_public('公开测试主题')['status']=='not_configured'
+
+
+@pytest.mark.parametrize('provider', ['deepseek', 'tavily'])
+def test_requested_count_reaches_provider(configured, provider):
+    if provider == 'tavily':
+        configured.setenv('TAVILY_API_KEY', 'test-search-key')
+    requests = []
+    def post(url, **kwargs):
+        requests.append(kwargs)
+        return httpx.Response(200, json={'results': [
+            {'url': f'https://example.com/{i}'} for i in range(9)
+        ]}, request=httpx.Request('POST', url))
+    configured.setattr(httpx, 'post', post)
+    result = search_public('考试规则', count=2, timeout=7)
+    assert len(result['sources']) == 2
+    assert requests[0]['json']['count' if provider == 'deepseek' else 'max_results'] == 2
+    assert requests[0]['timeout'] == 7

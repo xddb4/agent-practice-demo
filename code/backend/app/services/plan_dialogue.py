@@ -46,6 +46,12 @@ def dialogue_context(data, tasks, plan_id, messages, text, evidence=None):
         ],
         '近期固定安排': [task_view({}, task) for task in upcoming[:60]],
         '近期对话': [{key: turn[key][:1600] for key in ('role', 'text')} for turn in messages[-10:]],
+        '历史检索线索（保留原检索时间，不代表本轮已核验）': [
+            {key: source.get(key) for key in ('title', 'url', 'checked_at')}
+            for source in [*data.get('sources', []), *[
+                source for turn in messages[-10:] for source in turn.get('sources', [])
+            ]][-10:]
+        ],
         '本轮消息': text,
         '能力证据参考': ability_context(evidence or [], plan_title(data)+' '+text),
     }

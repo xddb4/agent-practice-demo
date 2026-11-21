@@ -88,6 +88,25 @@ def test_existing_dialogue_passes_images_to_workflow(monkeypatch):
     assert image not in client.get(path).text
 
 
+def test_dialogue_search_sources_survive_reopening_and_return_to_context(monkeypatch):
+    client, owner = account()
+    path = f'/api/plans/{seed_plan(owner)}/dialogue'
+    monkeypatch.setattr(main, 'runtime_settings', lambda _: {})
+    sources = [{'title': '官方说明', 'url': 'https://example.com/rules', 'checked_at': '2026-11-14T00:00:00Z'}]
+    calls = []
+    def invoke(state):
+        calls.append(state)
+        return {'result': {'reply': '请核对官方说明的适用届次。', 'changes': [],
+                           'sources': sources, 'search_status': {'status': 'success', 'search_calls': 1}}}
+    monkeypatch.setattr(main.dialogue_workflow, 'invoke', invoke)
+    assert client.post(path, json={'text': '核对规则'}).status_code == 200
+    turn = client.get(path).json()['messages'][-1]
+    assert turn['sources'] == sources
+    assert turn['search_status']['search_calls'] == 1
+    assert client.post(path, json={'text': '继续解释刚才的说明'}).status_code == 200
+    assert calls[-1]['context']['历史检索线索（保留原检索时间，不代表本轮已核验）'] == sources
+
+
 def test_cancel_during_model_call_prevents_saving_reply(monkeypatch):
     client, owner = account()
     plan_id = seed_plan(owner)
