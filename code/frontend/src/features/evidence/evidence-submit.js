@@ -2,7 +2,8 @@ submitEvidence = async function (e) {
   e.preventDefault();
   try {
     const file = document.getElementById('e-file').files[0];
-    let text = val('e-body');
+    const text = val('e-body');
+    const materialIds = [];
     if (file) {
       const form = new FormData();
       form.append('file', file);
@@ -18,9 +19,14 @@ submitEvidence = async function (e) {
       if (privacyStatus) privacyStatus.textContent = data.privacy?.message || '';
       if (!(await reviewAttachmentPrivacy(data.privacy, data.name))) return;
       if (data.privacy?.redacted) toast(data.privacy.message);
-      text += '\n附件：' + data.name + '\n来源路径：' + data.url + '\n' + data.text;
+      if (data.text?.trim()) materialIds.push(data.id);
     }
-    askAgent('evidence', val('e-title') + '\n来源：' + val('e-source') + '\n' + text);
+    askAgent(
+      'evidence',
+      val('e-title') + '\n来源：' + val('e-source') + '\n' + text,
+      '',
+      materialIds,
+    );
   } catch (e) {
     toast(e.message);
   }

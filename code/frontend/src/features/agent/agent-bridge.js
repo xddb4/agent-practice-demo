@@ -1,6 +1,8 @@
-function askAgent(route, text, image = '') {
+function askAgent(route, text, image = '', materialIds = []) {
   if (!activeAccount) return login();
-  parent.postMessage({ type: 'agent', payload: { route, text, image } }, location.origin);
+  const payload = { route, text, image };
+  if (materialIds.length) payload.material_ids = materialIds;
+  parent.postMessage({ type: 'agent', payload }, location.origin);
 }
 
 parseText = function () {

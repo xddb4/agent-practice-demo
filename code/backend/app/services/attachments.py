@@ -54,21 +54,21 @@ TEXT_READERS = {
 }
 
 
-def read_material(repository, file_id):
+def read_material(repository, file_id, text_limit=3500):
     attachment = repository.get(file_id, detail='辅助资料不存在')
     material_text = attachment.data.get('text', '').strip()
     if not material_text:
         raise HTTPException(422, '辅助资料没有可读取的正文，请粘贴关键信息到情况备注')
     prepared = prepare_material_text(material_text)
     name = prepare_material_text(attachment.data['name']).text
-    return {'name': name[:180], 'text': prepared.text[:3500]}
+    return {'name': name[:180], 'text': prepared.text[:text_limit]}
 
 
 class AttachmentService:
     def __init__(self, root):
         self.root = root
 
-    def read_plan_materials(self, owner, material_ids, images):
+    def read_plan_materials(self, owner, material_ids, images, *, text_limit=3500):
         if len(material_ids) + len(images) > 3:
             raise HTTPException(422, '每条消息最多添加 3 个附件')
         for image in images:
@@ -77,7 +77,7 @@ class AttachmentService:
             return []
         with Session() as db:
             repository = FileRepository(db, owner)
-            return [read_material(repository, file_id) for file_id in dict.fromkeys(material_ids)]
+            return [read_material(repository, file_id, text_limit) for file_id in dict.fromkeys(material_ids)]
 
     async def upload(self, file, owner):
         extension = Path(file.filename or '').suffix.lower()

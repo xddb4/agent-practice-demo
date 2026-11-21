@@ -12,6 +12,7 @@ from core_engine.ai.workflows.pilot import workflow, DIMENSIONS
 from core_engine.ai.skills import SKILL_LABELS, skills_for_request
 from core_engine.ai.workflows.plan_dialogue import workflow as dialogue_workflow
 from ..services.agent_errors import diagnose
+from ..services.request_errors import invalid_agent_input
 from ..services.plans import plan_title,plan_payload,dialogue_title
 from ..services.plan_dialogue import dialogue_context, prepare_changes
 from ..services.tasks import validate_tasks
@@ -52,7 +53,7 @@ async def validation_error(request:Request,error):
     if request.url.path.startswith('/api/model-settings'):
         return JSONResponse(status_code=422,content={'detail':{'message':'模型配置字段无效，请核对 HTTPS 地址、模型名称和密钥长度','errors':[{'field':'.'.join(map(str,x['loc'])),'type':x['type']} for x in error.errors()]}})
     if request.url.path in ('/api/agent','/api/agent/stream') or '/dialogue' in request.url.path:
-        return JSONResponse(status_code=422,content={'detail':{'code':'invalid_ai_input','title':'输入格式需要调整','reason':'请检查文字长度、附件数量及字段格式。','action':'请先移除个人敏感信息，再缩短内容重试。','retryable':False}})
+        return JSONResponse(status_code=422,content={'detail':invalid_agent_input(error.errors())})
     return await request_validation_exception_handler(request,error)
 @app.middleware('http')
 async def refresh_local_assets(request:Request,call_next):
@@ -229,8 +230,8 @@ def finish_dialogue_request(db, owner, request_id):
         row.data={'status':'completed'}
 
 
-def read_plan_attachments(owner, material_ids, images):
-    return AttachmentService(root).read_plan_materials(owner, material_ids, images)
+def read_plan_attachments(owner, material_ids, images, *, text_limit=3500):
+    return AttachmentService(root).read_plan_materials(owner, material_ids, images, text_limit=text_limit)
 
 
 

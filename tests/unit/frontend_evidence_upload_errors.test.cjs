@@ -44,23 +44,25 @@ test('字符串错误保留原提示，未知对象与校验列表使用可读�
   }
 });
 
-test('附件上传成功后才把提取正文交给证据 Agent', async () => {
-  const state = harness({ name: 'sample.pdf', url: '/api/files/example', text: '论文摘录' }, true);
+test('附件上传成功后以编号引用正文，不将正文拼入用户输入', async () => {
+  const state = harness({ id: 'file-id', name: 'sample.pdf', text: '论文摘录' }, true);
   await state.submitEvidence({ preventDefault() {} });
   assert.equal(state.message, undefined);
   assert.equal(state.request[0], 'evidence');
   assert.ok(state.request[1].includes('阅读记录'));
-  assert.ok(state.request[1].includes('论文摘录'));
+  assert.ok(!state.request[1].includes('论文摘录'));
+  assert.deepEqual(Array.from(state.request[3]), ['file-id']);
 });
 
 test('脱敏完成后提示用户，证据 Agent 只接收脱敏正文', async () => {
   const message = '已隐藏附件中的邮箱或手机号，分析仅使用脱敏正文。';
-  const state = harness({ name: 'sample.pdf', url: '/api/files/example',
+  const state = harness({ id: 'file-id', name: 'sample.pdf',
     text: '论文摘录 [邮箱已隐藏]', privacy: { redacted: true, message } }, true);
   await state.submitEvidence({ preventDefault() {} });
   assert.equal(state.message, message);
   assert.equal(state.request[0], 'evidence');
-  assert.ok(state.request[1].includes('[邮箱已隐藏]'));
+  assert.ok(!state.request[1].includes('[邮箱已隐藏]'));
+  assert.deepEqual(Array.from(state.request[3]), ['file-id']);
 });
 
 test('拒绝弹窗展示类型和页行定位，不显示敏感值', async () => {
@@ -73,21 +75,19 @@ test('拒绝弹窗展示类型和页行定位，不显示敏感值', async () =>
   assert.equal(state.request, undefined);
 });
 
-test('脱敏确认前不调用 Agent，取消后可留在原表单修改文件', async () => {
-  const state = harness({ name: 'sample.pdf', text: '脱敏正文', privacy: {
+test('成功脱敏与通用风险提示不再要求用户确认或修改', async () => {
+  const state = harness({ id: 'file-id', name: 'sample.pdf', text: '脱敏正文', privacy: {
     redacted: true, message: '已隐藏邮箱。', findings: [{ label: '邮箱', source: 'pdf', page: 1, line: 9 }],
     limitations: ['图片中的信息请先遮盖。'] } }, true);
-  let resolve;
-  state.confirmStudyAction = (message) => {
-    state.confirmMessage = message;
-    return new Promise((done) => { resolve = done; });
-  };
-  const submission = state.submitEvidence({ preventDefault() {} });
-  await new Promise((done) => setImmediate(done));
-  assert.equal(state.request, undefined);
-  assert.ok(state.confirmMessage.includes('第1页第9行：邮箱'));
-  assert.ok(state.confirmMessage.includes('图片中的信息请先遮盖'));
-  resolve(false);
-  await submission;
-  assert.equal(state.request, undefined);
+  state.confirmStudyAction = () => { throw Error('不应阻断成功脱敏'); };
+  await state.submitEvidence({ preventDefault() {} });
+  assert.equal(state.alert, undefined);
+  assert.equal(state.request[0], 'evidence');
+});
+
+test('三万字的附件不再与标题拼接导致输入超限', async () => {
+  const state = harness({ id: 'large-file', name: 'paper.pdf', text: '文'.repeat(30000) }, true);
+  await state.submitEvidence({ preventDefault() {} });
+  assert.ok(state.request[1].length < 30000);
+  assert.deepEqual(Array.from(state.request[3]), ['large-file']);
 });
