@@ -54,12 +54,8 @@ render = function () {
 
 function personal() {
   document.getElementById('content').innerHTML =
-    head(
-      '我的个人空间',
-      '让计划、证据与个人偏好，在这里汇合。',
-      '<button class="secondary" onclick="logout()">退出登录</button>',
-    ) +
-    `<div class="rec-layout"><section class="panel rec-form"><div class="panel-title">个人资料</div><p class="subtitle">${esc(activeAccount.email)}</p><form onsubmit="saveProfile(event)"><div class="form-group"><label for="p-name">昵称</label><input id="p-name" maxlength="24" required value="${esc(activeAccount.name)}"></div><div class="form-group"><label for="p-motto">个人格言</label><textarea id="p-motto" maxlength="100" placeholder="写下想对自己说的话；留空则展示每日寄语">${esc(activeAccount.motto || '')}</textarea></div><button class="primary">保存个人设置</button></form></section><section class="panel rec-form"><div class="panel-title">能力与成长</div><p class="subtitle">查看六维能力画像，管理和确认成长证据。</p><div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><div class="stat-top">我的任务</div><div class="stat-num">${tasks.length}</div></div><div class="stat"><div class="stat-top">已接受证据</div><div class="stat-num">${evidence.filter((e) => e.status === '已接受').length}</div></div></div><button class="primary" onclick="page='report';render()">查看能力报告 →</button><div class="notice">本地演示账号：未验证邮箱，数据仅保存在此浏览器；不支持跨设备同步或真实多人服务。请勿使用常用密码或存放敏感资料。</div></section></div>`;
+    head('我的个人空间', '', '<button class="secondary" onclick="logout()">退出登录</button>') +
+    `<div class="rec-layout"><section class="panel rec-form personal-profile-card"><div class="panel-title">个人资料</div><p class="subtitle">${esc(activeAccount.email)}</p><form onsubmit="saveProfile(event)"><div class="form-group"><label for="p-name">昵称</label><input id="p-name" maxlength="24" required value="${esc(activeAccount.name)}"></div><div class="form-group"><label for="p-motto">个人格言</label><textarea id="p-motto" maxlength="100" placeholder="写下想对自己说的话；留空则展示每日寄语">${esc(activeAccount.motto || '')}</textarea></div><button class="primary">保存个人设置</button></form></section><section class="panel rec-form personal-growth-card"><div class="panel-title">能力与成长</div><div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><div class="stat-top">我的任务</div><div class="stat-num">${tasks.length}</div></div><div class="stat"><div class="stat-top">已接受证据</div><div class="stat-num">${evidence.filter((e) => e.status === '已接受').length}</div></div></div><div class="notice">本地演示账号：未验证邮箱，数据仅保存在此浏览器；不支持跨设备同步或真实多人服务。请勿使用常用密码或存放敏感资料。</div><button class="primary personal-report-link" onclick="page='report';render()">查看能力报告 →</button></section></div>`;
 }
 
 function persistAccount() {

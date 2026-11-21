@@ -792,6 +792,44 @@ body :is(input, textarea)::placeholder {
   min-height: 80px;
   height: 80px;
 }
+.personal-profile-card .form-group {
+  border-top: 0;
+}
+.personal-growth-card {
+  display: flex;
+  flex-direction: column;
+}
+.personal-growth-card > .panel-title {
+  font-weight: 700;
+}
+.personal-growth-card .stats {
+  margin-bottom: var(--space-6);
+}
+.personal-growth-card .personal-report-link {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.modal:has([aria-label='关闭任务详情']) {
+  font-size: var(--font-size-readable-body);
+}
+.modal:has([aria-label='关闭任务详情']) .modal-head h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 24px;
+}
+.modal:has([aria-label='关闭任务详情']) :is(.preview-item, .task-description) {
+  font-size: var(--font-size-readable-body);
+  line-height: 1.8;
+}
+.modal:has([aria-label='关闭任务详情']) .task-detail-quadrant .pill {
+  font-size: 14px;
+}
+.modal:has([aria-label='关闭任务详情']) .modal-footer {
+  flex-wrap: wrap;
+}
+.modal:has([aria-label='关闭任务详情']) .modal-footer button {
+  font-size: var(--font-size-readable-meta);
+}
 .plan-dialogue .dialogue-turn:not([data-role='system']) {
   max-width: 60%;
   width: fit-content;

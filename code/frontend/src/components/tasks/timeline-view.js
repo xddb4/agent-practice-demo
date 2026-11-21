@@ -37,6 +37,7 @@ function timelineBlocksHTML(events, interactive = false) {
   return layoutEvents(events)
     .map((task) => {
       const clickable = interactive && !task.ghost;
+      const duration = minutes(task.end) - minutes(task.start);
       const tag = clickable ? 'button' : 'div';
       const name =
         task.title +
@@ -49,7 +50,7 @@ function timelineBlocksHTML(events, interactive = false) {
         'top:' +
         minutes(task.start) +
         'px;height:' +
-        Math.max(23, minutes(task.end) - minutes(task.start)) +
+        Math.max(23, duration) +
         'px;left:calc(' +
         (task.lane / task.columns) * 100 +
         '% + 3px);width:calc(' +
@@ -62,6 +63,7 @@ function timelineBlocksHTML(events, interactive = false) {
         task.q +
         (task.done && !task.ghost ? ' is-done' : '') +
         (task.ghost ? ' course-ghost' : '') +
+        (duration < 60 ? ' is-compact' : '') +
         '" title="' +
         esc(name) +
         '" ' +

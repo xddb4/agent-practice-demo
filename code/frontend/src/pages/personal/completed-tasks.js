@@ -30,7 +30,7 @@ function renderCompletedTasks() {
   modal(
     '<div class="modal-head"><h2>已完成任务（' +
       list.length +
-      '）</h2><button onclick="closeModal()" aria-label="关闭已完成任务">✕</button></div><p class="tiny">历时从建立到标记完成，包含等待与休息，不等于实际学习用时。旧记录缺失的时间显示“未记录”。</p><div class="completed-tasks-list">' +
+      '）</h2><button onclick="closeModal()" aria-label="关闭已完成任务">✕</button></div><div class="completed-tasks-list">' +
       (list
         .map(
           (task) =>

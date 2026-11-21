@@ -168,7 +168,7 @@ function openGalleryDayPopup() {
   modal(
     '<div class="modal-head"><div><span class="gallery-kicker">A DAY AT A TIME</span><h2>' +
       date.replaceAll('-', ' / ') +
-      '</h2></div><button aria-label="关闭当天安排" onclick="closeModal()">✕</button></div><p class="subtitle">当天固定安排 · 滚动查看，拖动任务调整时间</p><div id="day-popup-content">' +
+      '</h2></div><button aria-label="关闭当天安排" onclick="closeModal()">✕</button></div><p class="subtitle">滚动查看固定任务，拖动修改时间</p><div id="day-popup-content">' +
       dayFocusHTML() +
       '</div>',
   );

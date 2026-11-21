@@ -1,7 +1,57 @@
 .day-popup {
+  --day-time-gutter: 76px;
   width: min(820px, 94vw);
   max-height: 90vh;
   padding: 26px !important;
+}
+.day-popup > .subtitle {
+  font-size: var(--font-size-readable-meta);
+  line-height: 1.6;
+}
+.day-popup .hours-canvas {
+  margin-left: var(--day-time-gutter);
+}
+.day-popup .hour-line span {
+  left: calc(12px - var(--day-time-gutter));
+  width: calc(var(--day-time-gutter) - 20px);
+  font: 14px/1.4 var(--font-mono-latin);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+.day-popup .scheduled-event b {
+  font-size: 15px;
+}
+.day-popup .scheduled-event small {
+  font-size: 13px;
+  line-height: 1.4;
+}
+/* Short events keep one readable line without changing their time position or duration. */
+.day-popup .scheduled-event.is-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+.day-popup .scheduled-event.is-compact b {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.day-popup .scheduled-event.is-compact small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.day-popup .scheduled-event.is-compact small:first-of-type {
+  flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+  .day-popup {
+    --day-time-gutter: 64px;
+  }
 }
 .day-popup .day-focus-head {
   display: none;
