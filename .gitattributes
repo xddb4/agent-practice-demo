@@ -1,4 +1,8 @@
 # Match Prettier's LF setting on Windows checkouts and Linux CI.
+*.py text eol=lf
+.gitattributes text eol=lf
+.vscode/*.json text eol=lf
+
 code/frontend/** text=auto eol=lf
 code/frontend/public/assets/*.svg text eol=lf
 code/frontend/public/assets/*.jpg -text

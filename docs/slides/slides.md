@@ -22,15 +22,13 @@ class: text-center
 五位团队成员及分工：最后统一补充。
 -->
 
-
-
 ---
 layout: default
 ---
 
 # Presentation Outline
 
-答辩目录：大分区与细分主题
+答辩目录
 
 <div class="outline-grid">
 
@@ -107,12 +105,28 @@ layout: default
 </style>
 
 
+---
+layout: default
+---
+
+# Product Design
+
+01 · 产品设计
+
+<div class="mt-10 rounded-xl bg-blue-50 p-8">
+<div class="text-2xl font-bold mb-6">本部分目录</div>
+<div class="text-xl leading-loose">
+1.1 使命、目标用户与差异化<br>
+1.2 产品定义与用户故事<br>
+1.3 设计原则与用户体验
+</div>
+</div>
 
 ---
 layout: default
 ---
 
-# Mission, Slogan & Target Users
+# 1.1 Mission, Slogan & Target Users
 
 产品使命、口号与目标用户
 
@@ -156,7 +170,7 @@ layout: default
 layout: default
 ---
 
-# User Acquisition & Team Strengths
+# 1.1 User Acquisition & Team Strengths
 
 用户获取策略与团队优势
 
@@ -192,7 +206,7 @@ layout: default
 layout: default
 ---
 
-# Product Differentiation
+# 1.1 Product Differentiation
 
 差异化设计：将时间规划与能力证据关联
 
@@ -221,7 +235,7 @@ layout: default
 layout: default
 ---
 
-# Product Definition
+# 1.2 Product Definition
 
 产品定义与解决方案
 
@@ -268,7 +282,7 @@ layout: default
 layout: default
 ---
 
-# User Stories
+# 1.2 User Stories
 
 用户故事：谁在什么场景下，获得什么价值
 
@@ -297,7 +311,7 @@ layout: default
 layout: default
 ---
 
-# Product Design Principles
+# 1.2 Product Design Principles
 
 产品设计原则及其在 StudyPilot 中的应用
 
@@ -328,7 +342,7 @@ layout: default
 layout: default
 ---
 
-# User Experience Design
+# 1.3 User Experience Design
 
 用户体验设计：看得清、能调整、有依据
 
@@ -373,12 +387,28 @@ layout: default
 讲解建议：约20秒，重点说明候选方案确认和来源提示。
 后续结合实际界面截图展示这些设计。
 -->
+---
+layout: default
+---
+
+# Engineering & Collaboration
+
+02 · 工程实现与协作
+
+<div class="mt-10 rounded-xl bg-teal-50 p-8">
+<div class="text-2xl font-bold mb-6">本部分目录</div>
+<div class="text-xl leading-loose">
+2.1 技术选型与版本<br>
+2.2 仓库协作与团队贡献<br>
+2.3 工程问题与系统架构
+</div>
+</div>
 
 ---
 layout: default
 ---
 
-# Technology Stack
+# 2.1 Technology Stack
 
 技术选型与版本
 
@@ -410,7 +440,7 @@ React 与 Vite 为本地 package-lock.json 锁定版本。
 layout: default
 ---
 
-# Repository & Collaboration
+# 2.2 Repository & Collaboration
 
 代码仓库与协作流程
 
@@ -441,7 +471,7 @@ https://github.com/xddb4/agent-practice-demo
 layout: default
 ---
 
-# Team Contributions
+# 2.2 Team Contributions
 
 五人贡献记录与提交统计
 
@@ -467,7 +497,7 @@ layout: default
 layout: default
 ---
 
-# Engineering Challenges & Solutions
+# 2.3 Engineering Challenges & Solutions
 
 项目生命周期中的主要问题与解决方法
 
@@ -498,7 +528,7 @@ docs/algorithm/TASK_DECOMPOSITION_TRIAL.md
 layout: default
 ---
 
-# System Architecture
+# 2.3 System Architecture
 
 系统架构：业务服务连接界面、智能体与数据存储
 
@@ -550,13 +580,29 @@ SQLAlchemy 访问 PostgreSQL；候选内容经校验和用户确认后应用。
 连线表示模块关联，不表示调用时序。
 图中为逻辑分层，不代表每层独立部署。
 -->
+---
+layout: default
+---
+
+# Agent Technical Design
+
+03 · 智能体技术设计
+
+<div class="mt-10 rounded-xl bg-purple-50 p-8">
+<div class="text-2xl font-bold mb-6">本部分目录</div>
+<div class="text-xl leading-loose">
+3.1 任务编排与工具调用<br>
+3.2 记忆、护栏与知识协作<br>
+3.3 模型配置与联调验证
+</div>
+</div>
 
 
 ---
 layout: default
 ---
 
-# Agent Task Orchestration
+# 3.1 Agent Task Orchestration
 
 智能体任务编排：显式路由与分类处理
 
@@ -609,7 +655,7 @@ LangGraph 状态图组织流程；支持指定类型，自动模式按关键词�
 layout: default
 ---
 
-# Tool Calling Design
+# 3.1 Tool Calling Design
 
 工具调用：获取用户信息与外部资料
 
@@ -657,7 +703,7 @@ flowchart LR
 layout: default
 ---
 
-# Agent Memory Design
+# 3.2 Agent Memory Design
 
 记忆设计：数据库记录与显式方案复用
 
@@ -702,7 +748,7 @@ layout: default
 layout: default
 ---
 
-# Guardrails & Human Confirmation
+# 3.2 Guardrails & Human Confirmation
 
 护栏设计：输出校验、业务检查与人工确认
 
@@ -750,7 +796,7 @@ docs/algorithm/AGENT_MEMORY.md、TASK_DECOMPOSITION_TRIAL.md。
 layout: default
 ---
 
-# Knowledge & Memory Integration
+# 3.2 Knowledge & Memory Integration
 
 专业知识、外部检索与用户记忆如何协作
 
@@ -800,7 +846,7 @@ Skill 文档不等同于向量知识库，数据库关联不等同于知识图�
 layout: default
 ---
 
-# Model Configuration & Selection
+# 3.3 Model Configuration & Selection
 
 当前模型配置与选型考虑
 
@@ -847,7 +893,7 @@ layout: default
 layout: default
 ---
 
-# Model Validation Results
+# 3.3 Model Validation Results
 
 DeepSeek 联调记录：已验证内容与适用边界
 
@@ -886,12 +932,28 @@ DeepSeek 联调记录：已验证内容与适用边界
 该文档另有后续搜索成功更新，不能将首次未配置搜索当作当前状态。
 老师要求的多模型实际效果比较尚未完成，本页不能替代对比实验。
 -->
+---
+layout: default
+---
+
+# Data & Interaction Design
+
+04 · 数据与交互设计
+
+<div class="mt-10 rounded-xl bg-orange-50 p-8">
+<div class="text-2xl font-bold mb-6">本部分目录</div>
+<div class="text-xl leading-loose">
+4.1 数据库结构<br>
+4.2 核心业务接口<br>
+4.3 前端设计
+</div>
+</div>
 
 ---
 layout: default
 ---
 
-# Database Design
+# 4.1 Database Design
 
 当前数据库设计：统一记录表与 JSON 业务数据
 
@@ -948,7 +1010,7 @@ owner 为普通索引列，不应标为数据库外键。
 layout: default
 ---
 
-# Core API Design
+# 4.2 Core API Design
 
 核心接口：连接用户操作与业务处理
 
@@ -990,7 +1052,7 @@ code/backend/app/schemas/requests.py
 layout: default
 ---
 
-# Frontend Design
+# 4.3 Frontend Design
 
 前端设计：统一工作台与按功能分层
 
@@ -1031,12 +1093,28 @@ Vite 构建前端资源；当前由 React 外层与工作台脚本共同运行�
 依据：README.md、code/frontend/package.json 及 src 目录结构。
 后续在功能演示中展示实际界面。
 -->
+---
+layout: default
+---
+
+# Quality & Code Statistics
+
+05 · 质量与代码统计
+
+<div class="mt-10 rounded-xl bg-blue-50 p-8">
+<div class="text-2xl font-bold mb-6">本部分目录</div>
+<div class="text-xl leading-loose">
+5.1 质量控制与检查证据<br>
+5.2 Python 代码质量<br>
+5.3 代码规模与 AI 辅助说明
+</div>
+</div>
 
 ---
 layout: default
 ---
 
-# Quality Assurance
+# 5.1 Quality Assurance
 
 质量控制：日志、异常处理与关键业务校验
 
@@ -1084,7 +1162,7 @@ docs/software/FRONTEND_CI_FIX.md、code/backend/app/api/routes.py。
 layout: default
 ---
 
-# Quality Check Evidence
+# 5.1 Quality Check Evidence
 
 前端自动检查：格式问题定位与处理状态
 
@@ -1131,7 +1209,7 @@ task-description.js 格式未通过；测试与构建被跳过。
 layout: default
 ---
 
-# Python Code Quality
+# 5.2 Python Code Quality
 
 Python 代码规范、语义分析与复杂度检查
 
@@ -1180,7 +1258,7 @@ Python 代码规范、语义分析与复杂度检查
 layout: default
 ---
 
-# Code Statistics
+# 5.3 Code Statistics
 
 代码规模与 AI 辅助开发说明
 
@@ -1227,12 +1305,28 @@ layout: default
 不能根据提交次数推断 AI 使用比例。
 AI 辅助比例如为团队估算，应明确说明估算方法，不作为精确测量结果。
 -->
+---
+layout: default
+---
+
+# Demo & Discussion
+
+06 · 演示与交流
+
+<div class="mt-10 rounded-xl bg-teal-50 p-8">
+<div class="text-2xl font-bold mb-6">本部分目录</div>
+<div class="text-xl leading-loose">
+6.1 功能演示<br>
+6.2 参考文献与开源来源<br>
+6.3 总结与问答
+</div>
+</div>
 
 ---
 layout: default
 ---
 
-# Live Demo
+# 6.1 Live Demo
 
 两分钟演示：从目标输入到计划采纳
 
@@ -1264,7 +1358,7 @@ layout: default
 layout: default
 ---
 
-# References & Open Source
+# 6.2 References & Open Source
 
 参考文献、开源组件与项目依据
 
@@ -1296,7 +1390,7 @@ layout: default
 layout: default
 ---
 
-# Summary & Discussion
+# 6.3 Summary & Discussion
 
 项目总结与交流
 

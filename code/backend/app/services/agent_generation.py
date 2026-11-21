@@ -32,7 +32,9 @@ def validate_agent_input(body):
         raise HTTPException(422, '任务类型无效')
     if body.image:
         validate_primary_image(body.image)
-    if (body.material_ids or body.attachment_images) and body.route != 'recommend':
+    if body.material_ids and body.route not in ('recommend', 'evidence'):
+        raise HTTPException(422, '辅助资料仅用于生成推荐方案或成长证据')
+    if body.attachment_images and body.route != 'recommend':
         raise HTTPException(422, '辅助资料仅用于生成推荐方案')
 
 
@@ -80,7 +82,10 @@ class AgentGenerationService:
 
     def generate(self, body, owner):
         validate_agent_input(body)
-        materials = self.read_attachments(owner, body.material_ids, body.attachment_images)
+        materials = self.read_attachments(
+            owner, body.material_ids, body.attachment_images,
+            text_limit=30000 if body.route == 'evidence' else 3500,
+        )
         settings = self.load_settings(owner)
         context, schedule_tasks = self._context(body, owner)
         self.begin_request(owner, body.request_id)

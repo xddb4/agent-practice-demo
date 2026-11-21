@@ -39,10 +39,9 @@ function attachmentPrivacyMessage(detail) {
 }
 
 async function reviewAttachmentPrivacy(privacy, name) {
-  if (!privacy || (!privacy.redacted && !privacy.limitations?.length)) return true;
-  return confirmStudyAction(
-    attachmentPrivacyMessage({ ...privacy, file_name: name }) +
-      '\n继续将使用已提取的脱敏正文；取消后可修改或更换附件。',
-    privacy.redacted ? '附件已脱敏，请核对后继续' : '请确认附件检查范围',
-  );
+  // Successful server-side redaction is informational; only a genuine blocking
+  // finding needs user correction. Generic limitations never block submission.
+  if (!privacy?.findings?.some((item) => item.blocked)) return true;
+  showStudyAlert(attachmentPrivacyMessage({ ...privacy, file_name: name }), '附件需要修改');
+  return false;
 }

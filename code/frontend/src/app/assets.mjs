@@ -44,6 +44,7 @@ export const bundles = {
     'pages/personal/completed-tasks.js',
     'components/tasks/task-description.js',
     'features/evidence/evidence-submit.js',
+    'features/evidence/evidence-clipboard.js',
     'features/courses/course-recognition.js',
     'features/tasks/task-adapters.js',
   ],
