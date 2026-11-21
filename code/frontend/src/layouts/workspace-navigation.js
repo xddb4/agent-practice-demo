@@ -79,6 +79,8 @@
 
   function alignGallery(root) {
     if (!root?.isConnected) return;
+    // The narrative already pins this gallery below the header and motto.
+    if (root.closest('.plan-scene')) return;
     const box = root.getBoundingClientRect();
     const headerHeight = header?.offsetHeight || 85;
     const mottoSpace = Number(root.closest('.plan-scene')?.dataset.mottoSpace || 0);

@@ -192,6 +192,6 @@ function logout() {
 
 function showHelp() {
   modal(
-    '<div class="modal-head"><h2>关于本地交互版</h2><button onclick="closeModal()">✕</button></div><p>保留原站的日程新增、文字规则识别、冲突提示、四象限、日历文件导入导出、成长证据及推荐演示。</p><p>首页支持个人格言或每日寄语；能力报告位于个人空间。账号以唯一 ID 区分本机数据，密码仅保存随机盐和 PBKDF2 摘要。</p><div class="notice">此文件没有服务器身份认证或安全的多用户权限隔离。真实服务需要邮箱验证、服务端会话、用户数据权限、邮件配额、限流及容量压测。智能体与课表图片识别仍沿用原站演示逻辑。</div><button class="primary" onclick="closeModal()">知道了</button>',
+    '<div class="modal-head"><h2>产品介绍</h2><button aria-label="关闭产品介绍" onclick="closeModal()">✕</button></div><p>StudyPilot 是你的学习与时间管理助手，帮助你明确目标、安排任务，并在实践中持续调整。</p><p><strong>安排日常</strong><br>管理任务与日程，通过日历和四象限理清时间与优先级。</p><p><strong>一起制定计划</strong><br>和 AI 聊聊目标、困难与可用时间，获取分析和近期任务建议，确认后加入日程；也可以继续对话，调整安排。</p><p><strong>看见自己的成长</strong><br>记录学习成果与成长证据，在个人空间查看能力报告，为后续学习提供参考。</p><button class="primary" onclick="closeModal()">知道了</button>',
   );
 }

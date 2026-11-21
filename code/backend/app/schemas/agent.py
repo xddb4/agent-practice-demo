@@ -17,6 +17,9 @@ class TaskCandidate(Contract):
     important:bool=False
     urgent:bool=False
     estimated_minutes:int|None=Field(default=None,gt=0,le=10080)
+    description:str|None=Field(default=None,max_length=3000)
+    suggested_finish:AwareDatetime|None=None
+    dimension:Dimension|None=None
     completion_criteria:str|None=None
     source:str|None=None
     @model_validator(mode='after')

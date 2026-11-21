@@ -115,7 +115,8 @@
     function update() {
       frame = 0;
       if (!root.isConnected) return;
-      const progress = clamp(window.scrollY / distance);
+      const rawProgress = clamp(window.scrollY / distance);
+      const progress = rawProgress >= 0.98 ? 1 : rawProgress;
       const eased = progress * progress * (3 - 2 * progress);
       const size = 1 + (scale - 1) * eased;
       motto.style.transform = `translate3d(${originX}px,${originY + (targetY - originY) * eased}px,0) scale(${size})`;
@@ -125,11 +126,12 @@
       todayCard.style.transform = reduced ? '' : `translateY(${-progress * 32}px)`;
       todayCard.inert = progress > 0.65;
       const visible = progress > 0.72;
-      workspace.inert = !visible;
+      // Keep wheel events on the page until the fixed gallery has fully faded in.
+      workspace.inert = progress < 1;
       workspace.style.visibility = visible ? 'visible' : 'hidden';
       workspace.style.opacity = String(clamp((progress - 0.72) / 0.28));
       workspace.style.transform = reduced ? '' : `translateY(${(1 - eased) * 24}px)`;
-      root.classList.toggle('is-gallery-view', progress >= 0.98);
+      root.classList.toggle('is-gallery-view', progress === 1);
     }
     function schedule() {
       if (!frame) frame = requestAnimationFrame(update);
@@ -148,6 +150,8 @@
         parseFloat(getComputedStyle(content).paddingLeft) +
         'px';
       workspace.style.width = intro.getBoundingClientRect().width + 'px';
+      // A narrow-screen scroll position must not carry into the fixed desktop columns.
+      if (innerWidth > 900) workspace.scrollTop = 0;
       dock.style.left = originX + 'px';
       dock.style.top = targetY + 'px';
       const dockFont = Math.min(

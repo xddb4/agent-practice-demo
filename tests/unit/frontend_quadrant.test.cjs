@@ -5,6 +5,9 @@ function setup(){
  const state={tasks:[{id:1,title:'待办任务',q:0,date:'2026-11-02'},{id:2,title:'完成任务',q:0,done:true},{id:3,title:'另一象限',q:1}],labels:['重要且紧急','重要不紧急','不重要但紧急','不重要不紧急'],activeAccount:{id:'user'},page:'matrix',selectedPlanId:null,selectedPlanTitle:'',selectedQuadrant:0,esc:s=>String(s),qSelect:()=>'<select></select>',head:(a,b,c)=>a+b+c,updatePlanReference(){},dragClickUntil:0,
  document:{getElementById:id=>nodes[id],querySelector:()=>null,querySelectorAll:()=>[]},modal:html=>state.modalHTML=html,toggle:id=>state.tasks.find(t=>t.id===id).done=true,render(){state.matrix()},login(){},detail(){}};
  vm.createContext(state);
+ state.abilities=[];
+ vm.runInContext(require('./frontend-source.cjs').namedFunction(readFileSync('code/frontend/src/components/ui/primitives.js','utf8'),'pill'),state);
+ vm.runInContext(readFileSync('code/frontend/src/components/tasks/task-description.js','utf8'),state);
  state.taskPriority=(a,b)=>(a.ddl||'9999').localeCompare(b.ddl||'9999');
  vm.runInContext(readFileSync('code/frontend/src/pages/quadrants/quadrant-page.js','utf8'),state);
  return {state,nodes};

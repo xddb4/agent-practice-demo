@@ -1,6 +1,13 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm');
 const {readFileSync}=require('node:fs');
 const source=readFileSync('code/frontend/src/api/dialogue-client.js','utf8')+'\n'+readFileSync('code/frontend/src/pages/recommendations/plan-dialogue.js','utf8');
+test('未填截止日期时按下月同日计算，月末和跨年正确回退',()=>{
+ const state=setup();
+ assert.equal(state.dialogueDefaultDeadline(new Date(2026,10,21)),'2026-12-21');
+ assert.equal(state.dialogueDefaultDeadline(new Date(2026,0,31)),'2026-02-28');
+ assert.equal(state.dialogueDefaultDeadline(new Date(2028,0,31)),'2028-02-29');
+ assert.equal(state.dialogueDefaultDeadline(new Date(2026,11,31)),'2027-01-31');
+});
 function setup(response){
  const state={fetch:async()=>response,TextDecoder,Uint8Array,esc:value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;')};
  vm.createContext(state);vm.runInContext(source,state);return state;

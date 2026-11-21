@@ -28,8 +28,6 @@ function flexibleCard(task) {
     esc(task.ddl || '未设置') +
     ' · ' +
     (task.duration ? task.duration + '分钟' : '时长未设置') +
-    '</div><div class="task-end">' +
-    esc(task.suggest || '建议时间未设置') +
     '</div></div>' +
     qSelect(task) +
     '</div>'

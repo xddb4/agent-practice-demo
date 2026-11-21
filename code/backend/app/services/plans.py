@@ -16,6 +16,7 @@ def plan_title(data):
 def dialogue_title(data):
     """Prefer the model title; old records use a local fallback without model calls."""
     data=unpack(data)
+    if data.get('conversation_title'):return data['conversation_title']
     title=str(data.get('dialogue_title') or '').strip()
     if title:return title[:10]
     original=plan_title(data)

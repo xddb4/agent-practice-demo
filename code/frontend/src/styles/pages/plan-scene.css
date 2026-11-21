@@ -225,6 +225,9 @@ body::after,
 .plan-scene .gallery-workspace::-webkit-scrollbar {
   width: 0;
 }
+.plan-scene:not(.is-gallery-view) .gallery-workspace {
+  pointer-events: none;
+}
 .plan-scene .gallery-main,
 .plan-scene .gallery-main.editorial-reveal {
   background: transparent;
@@ -252,6 +255,48 @@ body::after,
 }
 .plan-scene .right-task-column {
   top: 0;
+}
+@media (min-width: 901px) {
+  .plan-scene .gallery-workspace {
+    overflow: clip;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .plan-scene .gallery-main,
+  .plan-scene .right-task-column {
+    min-height: 0;
+    height: 100%;
+  }
+  .plan-scene .gallery-main {
+    display: flex;
+    flex-direction: column;
+  }
+  .plan-scene .gallery-main .time-toolbar,
+  .plan-scene .gallery-main .gallery-range {
+    flex-shrink: 0;
+  }
+  .plan-scene .gallery-main .task-gallery {
+    flex: 1;
+    height: auto;
+    min-height: 160px;
+    max-height: 366px;
+  }
+  .plan-scene .right-task-column > .shredder {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+  .plan-scene .right-task-column .shred-list {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overscroll-behavior: contain;
+  }
+  .plan-scene .right-task-column .section-label,
+  .plan-scene .right-task-column .shred-drop,
+  .plan-scene .right-task-column .shred-footer {
+    flex-shrink: 0;
+  }
 }
 .plan-scene.is-resuming .plan-motto,
 .plan-scene.is-resuming .plan-today {

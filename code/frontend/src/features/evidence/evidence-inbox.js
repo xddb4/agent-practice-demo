@@ -15,6 +15,9 @@ function evidenceRowHTML(item, processed = false) {
     ' <span class="evidence-status">' +
     esc(item.status) +
     '</span></h4>' +
+    (item.source_type === 'task_completion'
+      ? '<p class="tiny">来源：已完成的灵活任务 · 完成自述，需补充实际成果或过程</p>'
+      : '') +
     (item.source_type === 'dialogue'
       ? '<p class="tiny">来源：方案对话 · ' +
         esc(item.kind === 'self_report' ? '用户自述，非客观测评' : '用户报告的过程或成果，需核对') +
@@ -91,6 +94,16 @@ async function persistEvidenceChange(change, processed = false) {
 evidenceState = async function (id, status, processed = false) {
   if (!['已接受', '已拒绝', '待观察'].includes(status) || !evidence.some((e) => e.id === id))
     return;
+  const candidate = evidence.find((e) => e.id === id);
+  if (
+    status === '已接受' &&
+    candidate.source_type === 'task_completion' &&
+    (!candidate.completion_details_confirmed || candidate.dim < 0)
+  )
+    return showStudyAlert(
+      '请点击“修改”，补充实际完成的过程、成果或反思，并选择关联能力后再接受。',
+      '请补充完成证据',
+    );
   await persistEvidenceChange(() => {
     evidence.find((e) => e.id === id).status = status;
   }, processed);
@@ -107,6 +120,7 @@ editEvidence = function (id) {
       '</textarea></div><div class="form-group"><label for="edit-desc">说明</label><textarea id="edit-desc">' +
       esc(item.desc || '') +
       '</textarea></div><div class="form-group"><label for="edit-dim">关联能力</label><select id="edit-dim">' +
+      (item.dim < 0 ? '<option value="-1" selected>请选择关联能力</option>' : '') +
       abilities
         .map(
           (label, i) =>
@@ -134,6 +148,12 @@ async function saveEditedEvidence(id) {
     dim = Number(val('edit-dim'));
   if (!title || !body || !Number.isInteger(dim) || dim < 0 || dim > 5)
     return showStudyAlert('请填写标题、内容并选择关联能力。', '请补充证据');
+  if (
+    item.source_type === 'task_completion' &&
+    !item.completion_details_confirmed &&
+    body === item.body.trim()
+  )
+    return showStudyAlert('请在内容中补充实际完成的过程、成果或反思。', '请补充完成证据');
   const replacement = {
     ...item,
     id: Math.max(Date.now(), ...evidence.map((e) => Number(e.id) || 0)) + 1,
@@ -142,6 +162,7 @@ async function saveEditedEvidence(id) {
     desc,
     dim,
     status: '待确认',
+    ...(item.source_type === 'task_completion' ? { completion_details_confirmed: true } : {}),
   };
   if (
     await persistEvidenceChange(() => {

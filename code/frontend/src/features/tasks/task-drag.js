@@ -176,7 +176,8 @@ function dragAutoScroll() {
 }
 
 document.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0 || taskDrag || e.target.closest('select,input,textarea')) return;
+  if (e.button !== 0 || taskDrag || e.target.closest('select,input,textarea,.quadrant-picker'))
+    return;
   let source = e.target.closest('[data-task-id]');
   if (!source) return;
   if (e.target.closest('.check')) return;

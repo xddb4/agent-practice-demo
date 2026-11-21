@@ -4,6 +4,24 @@ let reviewContext = null,
   reviewBusy = false,
   reviewGeneration = 0,
   reviewPane = null;
+function reviewExpired(row) {
+  const day = localMoment(new Date().toISOString()).date;
+  if (row.type === 'fixed' && row.date && row.end)
+    return Date.parse(row.date + 'T' + row.end + ':00+08:00') < Date.now();
+  return Boolean((row.ddl || row.date) && (row.ddl || row.date) < day);
+}
+function reviewQuadrant(row, index) {
+  return (
+    '<div class="form-group"><label>四象限分类</label>' +
+    quadrantPicker(
+      row.q,
+      'reviewField(' + index + ",'q',value)",
+      '',
+      '第' + (index + 1) + '项四象限分类',
+    ) +
+    '</div>'
+  );
+}
 function closeTaskReview() {
   reviewGeneration++;
   reviewBusy = false;
@@ -95,7 +113,7 @@ function handleAgentResult(result) {
     row.calendar = result.calendar_items?.[row.proposalIndex];
     row.adopted =
       Boolean(row.calendar) || (result.adopted_indices || []).includes(row.proposalIndex);
-    row.selected = !row.adopted;
+    row.selected = !row.adopted && !reviewExpired(row);
     if (row.calendar) {
       const task = row.calendar;
       Object.assign(row, {
@@ -126,7 +144,7 @@ previewParsed = function () {
     ...task,
     raw: { title: task.title },
     id: task.id || Date.now() + index,
-    selected: true,
+    selected: !reviewExpired({ ...task, raw: {}, type: task.start ? 'fixed' : 'flex' }),
     type: task.start ? 'fixed' : 'flex',
     date: task.date || '',
     ddl: task.ddl || '',
@@ -255,6 +273,7 @@ function recommendedTimesHTML(row) {
   );
 }
 function reviewTaskDetails(row, index, isRecommendation = false) {
+  const instructions = reviewInstructionsHTML(row, index, isRecommendation);
   return (
     '<section class="preview-item">' +
     (isRecommendation
@@ -262,17 +281,12 @@ function reviewTaskDetails(row, index, isRecommendation = false) {
       : '<label class="review-task-choice">' +
         reviewCheckbox(row, index) +
         (row.adopted ? '已加入计划' : '加入这项任务') +
+        (reviewExpired(row) ? '<span class="task-expired">已过期</span>' : '') +
         '</label>') +
+    '<div class="task-title-quadrant">' +
     reviewInput(row, index, 'title', '任务名称') +
-    (isRecommendation
-      ? '<div class="form-group"><label>执行说明<textarea aria-label="第' +
-        (index + 1) +
-        '项执行说明" maxlength="3000" oninput="reviewField(' +
-        index +
-        ",'description',this.value)\">" +
-        esc(row.description || '') +
-        '</textarea></label></div>'
-      : '') +
+    reviewQuadrant(row, index) +
+    '</div>' +
     '<div class="form-grid"><div class="form-group"><label>任务类型<select aria-label="第' +
     (index + 1) +
     '项任务类型" onchange="reviewField(' +
@@ -285,7 +299,7 @@ function reviewTaskDetails(row, index, isRecommendation = false) {
     reviewInput(row, index, 'date', '计划日期', 'date') +
     '</div>' +
     (isRecommendation ? recommendedTimesHTML(row) : '') +
-    (row.raw.suggested_finish
+    (isRecommendation && row.raw.suggested_finish
       ? '<p class="tiny">建议完成：' +
         esc(
           localMoment(row.raw.suggested_finish).date +
@@ -305,38 +319,47 @@ function reviewTaskDetails(row, index, isRecommendation = false) {
           : '')
       : '<div class="form-grid">' +
         reviewInput(row, index, 'ddl', '截止日期（可不填）', 'date') +
-        reviewInput(
-          row,
-          index,
-          'duration',
-          isRecommendation ? '预计总时长（分钟）' : '预计时长（分钟，可不填）',
-          'number',
-        ) +
+        (isRecommendation
+          ? reviewInput(
+              row,
+              index,
+              'duration',
+              isRecommendation ? '预计总时长（分钟）' : '预计时长（分钟，可不填）',
+              'number',
+            )
+          : '<div class="form-group"><label>建议完成<input readonly value="' +
+            esc(
+              row.raw.suggested_finish
+                ? localMoment(row.raw.suggested_finish).date +
+                    ' ' +
+                    localMoment(row.raw.suggested_finish).time
+                : '未建议',
+            ) +
+            '"></label></div>') +
         '</div>') +
-    '<div class="form-group"><label>四象限分类<select aria-label="第' +
-    (index + 1) +
-    '项四象限分类" onchange="reviewField(' +
-    index +
-    ",'q',Number(this.value))\">" +
-    labels
-      .map(
-        (label, q) =>
-          '<option value="' +
-          q +
-          '" ' +
-          (row.q === q ? 'selected' : '') +
-          '>' +
-          label +
-          '</option>',
-      )
-      .join('') +
-    '</select></label></div>' +
     (!row.date
       ? '<p class="tiny">请补充计划日期。</p>'
       : row.type === 'fixed' && (!row.start || !row.end)
         ? '<p class="tiny">固定任务需补齐开始和结束时间，也可改为灵活任务。</p>'
         : '') +
+    instructions +
     '</section>'
+  );
+}
+function reviewInstructionsHTML(row, index, expanded = false) {
+  const text = row.description || row.raw.completion_criteria || '';
+  return (
+    '<details class="review-instructions" ' +
+    (expanded ? 'open' : '') +
+    '><summary><b>执行说明</b><span>' +
+    esc(text || '暂无补充说明') +
+    '</span></summary><label>执行说明<textarea maxlength="3000" aria-label="第' +
+    (index + 1) +
+    '项执行说明" oninput="reviewField(' +
+    index +
+    ",'description',this.value);this.closest('details').querySelector('summary span').textContent=this.value\">" +
+    esc(text) +
+    '</textarea></label></details>'
   );
 }
 function recommendationDetailsHTML() {
@@ -508,7 +531,9 @@ function renderTaskReview() {
             esc(row.title) +
             '</b><small>' +
             esc(status) +
-            '</small></span></label>' +
+            '</small>' +
+            (reviewExpired(row) ? '<span class="task-expired">已过期</span>' : '') +
+            '</span></label>' +
             (pending && !row.adopted
               ? ''
               : '<button type="button" class="tiny" onclick="showRecommendationPane(' +
@@ -630,7 +655,8 @@ function reviewedTask(row) {
   const duration = row.duration === '' ? null : Number(row.duration);
   const keepSuggestion =
     row.type === 'flex' &&
-    row.date === row.raw.date &&
+    row.date ===
+      (row.raw.date || localMoment(row.raw.start).date || localMoment(row.raw.deadline).date) &&
     row.ddl === localMoment(row.raw.deadline).date;
   return {
     id: row.id,
@@ -654,7 +680,7 @@ function reviewedTask(row) {
           localMoment(row.raw.suggested_finish).time
         : '未设置',
     suggested_sessions: keepSuggestion ? row.raw.suggested_sessions || [] : [],
-    ability: 0,
+    ability: row.raw.dimension ? abilities.indexOf(row.raw.dimension) : -1,
     source: row.raw.source || '',
     agent_run_id: reviewContext?.id,
     proposal_index: row.proposalIndex,
@@ -674,7 +700,7 @@ function reviewedCandidate(row, route) {
     estimated_minutes: row.duration === '' ? null : Number(row.duration),
   };
   delete item.completion_criteria;
-  if (route === 'recommend') item.description = (row.description || '').trim() || null;
+  item.description = (row.description || '').trim() || null;
   if (
     route === 'recommend' &&
     (fixed || row.date !== row.raw.date || row.ddl !== localMoment(row.raw.deadline).date)

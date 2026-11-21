@@ -173,18 +173,64 @@ function pill(q) {
 }
 
 function qSelect(t) {
+  return quadrantPicker(
+    t.q,
+    'changeQ(' + t.id + ',value)',
+    '',
+    '修改 ' + t.title + ' 的四象限分类',
+  );
+}
+
+function quadrantPicker(q = 1, action = '', inputId = '', label = '四象限分类') {
   return (
-    '<select aria-label="修改 ' +
-    esc(t.title) +
-    ' 的四象限分类" onchange="changeQ(' +
-    t.id +
-    ',this.value)">' +
+    '<details class="quadrant-picker" ontoggle="positionQuadrantOptions(this)"><summary aria-label="' +
+    esc(label) +
+    '">' +
+    pill(q) +
+    '</summary><input type="hidden" ' +
+    (inputId ? 'id="' + esc(inputId) + '" ' : '') +
+    'value="' +
+    q +
+    '">' +
+    '<div class="quadrant-options" popover="auto" ontoggle="if(event.newState===\'closed\')this.closest(\'details\').open=false" aria-label="选择四象限">' +
     labels
       .map(
-        (l, i) =>
-          '<option value="' + i + '" ' + (t.q === i ? 'selected' : '') + '>' + l + '</option>',
+        (text, value) =>
+          '<button type="button" aria-label="' +
+          esc(text) +
+          '" onclick="pickQuadrant(this,' +
+          value +
+          ',(value)=>{' +
+          action +
+          '})">' +
+          pill(value) +
+          '</button>',
       )
       .join('') +
-    '</select>'
+    '</div></details>'
   );
+}
+
+function positionQuadrantOptions(picker) {
+  const menu = picker.querySelector('.quadrant-options');
+  if (!menu.showPopover) return;
+  if (!picker.open) {
+    if (menu.matches(':popover-open')) menu.hidePopover();
+    return;
+  }
+  menu.showPopover();
+  const anchor = picker.querySelector('summary').getBoundingClientRect();
+  menu.style.left = Math.max(8, Math.min(anchor.left, innerWidth - menu.offsetWidth - 8)) + 'px';
+  menu.style.top =
+    (anchor.bottom + menu.offsetHeight + 8 < innerHeight
+      ? anchor.bottom + 6
+      : Math.max(8, anchor.top - menu.offsetHeight - 6)) + 'px';
+}
+
+function pickQuadrant(button, value, onChange) {
+  const picker = button.closest('.quadrant-picker');
+  picker.querySelector('input').value = String(value);
+  picker.querySelector('summary').innerHTML = pill(value);
+  picker.open = false;
+  onChange(value);
 }

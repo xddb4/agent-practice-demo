@@ -58,25 +58,11 @@ function quadrantTaskHTML(task) {
   return (
     '<article class="preview-item quadrant-detail-item"><h3>' +
     esc(task.title) +
-    '</h3><dl><dt>任务类型</dt><dd>' +
-    (task.start ? '固定时间任务' : '灵活任务') +
-    '</dd><dt>计划日期</dt><dd>' +
-    esc(task.date || '未设置') +
-    '</dd><dt>时间</dt><dd>' +
-    esc(
-      task.start
-        ? task.start + ' – ' + task.end
-        : task.duration
-          ? task.duration + ' 分钟'
-          : '未设置',
-    ) +
-    '</dd><dt>截止日期</dt><dd>' +
-    esc(task.ddl || '未设置') +
-    '</dd><dt>地点</dt><dd>' +
-    esc(task.location || '未设置') +
-    '</dd></dl>' +
-    qSelect(task) +
-    '<div class="modal-footer"><button class="secondary" onclick="editTask(' +
+    '</h3>' +
+    taskDetailBodyHTML(task) +
+    '<div class="modal-footer"><button type="button" class="secondary quadrant-task-delete" aria-label="删除任务" title="删除任务" onclick="removeTask(' +
+    task.id +
+    ')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button><button class="secondary" onclick="editTask(' +
     task.id +
     ')">编辑任务</button><button class="primary" onclick="completeQuadrantTask(' +
     task.id +
