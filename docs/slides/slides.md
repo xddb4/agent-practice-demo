@@ -15,7 +15,7 @@ class: text-center
 </div>
 
 <div class="mt-16 text-base opacity-60">
-创新工程实践营 · 项目答辩
+软件新技术创新实践 · 项目答辩
 </div>
 
 <!--
