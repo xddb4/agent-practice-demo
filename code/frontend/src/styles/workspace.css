@@ -451,7 +451,7 @@ body::before {
   width: 100%;
   min-width: 0;
   min-height: 62px;
-  padding: 20px 16px 12px;
+  padding: 25px 16px 7px;
   border: 1px solid #cbb7d8;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.38);
@@ -467,10 +467,14 @@ body::before {
   position: absolute;
   z-index: 1;
   top: 50%;
-  left: 12px;
+  left: 16px;
   transform: translateY(-50%);
   margin: 0;
-  padding: 0 5px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
   color: #8b739a;
   font:
     15px/1.5 'Microsoft YaHei',
@@ -479,16 +483,14 @@ body::before {
   transition:
     top 0.2s ease,
     font-size 0.2s ease,
-    color 0.2s ease,
-    background-color 0.2s ease;
+    color 0.2s ease;
 }
 .landing-auth-dialog .auth-floating-field:focus-within label,
 .landing-auth-dialog .auth-floating-field:has(input:not(:placeholder-shown)) label,
 .landing-auth-dialog .auth-floating-field:has(input:autofill) label {
-  top: 0;
+  top: 12px;
   font-size: 11px;
   color: #79568f;
-  background: #f4eef8;
 }
 .landing-auth-dialog .auth-floating-field input:focus {
   outline: none;
@@ -523,7 +525,6 @@ body::before {
 .landing-auth-dialog .auth-floating-field:has(input:not(:placeholder-shown)) label,
 .landing-auth-dialog .auth-floating-field:has(input:autofill) label {
   color: #354e76;
-  background: #f2f5fb;
 }
 .landing-auth-dialog .auth-floating-field input:focus {
   border-color: #607a9f;
@@ -1423,10 +1424,14 @@ body {
   place-items: center;
 }
 .dialogue-start {
-  font-size: clamp(50px, 8vw, 104px);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #65547e24;
+  max-width: 100%;
+  padding: 16px;
+  text-align: center;
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
   user-select: none;
 }
 .plan-dialogue .dialogue-turn {

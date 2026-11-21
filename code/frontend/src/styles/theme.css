@@ -33,4 +33,9 @@
   --font-mono-latin: ui-monospace, 'Courier New', monospace;
   --font-wordmark: 'Segoe UI', sans-serif;
   --font-motto: 'Songti SC', 'SimSun', serif;
+  --font-size-readable-body: 16px;
+  --font-size-readable-meta: 15px;
+  --font-size-readable-title: 28px;
+  --ui-symbol-size: 24px;
+  --ui-symbol-stroke: 2.5;
 }

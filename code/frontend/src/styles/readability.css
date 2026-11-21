@@ -2,6 +2,14 @@
 body {
   color: var(--color-text-strong);
 }
+.ui-symbol {
+  display: block;
+  flex: none;
+  width: var(--ui-symbol-size);
+  height: var(--ui-symbol-size);
+  stroke-width: var(--ui-symbol-stroke);
+  pointer-events: none;
+}
 html,
 body {
   overflow-x: clip;
@@ -64,6 +72,7 @@ body :is(input, textarea)::placeholder {
 }
 .app-header .header-profile #username {
   color: #303d59;
+  font-weight: 700;
 }
 .app-header .profile-chevron {
   color: #4a5670;
@@ -72,6 +81,7 @@ body :is(input, textarea)::placeholder {
   width: 40px;
   height: 40px;
   color: #39435d;
+  font-weight: 700;
 }
 .app-header .gooey-nav__link {
 }
@@ -103,10 +113,15 @@ body :is(input, textarea)::placeholder {
 .plan-scene .gallery-main .time-toolbar h2 {
   color: #222d46;
   font-weight: 700;
+  font-size: var(--font-size-readable-title);
+  line-height: 1.4;
 }
 .plan-scene .gallery-main .gallery-range {
   color: #46536c;
   font-weight: 550;
+  font-size: var(--font-size-readable-meta);
+  line-height: 1.6;
+  flex-wrap: wrap;
 }
 .plan-scene .time-tools .tiny {
   color: #394861;
@@ -114,6 +129,26 @@ body :is(input, textarea)::placeholder {
 }
 .plan-scene .time-tools .circle-btn {
   color: #303e59;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 0;
+  line-height: 1;
+}
+.task-fab > span {
+  display: grid;
+  place-items: center;
+}
+.task-fab .ui-symbol {
+  width: 32px;
+  height: 32px;
+  stroke-width: 2.8;
+}
+.right-task-column #shred-list > .empty {
+  font-size: var(--font-size-readable-body);
+  line-height: 1.8;
 }
 .plan-scene .gallery-workspace {
   overflow-x: hidden;
@@ -370,8 +405,53 @@ body :is(input, textarea)::placeholder {
   width: 100%;
 }
 .right-task-column .shred-drop {
-  min-height: 48px;
-  padding: 16px 8px 4px;
+  display: grid;
+  place-items: center;
+  min-height: 72px;
+  padding: 12px 8px;
+}
+.shred-trash-icon {
+  width: 44px;
+  height: 44px;
+  stroke-width: var(--ui-symbol-stroke);
+  color: #69738d;
+  pointer-events: none;
+}
+.shred-drop.is-ready .shred-trash-icon {
+  color: #a44e58;
+}
+.evidence-watch-heading {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+.evidence-watch-title {
+  cursor: help;
+}
+.evidence-watch-title:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.evidence-watch-help {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 3;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 64px));
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-input);
+  background: var(--soft-lavender);
+  font-size: var(--font-size-readable-meta);
+  line-height: 1.6;
+  box-shadow: 0 4px 16px #40354d1a;
+}
+.evidence-watch-heading:focus-within .evidence-watch-help,
+.evidence-watch-title:hover + .evidence-watch-help {
+  display: block;
 }
 .dialogue-history-item:hover,
 .dialogue-history-item[aria-current='true'] {
@@ -439,6 +519,10 @@ body :is(input, textarea)::placeholder {
   color: #9670b4;
   font-size: 26px;
   line-height: 1;
+}
+.plan-dialogue .dialogue-new .ui-symbol {
+  width: 28px;
+  height: 28px;
 }
 
 .quadrant-task-delete {
@@ -729,6 +813,7 @@ body :is(input, textarea)::placeholder {
   .plan-dialogue .dialogue-turn:not([data-role='system']) {
   }
   .plan-scene .gallery-main .time-toolbar h2 {
+    font-size: 24px;
   }
 }
 @media (max-width: 450px) {

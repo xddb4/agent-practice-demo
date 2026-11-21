@@ -399,7 +399,9 @@ function flexibleHTML() {
       )
       .join('') +
     (!list.length ? '<div class="empty">还没有灵活待办，点击圆形加号开始安排。</div>' : '') +
-    '</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>'
+    '</div>' +
+    shredDropHTML() +
+    '<div class="shred-footer"><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>'
   );
 }
 
@@ -445,7 +447,11 @@ function renderPlan() {
     esc(currentMotto()) +
     '</h1></div><div style="display:flex;gap:9px"><button class="secondary" onclick="calendar()">▦　日历</button></div></div><div class="workspace gallery-workspace"><section class="panel gallery-main"><div class="time-toolbar"><div><h2>任务画廊 ' +
     (demoPreview ? '<span class="preview-label">案例预览</span>' : '') +
-    '</h2></div><div class="time-tools"><button class="circle-btn" aria-label="前七天" onclick="moveRange(-7)">‹</button><button class="tiny" onclick="centerToday()">今天</button><button class="circle-btn" aria-label="后七天" onclick="moveRange(7)">›</button></div></div><div class="gallery-range"><span>' +
+    '</h2></div><div class="time-tools"><button class="circle-btn" aria-label="前七天" onclick="moveRange(-7)">' +
+    uiSymbol('previous') +
+    '</button><button class="tiny" onclick="centerToday()">今天</button><button class="circle-btn" aria-label="后七天" onclick="moveRange(7)">' +
+    uiSymbol('next') +
+    '</button></div></div><div class="gallery-range"><span>' +
     start.replaceAll('-', ' / ') +
     ' — ' +
     end.replaceAll('-', ' / ') +

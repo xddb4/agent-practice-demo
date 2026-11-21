@@ -113,10 +113,14 @@ closeModal = function () {
 };
 
 login = function (mode = 'login') {
+  let dialog = document.querySelector('#modal-root .landing-auth-dialog');
+  if (dialog?.dataset.authMode === mode) return;
   modal(
     `<p class="auth-kicker">YOUR SPACE TO GROW</p><div class="modal-head"><h2>${mode === 'register' ? '从这里，开始成长。' : '欢迎回来。'}</h2><button onclick="closeModal()" aria-label="关闭登录面板">✕</button></div><div class="tabs"><button class="${mode === 'login' ? 'active' : ''}" onclick="login('login')">登录</button><button class="${mode === 'register' ? 'active' : ''}" onclick="login('register')">注册</button></div><form onsubmit="authenticate(event,'${mode}')">${mode === 'register' ? '<div class="form-group auth-floating-field"><label for="auth-name">怎么称呼你</label><input id="auth-name" maxlength="24" autocomplete="nickname" placeholder=" " required></div>' : ''}<div class="form-group auth-floating-field"><label for="auth-email">邮箱</label><input id="auth-email" type="email" maxlength="254" autocomplete="username" required placeholder=" "></div><div class="form-group auth-floating-field"><label for="auth-password">${mode === 'register' ? '设置测试密码' : '测试密码'}</label><input id="auth-password" type="password" minlength="8" maxlength="128" autocomplete="${mode === 'register' ? 'new-password' : 'current-password'}" placeholder=" " required></div>${mode === 'register' ? '<div class="form-group auth-floating-field"><label for="auth-confirm">确认测试密码</label><input id="auth-confirm" type="password" minlength="8" maxlength="128" autocomplete="new-password" placeholder=" " required></div>' : ''}<p id="auth-error" class="auth-error" role="alert"></p><button id="auth-submit" class="auth-submit">${mode === 'register' ? '创建账号，开启计划' : '进入工作台'}</button></form>`,
+    { reuseDialog: dialog },
   );
-  let dialog = document.querySelector('#modal-root .modal');
+  dialog = document.querySelector('#modal-root .modal');
+  dialog.dataset.authMode = mode;
   document.getElementById('landing-page').inert = true;
   dialog.classList.add('landing-auth-dialog');
   dialog.setAttribute('aria-label', mode === 'register' ? '注册账号' : '登录账号');

@@ -17,6 +17,8 @@ test('完成记录需补充实际成果和能力方向后才能接受，修改�
 });
 test('收件箱仅显示待确认及单独分组的待观察，已处理证据在弹窗中',()=>{
  const state=setup(),html=state.evidenceInboxHTML();assert.match(html,/新证据|观察证据|待观察（1）|已处理证据（2）/);assert.doesNotMatch(html,/已接受证据|已拒绝证据/);
+ assert.match(html,/class="evidence-watch-title" tabindex="0" aria-describedby="evidence-watch-help"/);
+ assert.match(html,/id="evidence-watch-help" role="tooltip"/);
  state.showProcessedEvidence();assert.match(state.html,/已接受证据/);assert.match(state.html,/已拒绝证据/);assert.doesNotMatch(state.html,/观察证据/);assert.match(state.html,/删除/);
 });
 test('处理后离开收件箱，已处理项可反复改选接受或拒绝',async()=>{

@@ -63,9 +63,12 @@ test('侧栏可见时不再出现中间重复入口，只有侧栏显示命中�
   state.updateShredDeleteZone(drag, false);
   assert.equal(drag.drop.shred, true);
   assert.equal(local.classList.contains('is-ready'), true);
+  assert.equal(local.attributes['aria-label'], '松手删除任务');
   assert.equal(dock.classList.contains('is-visible'), false);
   assert.equal(dock.attributes['aria-hidden'], 'true');
   assert.equal(dock.classList.contains('is-ready'), false);
+  state.resetShredDeleteZone();
+  assert.equal(local.attributes['aria-label'], '拖到这里，松手删除任务');
 });
 
 test('侧栏不可见才使用底部备用入口，且底部边界之外不接收删除', () => {
