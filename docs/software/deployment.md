@@ -208,7 +208,7 @@ curl -s http://127.0.0.1:8000/api/health
 
 ### 5. Nginx 配置
 
-使用域名与 HTTPS 时（仅 IP 演示可跳过）：
+使用域名与 HTTPS 时：
 
 ```nginx
 # /etc/nginx/conf.d/studypilot.conf
