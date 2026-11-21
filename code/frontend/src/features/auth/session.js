@@ -14,6 +14,8 @@ authenticate = async function (e, mode) {
     const state = await api('state');
     tasks = state.tasks;
     evidence = state.evidence;
+    taskTrashRecords = state.task_trash || [];
+    expiredTaskRecords = state.expired_tasks || [];
     confirmed = [0, 0, 0, 0, 0, 0];
     demoPreview = false;
     page = 'plan';
@@ -35,6 +37,8 @@ logout = async function () {
     activeAccount = null;
     tasks = [];
     evidence = [];
+    taskTrashRecords = [];
+    expiredTaskRecords = [];
     page = 'plan';
     render();
   } catch (e) {
@@ -53,6 +57,18 @@ const basePersonal = personal;
 
 personal = function () {
   basePersonal();
+  const title = document.querySelector('#content .rec-form .panel-title');
+  if (title) {
+    const heading = document.createElement('div');
+    heading.className = 'personal-profile-heading';
+    title.replaceWith(heading);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'secondary';
+    button.textContent = '已完成任务';
+    button.onclick = openCompletedTasks;
+    heading.append(title, button);
+  }
   const n = document.querySelector('#content .notice');
-  if (n) n.textContent = '数据存储于本地后端数据库，仅当前登录用户可访问。';
+  n?.remove();
 };

@@ -84,7 +84,7 @@ function exampleTasks() {
 }
 
 function timelineTasks() {
-  return demoPreview ? exampleTasks() : tasks;
+  return demoPreview ? exampleTasks() : tasks.filter((task) => !taskExpired(task));
 }
 
 function tasksOn(key) {

@@ -41,6 +41,7 @@ export const bundles = {
   ],
   'plan_dialogue.js': ['api/dialogue-client.js', 'pages/recommendations/plan-dialogue.js'],
   'features.js': [
+    'pages/personal/completed-tasks.js',
     'components/tasks/task-description.js',
     'features/evidence/evidence-submit.js',
     'features/courses/course-recognition.js',

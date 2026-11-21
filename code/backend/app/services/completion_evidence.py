@@ -42,6 +42,7 @@ def completion_snapshot(tasks, evidence, previous=None):
                          'dim': dim, 'status': '待确认', 'source_type': 'task_completion', 'kind': 'self_report',
                          'task_id': task.get('id'), 'agent_run_id': task.get('agent_run_id'),
                          'completion_details_confirmed': False})
+        evidence[-1].update({key:task.get(key) for key in ('created_at','completed_at','elapsed_minutes')})
         task['completion_evidence_id'] = next_id
         next_id += 1
     return {'tasks': tasks, 'evidence': evidence}

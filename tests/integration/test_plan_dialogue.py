@@ -143,7 +143,7 @@ def test_adopted_task_uses_current_calendar_fields_and_preserves_legacy_identity
     monkeypatch.setattr(main.dialogue_workflow, 'invoke', invoke)
     proposal = client.post(path, json={'text': '请推迟固定练习'}).json()['pending']
     assert proposal['preview'][0]['official']
-    assert client.get('/api/state').json()['tasks'] == [task]
+    assert {key:client.get('/api/state').json()['tasks'][0][key] for key in task} == task
     assert client.post(path + '/decision', json={'proposal_id': proposal['id'], 'apply': True}).status_code == 200
     updated = client.get('/api/state').json()['tasks']
     assert len(updated) == 1 and updated[0]['id'] == 7 and updated[0]['proposal_index'] == 0
@@ -162,6 +162,7 @@ def test_dialogue_persists_and_changes_only_confirmed_plan_items(monkeypatch):
          'agent_run_id': plan_id, 'proposal_index': 2},
     ]
     assert client.put('/api/state', json={'tasks': tasks, 'evidence': []}).status_code == 200
+    tasks=client.get('/api/state').json()['tasks']
     monkeypatch.setattr(main, 'runtime_settings', lambda _: {})
     calls = []
 
@@ -179,7 +180,7 @@ def test_dialogue_persists_and_changes_only_confirmed_plan_items(monkeypatch):
     pending = response.json()['pending']
     assert calls[0]['skills'] == ['task-breakdown', 'english-prep']
     snapshot=client.get('/api/state').json()
-    assert [{key:value for key,value in task.items() if key!='completion_evidence_id'} for task in snapshot['tasks']] == tasks
+    assert snapshot['tasks'] == tasks
     assert any(item.get('source_type')=='task_completion' and item.get('task_id')==2 for item in snapshot['evidence'])
     assert client.get(path).json()['pending'] == pending
     assert client.get(f'/api/plans/{other_id}/dialogue').json()['messages'] == []
@@ -213,6 +214,7 @@ def test_dialogue_rechecks_conflicts_on_apply_and_can_discard(monkeypatch):
     proposal = client.post(path, json={'text': '安排固定时段'}).json()['pending']
     fixed = {'id': 3, 'title': '临时会议', 'date': '2090-01-08', 'start': '19:30', 'end': '20:30'}
     assert client.put('/api/state', json={'tasks': [fixed], 'evidence': []}).status_code == 200
+    fixed=client.get('/api/state').json()['tasks'][0]
     decision = {'proposal_id': proposal['id'], 'apply': True}
     assert client.post(path + '/decision', json=decision).status_code == 409
     assert client.get(path).json()['pending'] == proposal

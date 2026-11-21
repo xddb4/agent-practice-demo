@@ -1,5 +1,6 @@
 """HTTP request contracts."""
 import uuid
+from datetime import date
 from pydantic import BaseModel, Field
 from core_engine.ai.skills import SkillProfile
 
@@ -12,9 +13,16 @@ class Credentials(BaseModel):
 class Snapshot(BaseModel):
     tasks:list[dict]=Field(max_length=5000)
     evidence:list[dict]=Field(max_length=5000)
+    task_trash:list[dict]=Field(default_factory=list,max_length=200)
 
 class ConversationTitle(BaseModel):
     title:str=Field(min_length=1,max_length=100)
+
+class RestoreExpiredTask(BaseModel):
+    date:date
+    deadline:date
+    duration:int=Field(gt=0,le=10080)
+    trash_id:str|None=None
 
 
 class AgentInput(BaseModel):

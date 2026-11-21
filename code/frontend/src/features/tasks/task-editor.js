@@ -71,6 +71,10 @@ manualSubmit = function (e) {
       date: dt,
       q: +val('f-q'),
       done: old.done,
+      created_at: old.created_at,
+      completed_at: old.completed_at,
+      elapsed_minutes: old.elapsed_minutes,
+      completion_evidence_id: old.completion_evidence_id,
       ...(old.exampleKey !== undefined ? { exampleKey: old.exampleKey } : {}),
       ...(old.source ? { source: old.source } : {}),
       ...(fixed

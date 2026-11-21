@@ -82,6 +82,7 @@ def test_memory_cleanup_and_plan_read_after_compression():
         db.commit()
     task={'id':1,'title':'已采纳','q':1,'agent_run_id':plans[0]['id'],'proposal_index':0}
     c.put('/api/state',json={'tasks':[task],'evidence':[]})
+    task=c.get('/api/state').json()['tasks'][0]
     c.post('/api/plans/'+plans[1]['id']+'/archive',json={'archived':True})
     result=c.post('/api/memory/compact').json();assert result['compressed']>0
     assert c.get('/api/plans/'+plans[0]['id']).json()['items'][0]['title']==plans[0]['items'][0]['title']

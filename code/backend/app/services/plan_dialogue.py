@@ -8,6 +8,8 @@ from fastapi import HTTPException
 
 from .plans import linked_tasks, plan_items, plan_title
 from .context import ability_context
+from .task_lifecycle import execution_context
+from .task_expiry import expiry_reference, expired
 
 LOCAL = ZoneInfo('Asia/Shanghai')
 
@@ -26,9 +28,11 @@ def task_view(item, official=None):
     }
 
 
-def dialogue_context(data, tasks, plan_id, messages, text, evidence=None):
+def dialogue_context(data, tasks, plan_id, messages, text, evidence=None, expired_tasks=None):
     items = plan_items(data)
-    linked = linked_tasks(tasks, plan_id, items)
+    own_expired=[item for item in expired_tasks or [] if item['task'].get('agent_run_id')==plan_id]
+    active_linked=linked_tasks(tasks,plan_id,items)
+    linked = linked_tasks([*tasks,*[item['task'] for item in own_expired]], plan_id, items)
     cancelled = set(data.get('cancelled_indices', []))
     today = datetime.now(LOCAL).date().isoformat()
     upcoming = sorted((task for task in tasks if task.get('date', '') >= today and task.get('start')),
@@ -40,7 +44,7 @@ def dialogue_context(data, tasks, plan_id, messages, text, evidence=None):
         '当前方案': [
             {'index': index, 'key': item.get('task_key'), 'depends_on': item.get('depends_on', []),
              'min_gap_days': item.get('min_gap_days', 0), 'requires_contiguous': item.get('requires_contiguous', False),
-             **task_view(item, linked.get(index)), '已加入日程': index in linked,
+             **task_view(item, linked.get(index)), '已加入日程': index in active_linked,'已过期':index in linked and index not in active_linked,
              '建议时段': (linked.get(index, item).get('suggested_sessions') or [])[:8]}
             for index, item in enumerate(items) if index not in cancelled
         ],
@@ -54,6 +58,9 @@ def dialogue_context(data, tasks, plan_id, messages, text, evidence=None):
         ],
         '本轮消息': text,
         '能力证据参考': ability_context(evidence or [], plan_title(data)+' '+text),
+        '执行节奏参考': execution_context(tasks,recent_limit=5,expired_tasks=own_expired),
+        '本对话过期任务参考': expiry_reference(own_expired,plan_id=plan_id),
+        '过期调整规则':'仅调整当前对话来源的过期任务。恢复必须同时给出今天或之后的计划日期、新截止日期和预计时长。先解释取舍，再提出修改或取消建议，等待用户确认；不能仅凭过期推断能力不足。',
     }
 
 
@@ -90,6 +97,10 @@ def prepare_changes(data, tasks, plan_id, changes):
             patch = { {'estimated_minutes': 'duration', 'deadline': 'ddl'}.get(key, key): value
                       for key, value in change['fields'].items() }
             after = {**before, **patch}
+            if index in linked and expired(linked[index]):
+                today=datetime.now(LOCAL).date().isoformat()
+                if not {'date','ddl','duration'}<=patch.keys() or not after.get('date') or after['date']<today or not after.get('ddl') or after['ddl']<after['date'] or not after.get('duration'):
+                    raise HTTPException(422,'恢复过期任务须同时重设今天或之后的计划日期、截止日期和预计时长')
             start, end = after.get('start'), after.get('end')
             if bool(start) != bool(end) or (start and (not after.get('date') or start >= end)):
                 raise HTTPException(422, '调整建议的固定时段无效，请补充完整的日期和起止时间')
@@ -101,6 +112,7 @@ def prepare_changes(data, tasks, plan_id, changes):
                 continue
         previews.append({'action': action, 'index': index, 'official': index in linked,
                          'before': before, 'after': after})
+        if index in linked and expired(linked[index]):previews[-1]['expired']=True
 
     if len(items) - len(cancelled) + sum((change['action'] == 'add') - (change['action'] == 'cancel') for change in previews) > 100:
         raise HTTPException(422, '单份方案最多保留 100 项任务，请先取消不再需要的任务')

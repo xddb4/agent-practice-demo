@@ -50,7 +50,7 @@ flexibleHTML = function () {
         groups.other.map(flexibleCard).join('') +
         '</details>'
       : '') +
-    '</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><button class="tiny" onclick="showDeletedTasks()">最近删除</button></div></div>'
+    '</div><div class="shred-drop" id="shred-drop"><div class="shred-mouth" aria-hidden="true"></div><p class="shred-prompt">拖到这里，松手删除任务</p></div><div class="shred-footer"><button class="tiny" onclick="showDeletedTasks()">最近删除</button><button class="tiny" onclick="showDeletedTasks(\'expired\')">过期任务</button></div></div>'
   );
 };
 

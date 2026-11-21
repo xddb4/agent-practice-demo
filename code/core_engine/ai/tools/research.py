@@ -31,6 +31,9 @@ class ResearchSession:
                       'message': '本次未进行联网检索，依据已有知识及你提供的信息。'}
 
     def run(self, query, purpose, count):
+        from backend.app.services.ai_safety import guard_text
+        guard_text(query)
+        guard_text(purpose,strict=False)
         ensure_stream_active()
         query, purpose = query.strip()[:128], purpose.strip()[:180]
         if not query or not purpose:

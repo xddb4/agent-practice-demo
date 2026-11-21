@@ -12,6 +12,15 @@ function setup(){
  vm.runInContext(readFileSync('code/frontend/src/pages/quadrants/quadrant-page.js','utf8'),state);
  return {state,nodes};
 }
+
+test('重复课程按相同标题时段地点折叠，只影响展示且可逐次查看',()=>{
+ const {state}=setup();
+ state.tasks=[1,2,3,4].map(id=>({id,title:'同一课程',date:'2026-11-'+String(2+id*7),start:'08:00',end:'09:35',location:'A101',q:1,course_from_week:1,done:false}));
+ const groups=state.quadrantTaskGroups(state.tasks);assert.equal(groups.length,1);assert.equal(groups[0].length,4);
+ state.showQuadrantTasks(1);assert.match(state.modalHTML,/×4/);assert.equal((state.modalHTML.match(/同一课程/g)||[]).length,1);
+ state.showQuadrantOccurrences([1,2,3,4],1);assert.equal((state.modalHTML.match(/quadrant-detail-item/g)||[]).length,4);assert.equal(state.tasks.length,4);
+ assert.equal(state.quadrantTaskGroups([{id:1,title:'同名待办'},{id:2,title:'同名待办'}]).length,2);
+});
 test('象限排除完成记录，点击象限弹窗列出实际条目',()=>{
  const {state}=setup();assert.doesNotMatch(state.quadHTML(),/完成任务/);
  state.showQuadrantTasks(0);assert.match(state.modalHTML,/待办任务/);assert.doesNotMatch(state.modalHTML,/另一象限|完成任务|推荐任务/);assert.match(state.modalHTML,/计划日期|截止日期|地点/);

@@ -14,7 +14,7 @@ from core_engine.ai.skills import SKILL_LABELS, skills_for_request
 from core_engine.ai.workflows.plan_dialogue import workflow as dialogue_workflow
 from ..integrations.model import ModelCapabilityError
 from ..services.agent_errors import diagnose
-from ..services.plans import plan_title,plan_payload,dialogue_title
+from ..services.plans import plan_title,plan_payload,dialogue_title,linked_tasks,plan_items
 from ..services.plan_dialogue import dialogue_context, prepare_changes, apply_changes
 from ..services.tasks import validate_tasks
 from ..services.context import bounded_context
@@ -24,6 +24,10 @@ from .streaming import stream_response, cancel_stream, job_key, public_job
 from ..services.memory import unpack,pack,record_bytes,cleanup_candidates
 from ..services.completion_stats import merge_completion_ids
 from ..services.completion_evidence import completion_snapshot
+from ..services.task_lifecycle import stamp_tasks, execution_context
+from ..services.ai_safety import SafetyRefusal, guard_text, guard_model_output, redact_context
+from ..services.task_expiry import sweep_expired, expired, expiry_reference, LOCAL as EXPIRY_LOCAL
+from ..schemas.requests import RestoreExpiredTask
 from ..services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
 from ..schemas.agent import output_contract
 from pydantic import ValidationError
@@ -40,6 +44,8 @@ router = APIRouter()
 async def validation_error(request:Request,error):
     if request.url.path.startswith('/api/model-settings'):
         return JSONResponse(status_code=422,content={'detail':{'message':'模型配置字段无效，请核对 HTTPS 地址、模型名称和密钥长度','errors':[{'field':'.'.join(map(str,x['loc'])),'type':x['type']} for x in error.errors()]}})
+    if request.url.path in ('/api/agent','/api/agent/stream') or '/dialogue' in request.url.path:
+        return JSONResponse(status_code=422,content={'detail':{'code':'invalid_ai_input','title':'输入格式需要调整','reason':'请检查文字长度、附件数量及字段格式。','action':'请先移除个人敏感信息，再缩短内容重试。','retryable':False}})
     return await request_validation_exception_handler(request,error)
 @app.middleware('http')
 async def refresh_local_assets(request:Request,call_next):
@@ -81,7 +87,9 @@ def get_state(owner=Depends(uid)):
     with Session() as db:
         row=db.get(Record,'state:'+owner)
         if not row:return {'tasks':[],'evidence':[]}
-        data=completion_snapshot(row.data.get('tasks', []), row.data.get('evidence', []))
+        trash=row.data.get('task_trash',[])
+        stamped=stamp_tasks(row.data.get('tasks',[]),row.data.get('tasks',[]))
+        data=sweep_expired({**completion_snapshot(stamped,row.data.get('evidence',[])), 'task_trash':trash,'expired_tasks':row.data.get('expired_tasks',[])})
         if data != row.data:
             row.data=data
             db.commit()
@@ -95,12 +103,90 @@ def put_state(body:Snapshot,owner=Depends(uid)):
         if e.get('source_type')=='task_completion' and e.get('status')=='已接受' and not e.get('completion_details_confirmed'):raise HTTPException(422,'请先补充任务实际成果或过程，再接受为成长证据')
     with Session() as db:
         previous=db.get(Record,'state:'+owner)
+        if previous:previous.data=sweep_expired(previous.data)
+        expired_ids={str(item['task'].get('id')) for item in previous.data.get('expired_tasks',[])} if previous else set()
+        incoming=[task for task in body.tasks if str(task.get('id')) not in expired_ids]
+        if previous:validate_tasks([*incoming,*[item['task'] for item in previous.data.get('expired_tasks',[])]])
+        trash=body.task_trash if 'task_trash' in body.model_fields_set else previous.data.get('task_trash',[]) if previous else []
+        trash=[item for item in trash if str(item.get('task',{}).get('id')) not in expired_ids]
+        for item in trash:
+            if not isinstance(item.get('task'),dict) or not item.get('trashId'):raise HTTPException(422,'回收站记录无效')
+            validate_tasks([item['task']])
+        if {str(task.get('id')) for task in body.tasks} & {str(item['task'].get('id')) for item in trash}:raise HTTPException(409,'任务不能同时存在于日程和回收站中')
+        if len({item['trashId'] for item in trash})!=len(trash):raise HTTPException(422,'回收站记录编号重复')
+        tombstone=db.get(Record,'permanent-task-deletions:'+owner)
+        destroyed=set(tombstone.data.get('ids',[])) if tombstone else set()
+        if any(str(task.get('id')) in destroyed for task in [*body.tasks,*[item['task'] for item in trash]]):raise HTTPException(409,'已永久删除的任务不能恢复，请刷新页面后重试')
+        if any(str(item.get('task_id')) in destroyed for item in body.evidence):raise HTTPException(409,'已永久删除的任务证据不能恢复，请刷新页面后重试')
         stats=db.get(Record,'completion-stats:'+owner)
-        completed=merge_completion_ids(stats.data.get('task_ids',[]) if stats else [],previous.data.get('tasks',[]) if previous else [],body.tasks)
+        completed=merge_completion_ids(stats.data.get('task_ids',[]) if stats else [],previous.data.get('tasks',[]) if previous else [],incoming)
         db.merge(Record(id='completion-stats:'+owner,owner=owner,kind='completion-stats',data={'task_ids':completed}))
-        snapshot=completion_snapshot(body.tasks, body.evidence, previous.data if previous else {})
+        previous_tasks=[item['task'] for item in previous.data.get('task_trash',[])]+previous.data.get('tasks',[]) if previous else []
+        stamped=stamp_tasks(incoming,previous_tasks)
+        trash=[{**item,'task':stamp_tasks([item['task']],previous_tasks)[0]} for item in trash]
+        snapshot=sweep_expired({**completion_snapshot(stamped, body.evidence, previous.data if previous else {}),'task_trash':trash,'expired_tasks':previous.data.get('expired_tasks',[]) if previous else []})
         db.merge(Record(id='state:'+owner,owner=owner,kind='state',data=snapshot)); db.commit()
     return {'ok':True,**snapshot}
+
+@router.post('/api/tasks/{task_id}/reopen')
+def reopen_completed_task(task_id:str,owner=Depends(uid)):
+    with Session() as db:
+        if db.bind.dialect.name=='sqlite':db.execute(text('BEGIN IMMEDIATE'))
+        row=db.get(Record,'state:'+owner,with_for_update=True)
+        state=row.data if row else {'tasks':[],'evidence':[]}
+        task=next((task for task in state['tasks'] if str(task.get('id'))==task_id),None)
+        if not task:raise HTTPException(404,'任务不存在')
+        if not task.get('done') or task.get('start'):raise HTTPException(409,'此任务不在已完成灵活任务列表中')
+        updated=[{**item,'done':False} if str(item.get('id'))==task_id else item for item in state['tasks']]
+        snapshot=sweep_expired({**completion_snapshot(stamp_tasks(updated,state['tasks']),state['evidence'],state),'task_trash':state.get('task_trash',[]),'expired_tasks':state.get('expired_tasks',[])})
+        row.data=snapshot
+        db.commit()
+    return snapshot
+
+@router.delete('/api/tasks/{task_id}/completed')
+def destroy_completed_task(task_id:str,owner=Depends(uid)):
+    with Session() as db:
+        if db.bind.dialect.name=='sqlite':db.execute(text('BEGIN IMMEDIATE'))
+        row=db.get(Record,'state:'+owner,with_for_update=True)
+        state=row.data if row else {'tasks':[],'evidence':[]}
+        task=next((task for task in state['tasks'] if str(task.get('id'))==task_id),None)
+        if not task:raise HTTPException(404,'任务不存在')
+        if not task.get('done') or task.get('start'):raise HTTPException(409,'只能从此处永久删除已完成的灵活任务')
+        snapshot={'tasks':[item for item in state['tasks'] if str(item.get('id'))!=task_id],
+                  'evidence':[item for item in state['evidence'] if str(item.get('task_id'))!=task_id],
+                  'task_trash':[item for item in state.get('task_trash',[]) if str(item.get('task',{}).get('id'))!=task_id]}
+        snapshot['expired_tasks']=[item for item in state.get('expired_tasks',[]) if str(item['task'].get('id'))!=task_id]
+        row.data=snapshot
+        stats=db.get(Record,'completion-stats:'+owner)
+        if stats:stats.data={'task_ids':[key for key in stats.data.get('task_ids',[]) if str(key)!=task_id]}
+        key='permanent-task-deletions:'+owner
+        tombstone=db.get(Record,key)
+        ids=set(tombstone.data.get('ids',[])) if tombstone else set()
+        ids.add(task_id)
+        db.merge(Record(id=key,owner=owner,kind='task-deletions',data={'ids':sorted(ids)}))
+        db.commit()
+    return snapshot
+
+@router.post('/api/tasks/{task_id}/restore-expired')
+def restore_expired_task(task_id:str,body:RestoreExpiredTask,owner=Depends(uid)):
+    today=datetime.now(EXPIRY_LOCAL).date()
+    if body.date<today or body.deadline<body.date:raise HTTPException(422,'请重新设置今天或之后的计划日期，截止日期不能早于计划日期')
+    with Session() as db:
+        if db.bind.dialect.name=='sqlite':db.execute(text('BEGIN IMMEDIATE'))
+        row=db.get(Record,'state:'+owner,with_for_update=True)
+        if not row:raise HTTPException(404,'过期任务不存在')
+        state=sweep_expired(row.data)
+        field='task_trash' if body.trash_id else 'expired_tasks'
+        source=next((item for item in state.get(field,[]) if str(item['task'].get('id'))==task_id and (not body.trash_id or item['trashId']==body.trash_id)),None)
+        if not source:raise HTTPException(404,'过期任务不存在或已恢复')
+        if any(str(task.get('id'))==task_id for task in state['tasks']):raise HTTPException(409,'此任务已经存在于日程中')
+        task={**source['task'],'date':body.date.isoformat(),'ddl':body.deadline.isoformat(),'duration':body.duration,
+              'suggest':'未设置','suggested_sessions':[],'restored_at':datetime.now(timezone.utc).isoformat(),'done':False,'completed_at':None,'elapsed_minutes':None}
+        validate_tasks([*state['tasks'],task])
+        state={**state,'tasks':[*state['tasks'],task],field:[item for item in state.get(field,[]) if item is not source]}
+        row.data=state
+        db.commit()
+    return state
 @router.get('/api/completion-stats')
 def completion_stats(owner=Depends(uid)):
     with Session() as db:
@@ -205,35 +291,41 @@ def read_plan_attachments(owner, material_ids, images):
                     raise HTTPException(404,'辅助资料不存在')
                 material_text=attachment.data.get('text','').strip()
                 if not material_text:raise HTTPException(422,'辅助资料没有可读取的正文，请粘贴关键信息到情况备注')
+                guard_text(material_text,strict=False)
                 materials.append({'name':attachment.data['name'][:180],'text':material_text[:3500]})
     return materials
 
 
 @router.post('/api/agent')
 def agent(body:AgentInput,owner=Depends(uid)):
+    guard_text(body.text)
+    if body.dialogue_message:guard_text(body.dialogue_message)
     if body.route not in ['auto','schedule','evidence','recommend']: raise HTTPException(422,'任务类型无效')
     if body.image and (not body.image.startswith(('data:image/png;base64,','data:image/jpeg;base64,','data:image/webp;base64,')) or len(body.image)>14_000_000): raise HTTPException(422,'仅支持不超过10MB的PNG/JPEG/WebP图片')
     if (body.material_ids or body.attachment_images) and body.route!='recommend':
         raise HTTPException(422,'辅助资料仅用于生成推荐方案')
+    materials=read_plan_attachments(owner,body.material_ids,body.attachment_images)
     settings=runtime_settings(owner)
     context=get_state(owner); context['evidence']=[x for x in context['evidence'] if x.get('status')=='已接受']
-    materials=read_plan_attachments(owner,body.material_ids,body.attachment_images)
+    if body.route in ('auto','recommend'):context['expired_tasks']=[]
     if body.base_plan_id:
         with Session() as db:
             base=db.get(Record,body.base_plan_id)
             if not base or base.owner!=owner or base.kind!='run' or base.data.get('route')!='recommend':raise HTTPException(404,'参考方案不存在')
             context['reference_plan']={'title':plan_title(base.data),'items':plan_payload(base,[])['items'],'rule':'仅作为用户明确选择的参考方案；本次约束优先，历史方案不代表已确认能力。'}
-    schedule_tasks=context.get('tasks',[])
-    context=bounded_context(context)
+    schedule_tasks=redact_context(context.get('tasks',[]))
+    context=redact_context(bounded_context(context))
     begin_dialogue_request(owner,body.request_id)
     try:
         with use_settings(settings):
             result=workflow.invoke({**body.model_dump(exclude={'material_ids','request_id'}),'context':context,'schedule_tasks':schedule_tasks,'materials':materials})
+    except SafetyRefusal:raise
     except Exception as error:
         error_id=uuid.uuid4().hex[:12]
         detail=diagnose(error,error_id)
         log.warning('agent_failed request_id=%s route=%s code=%s error_type=%s upstream_status=%s',error_id,body.route,detail['code'],type(error).__name__,getattr(error,'status_code',None))
         raise HTTPException(422 if isinstance(error,ModelCapabilityError) else 502,detail)
+    guard_model_output(result['result'])
     run_id=str(uuid.uuid4())
     dialogue={}
     if result['route']=='recommend' and body.dialogue_message:
@@ -274,11 +366,11 @@ def review(run_id:str,body:CandidateReview,owner=Depends(uid)):
 def list_plans(include_archived:bool=False,owner=Depends(uid)):
     state=get_state(owner)
     with Session() as db:
-        plans=[record for record in rows(db,owner,'run') if record.data.get('route')=='recommend' and not record.data.get('conversation_deleted') and (include_archived or not record.data.get('archived'))]
+        plans=[record for record in rows(db,owner,'run') if record.data.get('route')=='recommend' and not unpack(record.data).get('conversation_deleted') and (include_archived or not record.data.get('archived'))]
         plans.sort(key=lambda record:record.data.get('created_at') or record.data.get('reviewed_at') or '',reverse=True)
         results=[]
         for record in plans[:50]:
-            plan=plan_payload(record,state['tasks'])
+            plan=plan_payload(record,state['tasks'],state.get('expired_tasks',[]))
             results.append({'id':record.id,'title':plan['title'],'dialogue_title':plan['dialogue_title'],'created_at':plan['created_at'],'count':len(plan['items']),'archived':record.data.get('archived',False),'adopted_count':len(plan['adopted_indices'])})
         return results
 @router.get('/api/plans/{plan_id}')
@@ -287,7 +379,7 @@ def get_plan(plan_id:str,owner=Depends(uid)):
     with Session() as db:
         record=db.get(Record,plan_id)
         if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'准备方案不存在')
-        return plan_payload(record,state['tasks'])
+        return plan_payload(record,state['tasks'],state.get('expired_tasks',[]))
 
 @router.patch('/api/plans/{plan_id}/conversation')
 def rename_conversation(plan_id:str, body:ConversationTitle, owner=Depends(uid)):
@@ -295,26 +387,52 @@ def rename_conversation(plan_id:str, body:ConversationTitle, owner=Depends(uid))
     if not title:raise HTTPException(422,'对话名称不能为空')
     with Session() as db:
         record=db.get(Record,plan_id)
-        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend' or record.data.get('conversation_deleted'):raise HTTPException(404,'对话不存在')
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend' or unpack(record.data).get('conversation_deleted'):raise HTTPException(404,'对话不存在')
         record.data={**unpack(record.data),'conversation_title':title}
         db.commit()
     return {'title':title}
 
-@router.delete('/api/plans/{plan_id}/conversation')
-def delete_conversation(plan_id:str, owner=Depends(uid)):
+def conversation_task_summary(tasks,plan_id):
+    linked=[task for task in tasks if task.get('agent_run_id')==plan_id]
+    completed=sum(bool(task.get('done')) for task in linked)
+    version=hashlib.sha256(json.dumps(linked,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    return {'total':len(linked),'completed':completed,'pending':len(linked)-completed,'version':version}
+
+def conversation_all_tasks(state):
+    return [*state.get('tasks',[]),*[item['task'] for item in state.get('expired_tasks',[])],*[item['task'] for item in state.get('task_trash',[])]]
+
+@router.get('/api/plans/{plan_id}/conversation/deletion-preview')
+def conversation_deletion_preview(plan_id:str, owner=Depends(uid)):
     with Session() as db:
         record=db.get(Record,plan_id)
         if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'对话不存在')
+    return conversation_task_summary(conversation_all_tasks(get_state(owner)),plan_id)
+
+@router.delete('/api/plans/{plan_id}/conversation')
+def delete_conversation(plan_id:str, delete_tasks:bool=False, task_version:str='', owner=Depends(uid)):
+    with Session() as db:
+        if db.bind.dialect.name=='sqlite':db.execute(text('BEGIN IMMEDIATE'))
+        record=db.get(Record,plan_id)
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'对话不存在')
         jobs=rows(db,owner,'agent-job')
-        if any(job.data.get('plan_id')==plan_id and job.data.get('status')=='running' for job in jobs):raise HTTPException(409,'对话仍在生成，请先停止生成后再删除')
-        data=unpack(record.data)
+        if any(job.data.get('plan_id')==plan_id and public_job(job.data).get('status')=='running' for job in jobs):raise HTTPException(409,'对话仍在生成，请先停止生成后再删除')
+        snapshot=db.get(Record,'state:'+owner,with_for_update=True)
+        state=snapshot.data if snapshot else {'tasks':[],'evidence':[]}
+        summary=conversation_task_summary(conversation_all_tasks(state),plan_id)
+        if delete_tasks:
+            if not task_version or task_version!=summary['version']:raise HTTPException(409,'关联任务已变化，请重新查看完成情况并确认删除')
+            state={**state,'tasks':[task for task in state.get('tasks',[]) if task.get('agent_run_id')!=plan_id]}
+            for field in ('expired_tasks','task_trash'):
+                state[field]=[item for item in state.get(field,[]) if item['task'].get('agent_run_id')!=plan_id]
+            if snapshot:snapshot.data=state
+        data={**unpack(record.data)}
         data.pop('dialogue',None)
         data.update(conversation_deleted=True)
         record.data=data
         for job in jobs:
             if job.data.get('plan_id')==plan_id:db.delete(job)
         db.commit()
-    return {'ok':True}
+    return {'ok':True,'deleted_tasks':summary['total'] if delete_tasks else 0,**state}
 
 
 
@@ -327,7 +445,7 @@ def dialogue_plan(db, owner, plan_id, *, write=False):
     record = db.get(Record, plan_id, with_for_update=write)
     if not record or record.owner != owner or record.kind != 'run' or record.data.get('route') != 'recommend':
         raise HTTPException(404, '准备方案不存在')
-    if record.data.get('conversation_deleted'):raise HTTPException(404,'对话记录已删除')
+    if unpack(record.data).get('conversation_deleted'):raise HTTPException(404,'对话记录已删除')
     return record, unpack(record.data)
 
 
@@ -401,6 +519,7 @@ def withdraw_dialogue(plan_id: str, body: DialogueWithdrawal, owner=Depends(uid)
 @router.post('/api/plans/{plan_id}/dialogue')
 def send_dialogue(plan_id: str, body: DialogueMessage, owner=Depends(uid)):
     message = body.text.strip()
+    guard_text(message)
     if not message:
         raise HTTPException(422, '请输入对话内容')
     with Session() as db:
@@ -411,32 +530,37 @@ def send_dialogue(plan_id: str, body: DialogueMessage, owner=Depends(uid)):
     messages = chat.get('messages', [])
     latest_state = get_state(owner)
     tasks = latest_state['tasks']
-    context = dialogue_context(baseline, tasks, plan_id, messages, message, latest_state.get('evidence', []))
+    context = dialogue_context(baseline, tasks, plan_id, messages, message, latest_state.get('evidence', []),latest_state.get('expired_tasks',[]))
     skills = skills_for_request('recommend', body.skill_profile, plan_title(baseline))
-    settings = runtime_settings(owner)
     materials = read_plan_attachments(owner, body.material_ids, body.attachment_images)
+    settings = runtime_settings(owner)
     begin_dialogue_request(owner,body.request_id)
     try:
         with use_settings(settings):
-            state = {'context': context, 'skills': skills}
+            state = {'context': redact_context(context), 'skills': skills}
             if materials or body.attachment_images:
                 state.update(materials=materials, attachment_images=body.attachment_images)
             result = dialogue_workflow.invoke(state)['result']
+    except SafetyRefusal:raise
     except Exception as error:
         error_id = uuid.uuid4().hex[:12]
         detail = diagnose(error, error_id, operation='dialogue')
         log.warning('dialogue_failed request_id=%s code=%s error_type=%s upstream_status=%s validation=%s', error_id, detail['code'], type(error).__name__, getattr(error,'status_code',None), detail.get('validation', []))
         raise HTTPException(502, detail)
+    guard_model_output(result)
     with Session() as db:
         record, data = dialogue_plan(db, owner, plan_id, write=True)
         finish_dialogue_request(db,owner,body.request_id)
         if data != baseline:
             raise HTTPException(409, '方案或对话已有更新，请重新打开后再发送')
         snapshot = db.get(Record, 'state:' + owner, with_for_update=True)
+        if snapshot:snapshot.data=sweep_expired(snapshot.data)
         current_tasks = snapshot.data['tasks'] if snapshot else []
-        if dialogue_context(data, current_tasks, plan_id, messages, message, snapshot.data.get('evidence', []) if snapshot else []) != context:
+        archived=snapshot.data.get('expired_tasks',[]) if snapshot else []
+        if dialogue_context(data, current_tasks, plan_id, messages, message, snapshot.data.get('evidence', []) if snapshot else [],archived) != context:
             raise HTTPException(409, '相关日程或能力证据已有更新，请重新发送')
-        preview = prepare_changes(data, current_tasks, plan_id, result['changes'])
+        linked_expired=[item['task'] for item in archived if item['task'].get('agent_run_id')==plan_id]
+        preview = prepare_changes(data, [*current_tasks,*linked_expired], plan_id, result['changes'])
         pending = {'id': str(uuid.uuid4()), 'changes': result['changes'], 'preview': preview} if preview else None
         memory = result.get('memory') if result.get('memory') is not None else chat.get('memory', '')
         candidates=[{**item,'id':uuid.uuid4().hex,'status':'pending'} for item in result.get('evidence_candidates', [])
@@ -465,21 +589,30 @@ def decide_dialogue(plan_id: str, body: DialogueDecision, owner=Depends(uid)):
         updated_tasks = None
         if body.apply:
             snapshot = db.get(Record, 'state:' + owner, with_for_update=True)
+            if snapshot:snapshot.data=sweep_expired(snapshot.data)
             current_tasks = snapshot.data['tasks'] if snapshot else []
-            preview = prepare_changes(data, current_tasks, plan_id, pending['changes'])
+            archived=snapshot.data.get('expired_tasks',[]) if snapshot else []
+            linked_expired=[item['task'] for item in archived if item['task'].get('agent_run_id')==plan_id]
+            combined=[*current_tasks,*linked_expired]
+            preview = prepare_changes(data, combined, plan_id, pending['changes'])
             if preview != pending['preview']:
                 raise HTTPException(409, '涉及的任务已更新，请放弃旧建议并重新生成')
-            data, updated_tasks = apply_changes(data, current_tasks, plan_id, preview)
-            if snapshot and updated_tasks != current_tasks:
+            linked=linked_tasks(combined,plan_id,plan_items(data))
+            touched={linked[change['index']]['id'] for change in preview if change.get('expired') and change['index'] in linked}
+            data, combined_updated = apply_changes(data, combined, plan_id, preview)
+            hidden={task['id'] for task in linked_expired}-touched
+            updated_tasks=stamp_tasks([{**task,'restored_at':datetime.now(timezone.utc).isoformat()} if task['id'] in touched else task for task in combined_updated if task['id'] not in hidden],combined)
+            if snapshot:
                 validate_tasks(updated_tasks)
-                snapshot.data = {**snapshot.data, 'tasks': updated_tasks}
+                snapshot.data = sweep_expired({**snapshot.data, 'tasks': updated_tasks,'expired_tasks':[item for item in archived if item['task']['id'] not in touched]})
+                updated_tasks=snapshot.data['tasks']
         note = '已应用本轮调整。' if body.apply else '已放弃本轮调整。'
         data = {**data, 'dialogue': {**chat, 'pending': None, 'messages': [
             *chat['messages'], {'role': 'system', 'text': note}]}}
         record.data = data
         payload = dialogue_payload(record, data)
         db.commit()
-        return {**payload, 'tasks': updated_tasks}
+        return {**payload, 'tasks': updated_tasks, 'expired_tasks':snapshot.data.get('expired_tasks',[]) if body.apply and snapshot else None}
 
 
 @router.post('/api/plans/{plan_id}/copy')
@@ -532,19 +665,19 @@ def compact_memory(owner=Depends(uid)):
 def preview_cleanup(body:MemoryAction,owner=Depends(uid)):
     state=get_state(owner)
     with Session() as db:
-        records=cleanup_candidates(rows(db,owner,'run'),state['tasks'],body.older_than_days,body.keep_recent)
+        records=cleanup_candidates(rows(db,owner,'run'),conversation_all_tasks(state),body.older_than_days,body.keep_recent)
         return {'count':len(records),'bytes':sum(record_bytes(record) for record in records)}
 @router.post('/api/memory/cleanup')
 def cleanup_memory(body:MemoryAction,owner=Depends(uid)):
     state=get_state(owner)
     with Session() as db:
-        records=cleanup_candidates(rows(db,owner,'run'),state['tasks'],body.older_than_days,body.keep_recent)
+        records=cleanup_candidates(rows(db,owner,'run'),conversation_all_tasks(state),body.older_than_days,body.keep_recent)
         for record in records:db.delete(record)
         db.commit();return {'deleted':len(records)}
 @router.get('/api/report')
 def report(owner=Depends(uid)):
     state=get_state(owner); evidence=[e for e in state['evidence'] if e.get('status')=='已接受']
-    return {'generated_at':datetime.now(timezone.utc).isoformat(),'dimensions':[{'name':d,'evidence':[e for e in evidence if e.get('dim')==i],'level':'已有过程证据，水平待评估' if any(e.get('dim')==i for e in evidence) else '证据不足','trend':'暂无可比历史','confidence':'有限','next':'补充含问题、方法、对照数据和反思的作品'} for i,d in enumerate(DIMENSIONS)]}
+    return {'generated_at':datetime.now(timezone.utc).isoformat(),'execution_reference':execution_context(state['tasks'],expired_tasks=state.get('expired_tasks',[])),'dimensions':[{'name':d,'evidence':[e for e in evidence if e.get('dim')==i],'level':'已有过程证据，水平待评估' if any(e.get('dim')==i for e in evidence) else '证据不足','trend':'暂无可比历史','confidence':'有限','next':'补充含问题、方法、对照数据和反思的作品'} for i,d in enumerate(DIMENSIONS)]}
 @router.get('/api/health')
 def health():
     with Session() as db: db.execute(select(Record.id).limit(1))
@@ -558,7 +691,6 @@ async def upload(file:UploadFile=File(...),owner=Depends(uid)):
     data=await file.read(10*1024*1024+1)
     if len(data)>10*1024*1024: raise HTTPException(413,'附件不得超过10MB')
     key=str(uuid.uuid4()); folder=root/'uploads';folder.mkdir(exist_ok=True)
-    (folder/key).write_bytes(data)
     text=''
     if ext in ['.txt','.md']:
         try:text=data.decode('utf-8')
@@ -568,6 +700,9 @@ async def upload(file:UploadFile=File(...),owner=Depends(uid)):
             import pymupdf
             with pymupdf.open(stream=data,filetype='pdf') as doc:text='\n'.join(page.get_text() for page in doc)
         except Exception:raise HTTPException(422,'PDF无法解析，请粘贴正文或上传有效PDF')
+    guard_text(file.filename or '',strict=False)
+    guard_text(text,strict=False)
+    (folder/key).write_bytes(data)
     with Session() as db:
         db.add(Record(id='file:'+key,owner=owner,kind='file',data={'name':file.filename,'text':text[:30000]}));db.commit()
     return {'id':key,'name':file.filename,'text':text[:30000],'url':'/api/files/'+key}
@@ -581,12 +716,17 @@ def download(key:str,owner=Depends(uid)):
 
 @router.post('/api/agent/stream')
 def agent_stream(body:AgentInput, request:Request, owner=Depends(uid)):
+    guard_text(body.text)
+    if body.dialogue_message:guard_text(body.dialogue_message)
+    read_plan_attachments(owner,body.material_ids,body.attachment_images)
     body=body.model_copy(update={'request_id':body.request_id or uuid.uuid4()})
     return stream_response(request,owner,body.request_id,lambda:agent(body,owner),{'initial':True,'text':body.dialogue_message or body.text,'constraints':body.text})
 
 
 @router.post('/api/plans/{plan_id}/dialogue/stream')
 def dialogue_stream(plan_id:str, body:DialogueMessage, request:Request, owner=Depends(uid)):
+    guard_text(body.text)
+    read_plan_attachments(owner,body.material_ids,body.attachment_images)
     body=body.model_copy(update={'request_id':body.request_id or uuid.uuid4()})
     return stream_response(request,owner,body.request_id,lambda:send_dialogue(plan_id,body,owner),{'initial':False,'plan_id':plan_id,'text':body.text})
 

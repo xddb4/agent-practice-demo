@@ -46,6 +46,9 @@ def route(s):
     return {'route':r}
 
 def generate(s):
+    from backend.app.services.ai_safety import guard_text, guard_model_output, redact_context, SAFETY_POLICY
+    guard_text(s['text'])
+    s={**s,'context':redact_context(s['context']),'schedule_tasks':redact_context(s.get('schedule_tasks',s['context'].get('tasks',[]))),'materials':redact_context(s.get('materials',[]))}
     r=s['route']; text=s['text']
     now=datetime.now(ZoneInfo('Asia/Shanghai'))
     schedule_tasks=s.get('schedule_tasks',s['context'].get('tasks',[]))
@@ -53,6 +56,7 @@ def generate(s):
     def timed_invoke(llm,messages,stage):
         stamp=perf_counter()
         reply=invoke_with_reply_stream(llm,messages,'dialogue_reply') if r=='recommend' and s.get('dialogue_message') else llm.invoke(messages)
+        guard_model_output(reply.content)
         timings.append({'stage':stage,'seconds':round(perf_counter()-stamp,3)})
         return reply
     if not model_env('MODEL_API_KEY'):
@@ -98,6 +102,7 @@ def generate(s):
     contract=GeneratedRecommendation if r=='recommend' and not s.get('image') else output_contract(r,bool(s.get('image')))
     prompt+=' 最终输出严格遵循此JSON Schema，禁止额外字段；未知时间为null。'+json.dumps(contract.model_json_schema(),ensure_ascii=False)
     messages=[SystemMessage(content=prompt),HumanMessage(content=content)]
+    messages[0]=SystemMessage(content=prompt+'\n安全拒绝优先于业务 Schema。\n'+SAFETY_POLICY)
     result=None
     if r=='recommend' and not attachment_images:
         llm=model().bind_tools(tools)
