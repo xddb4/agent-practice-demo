@@ -15,12 +15,45 @@ function uiSymbol(name) {
     next: 'm8.5 5 7 7-7 7',
     left: 'M20 12H4m7-7-7 7 7 7',
     right: 'M4 12h16m-7-7 7 7-7 7',
+    info: 'M12 11v6m0-10v.01',
   };
   return (
     '<svg class="ui-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' +
     paths[name] +
     '"/></svg>'
   );
+}
+
+function informationHTML(id, title, content) {
+  return (
+    '<button type="button" class="information-button" popovertarget="' +
+    id +
+    '" aria-label="' +
+    esc(title) +
+    '" aria-expanded="false" onclick="requestAnimationFrame(()=>positionInformation(this))">' +
+    uiSymbol('info') +
+    '</button><section class="information-panel" id="' +
+    id +
+    '" popover="auto" aria-labelledby="' +
+    id +
+    '-title" ontoggle="this.previousElementSibling.setAttribute(\'aria-expanded\',String(event.newState===\'open\'))"><h2 id="' +
+    id +
+    '-title">' +
+    esc(title) +
+    '</h2>' +
+    content +
+    '</section>'
+  );
+}
+
+function positionInformation(button) {
+  const panel = document.getElementById(button.getAttribute('popovertarget'));
+  if (!panel?.matches(':popover-open')) return;
+  const anchor = button.getBoundingClientRect();
+  panel.style.left =
+    Math.max(16, Math.min(anchor.left, innerWidth - panel.offsetWidth - 16)) + 'px';
+  panel.style.top =
+    Math.max(16, Math.min(anchor.bottom + 8, innerHeight - panel.offsetHeight - 16)) + 'px';
 }
 
 function shredDropHTML() {

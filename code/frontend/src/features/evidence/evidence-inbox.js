@@ -6,15 +6,8 @@ function evidenceGroups() {
     processed: evidence.filter((e) => ['已接受', '已拒绝'].includes(e.status)),
   };
 }
-function evidenceRowHTML(item, processed = false) {
+function evidenceDetailHTML(item) {
   return (
-    '<div class="evidence-row ' +
-    (item.status === '待观察' ? 'evidence-watch' : '') +
-    '"><div class="grow"><h4>' +
-    esc(item.title) +
-    ' <span class="evidence-status">' +
-    esc(item.status) +
-    '</span></h4>' +
     (item.source_type === 'task_completion'
       ? '<p class="tiny">来源：已完成的灵活任务 · 完成自述，需补充实际成果或过程</p>'
       : '') +
@@ -27,7 +20,21 @@ function evidenceRowHTML(item, processed = false) {
     esc(item.body) +
     '</p><p>' +
     esc(item.desc || '') +
-    '</p></div><button onclick="evidenceState(' +
+    '</p>'
+  );
+}
+
+function evidenceRowHTML(item, processed = false, compact = false) {
+  return (
+    '<div class="evidence-row ' +
+    (item.status === '待观察' ? 'evidence-watch' : '') +
+    '"><div class="grow"><h4>' +
+    esc(item.title) +
+    ' <span class="evidence-status">' +
+    esc(item.status) +
+    '</span></h4>' +
+    (compact ? '' : evidenceDetailHTML(item)) +
+    '</div><button onclick="evidenceState(' +
     item.id +
     ",'已接受'," +
     processed +
@@ -47,17 +54,35 @@ function evidenceRowHTML(item, processed = false) {
 function evidenceInboxHTML() {
   const groups = evidenceGroups();
   return (
-    '<section class="panel evidence"><div class="evidence-inbox-heading"><div class="panel-title">证据收件箱</div><button class="secondary" onclick="showProcessedEvidence()">已处理证据（' +
+    '<section class="panel evidence"><div class="evidence-inbox-heading"><div class="evidence-title-group"><div class="panel-title">证据收件箱</div>' +
+    informationHTML(
+      'evidence-information',
+      '证据与观察说明',
+      '<p>只有已接受的证据参与能力报告。待观察证据暂不纳入报告，可补充或修改后重新核对。</p><p>完成记录仅说明用户标记做过。请修改并补充实际过程、成果或反思，选择关联能力后再接受。</p>' +
+        [...groups.pending, ...groups.watch]
+          .map(
+            (item) =>
+              '<section class="evidence-information-item"><h3>' +
+              esc(item.title) +
+              ' · ' +
+              esc(item.status) +
+              '</h3>' +
+              evidenceDetailHTML(item) +
+              '</section>',
+          )
+          .join(''),
+    ) +
+    '</div><button class="secondary" onclick="showProcessedEvidence()">已处理证据（' +
     groups.processed.length +
     '）</button></div><h3>待处理（' +
     groups.pending.length +
     '）</h3>' +
-    (groups.pending.map((e) => evidenceRowHTML(e)).join('') ||
+    (groups.pending.map((e) => evidenceRowHTML(e, false, true)).join('') ||
       '<p class="tiny">暂无待处理证据。</p>') +
     '<section class="evidence-watch-section"><div class="evidence-watch-heading"><h3 class="evidence-watch-title" tabindex="0" aria-describedby="evidence-watch-help">待观察（' +
     groups.watch.length +
     '）</h3><p class="tiny evidence-watch-help" id="evidence-watch-help" role="tooltip">暂不纳入能力报告，可补充或修改后重新核对。</p></div>' +
-    (groups.watch.map((e) => evidenceRowHTML(e)).join('') ||
+    (groups.watch.map((e) => evidenceRowHTML(e, false, true)).join('') ||
       '<p class="tiny">暂无待观察证据。</p>') +
     '</section></section>'
   );

@@ -445,7 +445,7 @@ function renderPlan() {
   document.getElementById('content').innerHTML =
     '<div class="heading plan-heading"><div><h1>' +
     esc(currentMotto()) +
-    '</h1></div><div style="display:flex;gap:9px"><button class="secondary" onclick="calendar()">▦　日历</button></div></div><div class="workspace gallery-workspace"><section class="panel gallery-main"><div class="time-toolbar"><div><h2>任务画廊 ' +
+    '</h1></div><div style="display:flex;gap:9px"><button class="secondary calendar-entry" onclick="calendar()" aria-label="打开日历" title="日历"><svg class="ui-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2m-8 3h2"/></svg></button></div></div><div class="workspace gallery-workspace"><section class="panel gallery-main"><div class="time-toolbar"><div><h2>任务画廊 ' +
     (demoPreview ? '<span class="preview-label">案例预览</span>' : '') +
     '</h2></div><div class="time-tools"><button class="circle-btn" aria-label="前七天" onclick="moveRange(-7)">' +
     uiSymbol('previous') +

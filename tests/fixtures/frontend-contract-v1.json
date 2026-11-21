@@ -5,8 +5,9 @@
     "gooey-navigation.js": "bbd05bfaef47e898ed4ba858e026d4fa63fb8f2f6fe939e3ec6dcf7faaa38d3b",
     "local-state.js": "52a340509e4fbd90984d7a7769d6a64a1962b08b390af38e63015197e0f6f3db",
     "workspace.js": "a879ab0356ac193e7f5a4cfac1a3593a8f147060f72096886587a6643d2304f3",
-    "bridge.js": "7c4b632a8de7e5687f1c7d5a5b7fc72d8ca3513b89b194b21d9a366b43a03d0d",
+    "bridge.js": "7c4b632a8de9e5687f1c7d5a5b7fc72d8ca3513b89b194b21d9a366b43a03d0d",
     "features.js": "d1b46928a85d6917caa0d302257ba677f54a33dfb7493a1050a1d8169ab58ae3",
+>>>>>>> edca3914f0243fe9df7133f7f7942e1f3ccc0879
     "notifications.js": "ea367bf97adc2e1a28d62a8f3540530243195d726c6fe43947ef78dd31425950",
     "review.js": "885de8114baa81875ed9030d6e5de3f1a2b344be2ec53cba8582d268e1fee120",
     "plans.js": "c755e099e0af9310f1bc643679b4e381757dabfaba4e1ceabefa07d4012ad6e2",
@@ -15,18 +16,18 @@
     "task_views.js": "d24184ba4a84ab81f9518a5b83c799f0b49b49ad3d4613667e5b90a130a40978",
     "model_settings.js": "e73d8d69f2e4841cd2d9003a5cf75027e42ce11e946dbf35033abc605ccd7699",
     "quadrant_view.js": "adc09ddf6c2f0bc0f67c9dd7c2fee7502abd4d4513c8cb26099473a969ef99b5",
-    "evidence_inbox.js": "ba0f994d84ef5ec1bcdb724b4760968e789f30a6d7f18092593e446dabe30ef8",
+    "evidence_inbox.js": "016a820916af3761473ca2eec8bf62d02ad7be14c10030215ed63b96d217ab06",
     "course_review.js": "c34f04cde0c60933a99ef89ee3c593376494023e58153e4abee7bfb4ded859a3",
     "navigation.js": "05a03be6c88908267a0afb42c6de6641035dfb980d69a07db4213f0b33c36da6",
     "spheres.js": "37adeb143dfb75bd44f333b70e13cafacd4cbde81ad78543dc0477252b76e39f",
     "surfaces.js": "084033bf3c462fd7c261b87456e253c70fdd2d67d79ed2182562d37e79a66ba5",
     "report_scroll.js": "a28cc363d709ce99cadb516d74022e6d0cfb03a2fd2dc00beda211a32621735a",
     "completion_ticket.js": "d230822b80644acf5c0e467140ec98b7f379c9773e51127522af5fcd72370d3e",
-    "plan_scene.js": "c69d8f29d1f32b004fcadf17ab354c4d22531e285c3763328136a73154df16e6",
+    "plan_scene.js": "c265a7d150102085c5a54ea0b04c53bdd79b0b29881dd846bec2f8ad3f78029b",
     "router.js": "39398e6052b67b4eb1e87b917b8bf4dd34046adbed0312499d9176380ffa60ad"
   },
   "markup": "0e53cd89ac6dff84ff0d5d45734d07e78322210b81bfb072f9edd3eb1fd16f3c",
-  "styles": "f6fc03a888c92241e73d6cf37a07d6da07fa48f5e8619595f0882bcfef79834b",
+  "styles": "e68b22d30862042dd36b11bc675954462fcdd067cae67748a9a4f8aa9c6b0127",
   "assets": {
     "dialog-floral-soft.svg": "64b922b67fbb10262135d59ea91512150200fbc2bdce7669278c9ffbe290d730",
     "dialog-floral.jpg": "638ab139009cdae43c8374a66d778d82efb1b156765afe67731cda674f222a9d",
@@ -43,5 +44,5 @@
   "shell": "1e260c6e8506d958ccea89a371b713330a2a47fe4c1d02289a8d75bcd183ca64",
   "shellStyles": "ad3541adb1557911a648cbb2272f1f8cc9abc6b1aafa3cdd57d9a5df053a6f55",
   "assetTextNormalization": "SVG: CRLF to LF only; binary assets remain byte-exact",
-  "featureUpdate": "Window drafts and background dialogue jobs; behavior covered by frontend_modal_drafts and dialogue_stream tests. Landing auth UI: reuse dialog on mode switches, transparent inset floating labels, requested hero copy; covered by modal drafts regression and real Edge browser checks. 2026-11-21 annotations: readable scoped typography, centered SVG symbols, trash icon, revised quadrant/chat copy, focus-only watch hint; ability report manually navigated as confirmed by user (no scroll driver)."
+  "featureUpdate": "Window drafts and background dialogue jobs; behavior covered by frontend_modal_drafts and dialogue_stream tests. Landing auth UI: reuse dialog on mode switches, transparent inset floating labels, requested hero copy; covered by modal drafts regression and real Edge browser checks. 2026-11-21 annotations: readable scoped typography, centered SVG symbols, trash icon, revised quadrant/chat copy, focus-only watch hint; ability report manually navigated as confirmed by user (no scroll driver). 2026-11-21 latest report comments: native information popovers keep report/evidence detail accessible; generated time15px; motto preserves newlines and fits text length; icon-only calendar retains action. Covered by information/evidence/plan-scene tests and real isolated browser/API checks."
 }

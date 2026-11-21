@@ -45,6 +45,8 @@ body::after,
   letter-spacing: 0.04em;
   color: #232a41;
   text-wrap: balance;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .plan-motto-sizer {
   visibility: hidden;
