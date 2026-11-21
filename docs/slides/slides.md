@@ -22,6 +22,92 @@ class: text-center
 五位团队成员及分工：最后统一补充。
 -->
 
+
+
+---
+layout: default
+---
+
+# Presentation Outline
+
+答辩目录：大分区与细分主题
+
+<div class="outline-grid">
+
+<section class="outline-card blue">
+<h2>01 · 产品设计</h2>
+<p>1.1 使命、目标用户与差异化</p>
+<p>1.2 产品定义与用户故事</p>
+<p>1.3 设计原则与用户体验</p>
+</section>
+
+<section class="outline-card teal">
+<h2>02 · 工程实现与协作</h2>
+<p>2.1 技术选型与版本</p>
+<p>2.2 仓库协作与团队贡献</p>
+<p>2.3 工程问题与系统架构</p>
+</section>
+
+<section class="outline-card purple">
+<h2>03 · 智能体技术设计</h2>
+<p>3.1 任务编排与工具调用</p>
+<p>3.2 记忆、护栏与知识协作</p>
+<p>3.3 模型配置与联调验证</p>
+</section>
+
+<section class="outline-card orange">
+<h2>04 · 数据与交互设计</h2>
+<p>4.1 数据库结构</p>
+<p>4.2 核心业务接口</p>
+<p>4.3 前端设计</p>
+</section>
+
+<section class="outline-card blue">
+<h2>05 · 质量与代码统计</h2>
+<p>5.1 质量控制与检查证据</p>
+<p>5.2 Python 代码质量</p>
+<p>5.3 代码规模与 AI 辅助说明</p>
+</section>
+
+<section class="outline-card teal">
+<h2>06 · 演示与交流</h2>
+<p>6.1 功能演示</p>
+<p>6.2 参考文献与开源来源</p>
+<p>6.3 总结与问答</p>
+</section>
+
+</div>
+
+<style scoped>
+.outline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.outline-card {
+  border-radius: 14px;
+  padding: 16px;
+}
+.outline-card h2 {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+.outline-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 5px 0;
+}
+.blue { background: #eff6ff; }
+.teal { background: #f0fdfa; }
+.purple { background: #faf5ff; }
+.orange { background: #fff7ed; }
+</style>
+
+
+
 ---
 layout: default
 ---
