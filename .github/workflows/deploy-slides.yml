@@ -1,0 +1,100 @@
+name: StudyPilot Slides
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "docs/slides/**"
+      - ".github/workflows/deploy-slides.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: studypilot-slides-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: docs/slides
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: docs/slides/package-lock.json
+
+      - name: Install Slidev dependencies
+        run: npm ci
+
+      - name: Install PDF exporter
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm install --no-save --package-lock=false playwright-chromium
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Chinese fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+
+      - name: Build slide website
+        run: >
+          npx slidev build slides.md
+          --base /${{ github.event.repository.name }}/
+          --out dist
+
+      - name: Export PDF
+        run: >
+          npx slidev export slides.md
+          --output dist/StudyPilot-Defense.pdf
+          --timeout 180000
+
+      - name: Add static hosting marker
+        run: touch dist/.nojekyll
+
+      - name: Save website and PDF download
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudyPilot-Slides
+          path: docs/slides/dist
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages files
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/slides/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
