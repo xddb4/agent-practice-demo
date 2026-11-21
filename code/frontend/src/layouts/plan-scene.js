@@ -144,6 +144,7 @@
       targetY = headerHeight + 14;
       scale = Math.min(1, 19 / parseFloat(getComputedStyle(sizer).fontSize));
       distance = Math.max(1, intro.offsetHeight * 0.78);
+      root.dataset.galleryScroll = String(distance);
       motto.style.width = box.width + 'px';
       workspace.style.left =
         content.getBoundingClientRect().left +

@@ -1,6 +1,7 @@
 """Request-scoped events shared by graph workers and the HTTP stream."""
 from contextlib import contextmanager
 from contextvars import ContextVar
+from .ai_safety import safe_partial_reply
 
 
 class StreamStopped(BaseException):
@@ -24,6 +25,10 @@ def ensure_stream_active():
 
 def emit_event(event):
     ensure_stream_active()
+    if event.get('type')=='reply':
+        text=safe_partial_reply(event.get('text',''))
+        if not text:return
+        event={**event,'text':text}
     state=current_stream.get()
     if state:state[0](event)
 

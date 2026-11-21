@@ -4,6 +4,7 @@ import re
 from datetime import datetime,timedelta
 from zoneinfo import ZoneInfo
 from ..schemas.agent import DIMENSIONS
+from .task_lifecycle import execution_context
 
 
 def ability_context(evidence, topic, max_items=12, max_characters=6000):
@@ -14,7 +15,7 @@ def ability_context(evidence, topic, max_items=12, max_characters=6000):
         -sum(term in (str(pair[1].get('title',''))+' '+str(pair[1].get('body',''))).lower() for term in terms), pair[0]))
     result=[]
     for _,item in ranked:
-        candidate={key:item.get(key) for key in ('id','dim','kind','status','source_type')}
+        candidate={key:item.get(key) for key in ('id','dim','kind','status','source_type','created_at','completed_at','elapsed_minutes')}
         dim=item.get('dim')
         candidate['dimension']=DIMENSIONS[dim] if type(dim) is int and 0<=dim<len(DIMENSIONS) else None
         candidate.update({key:str(item.get(key) or '')[:800] for key in ('title','body','desc')})
@@ -29,6 +30,7 @@ def bounded_context(state,limit=12000):
     active=[item for item in tasks if not item.get('done')]
     active.sort(key=lambda item:(item.get('date','')<today,item.get('date') or '9999',item.get('q',3)))
     view={'tasks':[{key:(value[:160] if isinstance(value,str) else value) for key,value in item.items() if key in ['id','title','date','start','end','repeat','ddl','duration','q']} for item in active[:40]],'evidence':[{key:(value[:300] if isinstance(value,str) else value) for key,value in item.items() if key in ['id','title','dim','body','status']} for item in evidence[-12:]]}
+    view['execution_reference']=execution_context(tasks,recent_limit=5,expired_tasks=state.get('expired_tasks',[]))
     if state.get('reference_plan'):
         reference=state['reference_plan']
         view['reference_plan']={'title':str(reference.get('title',''))[:160],'items':[{key:(value[:160] if isinstance(value,str) else value) for key,value in item.items() if key in ['title','estimated_minutes','task_key','depends_on']} for item in reference.get('items',[])[:20]],'rule':reference.get('rule','')}
@@ -37,7 +39,10 @@ def bounded_context(state,limit=12000):
         if view.get('reference_plan',{}).get('items'):view['reference_plan']['items'].pop()
         elif view['tasks']:view['tasks'].pop()
         elif view['evidence']:view['evidence'].pop(0)
+        elif view['execution_reference']['recent']:view['execution_reference']['recent'].pop()
+        elif view['execution_reference']['expired_reference']['tasks']:view['execution_reference']['expired_reference']['tasks'].pop()
         else:break
         view['memory_meta']['omitted']=True
     view['memory_meta']['included_tasks']=len(view['tasks']);view['memory_meta']['included_evidence']=len(view['evidence'])
+    view['execution_reference']['expired_reference']['included']=len(view['execution_reference']['expired_reference']['tasks'])
     return view

@@ -100,9 +100,7 @@ function drawCalendar() {
           '" class="' +
           (key === date ? 'selected ' : '') +
           (key === today ? 'calendar-today' : '') +
-          '" onclick="timelineCenter=\'' +
-          key +
-          "';selectTimelineDate('" +
+          '" onclick="goToCalendarDate(\'' +
           key +
           '\')">' +
           (i + 1) +
@@ -113,6 +111,22 @@ function drawCalendar() {
       }).join('') +
       '</div><p class="tiny" style="margin-top:14px">圆点表示有日程 · 绿色边框表示今天 · 实色背景表示选中日期</p><div class="modal-footer"><button class="secondary" onclick="icsImport()">导入 .ics</button><button class="primary" onclick="exportICS()">导出日历 .ics</button></div>',
   );
+}
+
+function goToCalendarDate(key) {
+  clearTimeout(galleryHoverTimer);
+  window.galleryWheelNavigationUntil = Date.now() + 650;
+  date = key;
+  timelineCenter = key;
+  timelineMode = 'day';
+  page = 'plan';
+  closeModal();
+  render();
+  requestAnimationFrame(() => {
+    const scene = document.querySelector('.plan-scene');
+    if (scene)
+      window.scrollTo({ top: Number(scene.dataset.galleryScroll || 0), behavior: 'instant' });
+  });
 }
 
 function exportICS() {

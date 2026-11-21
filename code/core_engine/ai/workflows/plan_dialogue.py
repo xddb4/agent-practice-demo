@@ -69,7 +69,10 @@ class DialogueState(TypedDict, total=False):
 
 
 def propose(state: DialogueState):
-    instructions = dialogue_instructions(state['skills']) + '\n' + RESEARCH_POLICY + '\n严格遵守以下 JSON Schema，不要添加未定义字段：\n' + json.dumps(DialogueOutput.model_json_schema(), ensure_ascii=False)
+    from backend.app.services.ai_safety import guard_text, guard_model_output, redact_context, SAFETY_POLICY
+    guard_text(state['context'].get('本轮消息',''))
+    state={**state,'context':redact_context(state['context']),'materials':redact_context(state.get('materials',[]))}
+    instructions = dialogue_instructions(state['skills']) + '\n' + RESEARCH_POLICY + '\n严格遵守以下 JSON Schema，不要添加未定义字段：\n' + json.dumps(DialogueOutput.model_json_schema(), ensure_ascii=False)+'\n安全拒绝优先于业务 Schema。\n'+SAFETY_POLICY
     images = state.get('attachment_images', [])
     context = json.dumps(state['context'], ensure_ascii=False)
     materials = state.get('materials', [])
@@ -106,6 +109,7 @@ def propose(state: DialogueState):
             response = invoke_with_reply_stream(model,messages,'reply')
         if response.response_metadata.get('finish_reason') == 'length':
             raise AgentOutputTooLongError()
+        guard_model_output(response.content)
         try:
             output = DialogueOutput.model_validate_json(response.content)
             result = output.model_dump(mode='json', exclude_unset=True)

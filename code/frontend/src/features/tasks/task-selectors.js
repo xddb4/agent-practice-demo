@@ -7,7 +7,12 @@ function taskPriority(a, b) {
 }
 
 function flexibleGroups(list, key) {
-  const all = list.filter((task) => !task.start && !task.done).sort(taskPriority);
+  const all = list
+    .filter(
+      (task) =>
+        !task.start && !task.done && !(typeof taskExpired === 'function' && taskExpired(task)),
+    )
+    .sort(taskPriority);
   const current = all.filter(
     (task) =>
       (!task.done && !task.ddl) ||

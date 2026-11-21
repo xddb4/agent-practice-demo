@@ -268,6 +268,7 @@ function restoreDeletedTask(trashId) {
   let trash = taskTrash(),
     r = trash.find((x) => x.trashId === trashId);
   if (!r) return toast('任务已恢复或不在当前账号');
+  if (taskExpired(r.task)) return showExpiredRestore(r, true);
   if (tasks.some((t) => t.id === r.task.id)) return toast('该任务已经存在');
   let next = tasks.slice();
   next.splice(Math.min(r.index, next.length), 0, r.task);
@@ -284,10 +285,40 @@ function restoreDeletedTask(trashId) {
   toast('任务已恢复');
 }
 
-function showDeletedTasks() {
-  let trash = taskTrash();
+async function showDeletedTasks(tab = 'deleted') {
+  const owner = activeAccount?.id;
+  try {
+    await saveQueue;
+    const state = await api('state');
+    if (owner !== activeAccount?.id) return;
+    tasks = state.tasks;
+    evidence = state.evidence;
+    taskTrashRecords = state.task_trash || [];
+    expiredTaskRecords = state.expired_tasks || [];
+    render();
+    renderDeletedTasks(tab);
+  } catch (error) {
+    toast(error.message);
+  }
+}
+
+function renderDeletedTasks(tab = 'deleted') {
+  const isExpired = tab === 'expired';
+  let trash = isExpired ? expiredTaskRecords : taskTrash();
   modal(
-    '<div class="modal-head"><h2>最近删除</h2><button onclick="closeModal()" aria-label="关闭">✕</button></div><p class="desc">碎纸删除的任务仍可恢复；恢复后保留原来的日期、分类与完成状态。</p><div class="trash-list">' +
+    '<div class="modal-head"><h2>' +
+      (isExpired ? '过期任务' : '最近删除') +
+      '</h2><button onclick="closeModal()" aria-label="关闭">✕</button></div><div class="tabs"><button onclick="renderDeletedTasks()" class="' +
+      (!isExpired ? 'active' : '') +
+      '">最近删除</button><button onclick="renderDeletedTasks(\'expired\')" class="' +
+      (isExpired ? 'active' : '') +
+      '">过期任务（' +
+      expiredTaskRecords.length +
+      '）</button></div><p class="desc">' +
+      (isExpired
+        ? '未完成且已超过截止日期的灵活任务在此保留。恢复前请重设日期、截止日期和预计时长。'
+        : '删除的任务仍可恢复；若已过期，恢复时需要重新安排。') +
+      '</p><div class="trash-list">' +
       (trash.length
         ? trash
             .map(
@@ -295,7 +326,7 @@ function showDeletedTasks() {
                 '<div class="trash-row"><div><b>' +
                 esc(r.task.title) +
                 '</b><p>' +
-                esc(r.task.date) +
+                esc(isExpired ? '截止：' + r.task.ddl : r.task.date || '未安排') +
                 ' · ' +
                 labels[r.task.q] +
                 '</p></div><button class="secondary" data-restore-trash="' +
@@ -303,12 +334,70 @@ function showDeletedTasks() {
                 '">恢复</button></div>',
             )
             .join('')
-        : '<div class="empty">没有已删除的任务</div>') +
+        : '<div class="empty">' + (isExpired ? '没有过期任务' : '没有已删除的任务') + '</div>') +
       '</div>',
   );
   document
     .querySelectorAll('[data-restore-trash]')
-    .forEach((b) => (b.onclick = () => restoreDeletedTask(b.dataset.restoreTrash)));
+    .forEach(
+      (b) =>
+        (b.onclick = () =>
+          isExpired
+            ? showExpiredRestore(trash.find((r) => r.trashId === b.dataset.restoreTrash))
+            : restoreDeletedTask(b.dataset.restoreTrash)),
+    );
+}
+
+function showExpiredRestore(record, fromTrash = false) {
+  if (!record) return;
+  const owner = activeAccount?.id,
+    today = taskExpiryDay();
+  modal(
+    '<div class="modal-head"><h2>重新安排过期任务</h2><button onclick="closeModal()" aria-label="关闭">✕</button></div><p>' +
+      esc(record.task.title) +
+      '</p><p class="desc">请重新确认日期和所需时长，建立时间会保留。</p><form id="expired-restore"><div class="form-grid"><label>计划日期<input name="date" type="date" min="' +
+      today +
+      '" value="' +
+      today +
+      '" required></label><label>截止日期<input name="deadline" type="date" min="' +
+      today +
+      '" value="' +
+      today +
+      '" required></label><label>预计时长（分钟）<input name="duration" type="number" min="1" max="10080" step="1" placeholder="请重新填写" required></label></div><div class="modal-footer"><button type="button" class="secondary" id="expired-back">返回</button><button type="submit" class="primary">确认恢复</button></div></form>',
+  );
+  document.getElementById('expired-back').onclick = () =>
+    renderDeletedTasks(fromTrash ? 'deleted' : 'expired');
+  const form = document.getElementById('expired-restore');
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    const values = Object.fromEntries(new FormData(form));
+    if (values.deadline < values.date) return toast('截止日期不能早于计划日期');
+    const submit = form.querySelector('[type="submit"]');
+    submit.disabled = true;
+    try {
+      await saveQueue;
+      if (owner !== activeAccount?.id) return;
+      const state = await api('tasks/' + encodeURIComponent(record.task.id) + '/restore-expired', {
+        ...values,
+        duration: Number(values.duration),
+        ...(fromTrash ? { trash_id: record.trashId } : {}),
+      });
+      if (owner !== activeAccount?.id) return;
+      tasks = state.tasks;
+      evidence = state.evidence;
+      taskTrashRecords = state.task_trash || [];
+      expiredTaskRecords = state.expired_tasks || [];
+      const visible = form.isConnected;
+      render();
+      if (visible) renderDeletedTasks(fromTrash ? 'deleted' : 'expired');
+      toast('已按新日期和时长恢复任务');
+    } catch (error) {
+      toast(error.message);
+    } finally {
+      submit.disabled = false;
+    }
+  };
 }
 
 function cleanPaperClone(node) {
@@ -325,9 +414,11 @@ function cleanPaperClone(node) {
   return clone;
 }
 
-function shredTask(id, source, selectedBox = null) {
+function shredTask(id, source, selectedBox = null, recordAction = null) {
   if (shredJob) return toast('碎纸机正在处理，请稍候');
-  let task = tasks.find((t) => t.id === id);
+  let task = recordAction
+    ? { id, title: source?.textContent || '' }
+    : tasks.find((t) => t.id === id);
   if (!task || task.start) return false;
   let owner = dataKey('tasks'),
     local = document.getElementById('shred-drop'),
@@ -341,10 +432,12 @@ function shredTask(id, source, selectedBox = null) {
       width: Math.min(420, innerWidth - 32),
     };
   let width = Math.max(150, box.width || box.right - box.left),
-    row = document.querySelector('#shred-list [data-task-id="' + id + '"]') || source,
+    row = recordAction
+      ? source
+      : document.querySelector('#shred-list [data-task-id="' + id + '"]') || source,
     height = Math.max(70, Math.min(130, row?.getBoundingClientRect().height || 90));
   let reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  if (reduced || !row) return commitShredDelete(id, owner);
+  if (reduced || !row) return recordAction ? recordAction() : commitShredDelete(id, owner);
   let feed = document.createElement('div'),
     fall = document.createElement('div'),
     paper = document.createElement('div');
@@ -421,9 +514,11 @@ function shredTask(id, source, selectedBox = null) {
     row.style.pointerEvents = '';
     document.querySelector('.shred-busy')?.classList.remove('shred-busy');
     if (shredJob === job) shredJob = null;
-    if (JSON.stringify(tasks.find((t) => t.id === id)) !== job.snapshot)
+    if (owner !== dataKey('tasks')) return recordAction?.(false);
+    if (!recordAction && JSON.stringify(tasks.find((t) => t.id === id)) !== job.snapshot)
       return toast('任务已变化，本次删除已取消');
-    commitShredDelete(id, owner);
+    if (recordAction) recordAction(true);
+    else commitShredDelete(id, owner);
   }, feedMS + 700);
 }
 
@@ -453,13 +548,27 @@ bindFloatingTaskButton();
 
 const removeOriginalTask = removeTask;
 
-removeTask = function (id) {
+removeTask = async function (id) {
   let task = tasks.find((t) => t.id === id);
   if (!task) return;
+  const owner = dataKey('tasks');
+  const snapshot = JSON.stringify(task);
+  if (
+    !(await confirmStudyAction('删除「' + task.title + '」？此次只删除这一项日程。', '删除任务？'))
+  )
+    return;
+  if (owner !== dataKey('tasks') || JSON.stringify(tasks.find((t) => t.id === id)) !== snapshot)
+    return toast('任务已变化，请重新查看后删除');
   if (task.start) return removeOriginalTask(id);
   closeModal();
   return shredTask(id, document.querySelector('#shred-list [data-task-id="' + id + '"]'));
 };
+
+function animateConversationDeletion(row) {
+  if (!row?.isConnected) return Promise.resolve(true);
+  if (shredJob) return Promise.resolve(false);
+  return new Promise((resolve) => shredTask(null, row, null, (ok = true) => resolve(ok)));
+}
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Delete' && e.key !== 'Backspace') return;

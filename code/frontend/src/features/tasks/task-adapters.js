@@ -24,9 +24,19 @@ commitParsed = function () {
 const baseTrash = persistTasksAndTrash;
 
 persistTasksAndTrash = function (nextTasks, nextTrash) {
+  const previousTasks = tasks,
+    previousTrash = taskTrashRecords;
   tasks = nextTasks;
-  save();
+  taskTrashRecords = nextTrash.slice(0, 200);
+  if (!save()) {
+    tasks = previousTasks;
+    taskTrashRecords = previousTrash;
+    return false;
+  }
   return true;
+};
+taskTrash = function () {
+  return structuredClone(taskTrashRecords);
 };
 
 const baseImportCourses = importReviewedCourses;

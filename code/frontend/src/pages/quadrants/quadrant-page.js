@@ -1,6 +1,11 @@
 // 象限只展示已有任务，推荐目标不绑定任何象限。
 function quadrantPending(q) {
-  return tasks.filter((task) => task.q === q && !task.done).sort(taskPriority);
+  return tasks
+    .filter(
+      (task) =>
+        task.q === q && !task.done && !(typeof taskExpired === 'function' && taskExpired(task)),
+    )
+    .sort(taskPriority);
 }
 quadHTML = function () {
   return (
@@ -54,7 +59,48 @@ quadHTML = function () {
     '</div>'
   );
 };
-function quadrantTaskHTML(task) {
+function quadrantTaskGroups(list) {
+  const groups = new Map();
+  for (const task of list) {
+    const repeating =
+      task.start &&
+      (task.course_from_week !== undefined ||
+        /课表|日历|\.ics/i.test(task.source || '') ||
+        (task.repeat && task.repeat !== '不重复'));
+    const key = repeating
+      ? JSON.stringify([task.title, task.start, task.end, task.location || ''])
+      : 'task:' + task.id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(task);
+  }
+  return [...groups.values()];
+}
+function quadrantTaskHTML(task, occurrences = [task]) {
+  if (occurrences.length > 1) {
+    const dates = occurrences
+      .map((item) => item.date)
+      .filter(Boolean)
+      .sort();
+    return (
+      '<article class="preview-item quadrant-detail-item"><h3 class="quadrant-task-heading"><span>' +
+      esc(task.title) +
+      '</span><span>×' +
+      occurrences.length +
+      '</span></h3><p>' +
+      esc(dates[0] || '') +
+      ' — ' +
+      esc(dates.at(-1) || '') +
+      '</p><div class="task-detail-quadrant">' +
+      pill(task.q) +
+      '</div><button type="button" class="secondary" onclick="showQuadrantOccurrences(' +
+      JSON.stringify(occurrences.map((item) => item.id)) +
+      ',' +
+      task.q +
+      ')">查看各次安排（' +
+      occurrences.length +
+      '）</button></article>'
+    );
+  }
   return (
     '<article class="preview-item quadrant-detail-item"><h3>' +
     esc(task.title) +
@@ -80,10 +126,25 @@ function showQuadrantTasks(q) {
       ' · ' +
       list.length +
       ' 项待办</h2><button onclick="closeModal()" aria-label="关闭任务列表">✕</button></div>' +
-      (list.map(quadrantTaskHTML).join('') || '<p class="empty">这个象限暂无待办任务。</p>'),
+      (quadrantTaskGroups(list)
+        .map((group) => quadrantTaskHTML(group[0], group))
+        .join('') || '<p class="empty">这个象限暂无待办任务。</p>'),
   );
   document.querySelector('#modal-root .modal-backdrop')?.classList.add('quadrant-detail-backdrop');
   document.querySelector('#modal-root [aria-label="关闭任务列表"]')?.focus({ preventScroll: true });
+}
+function showQuadrantOccurrences(ids, q) {
+  const list = ids
+    .map((id) => tasks.find((task) => task.id === id && !task.done))
+    .filter(Boolean)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  modal(
+    '<div class="modal-head"><h2>各次安排</h2><button type="button" onclick="showQuadrantTasks(' +
+      q +
+      ')">返回任务列表</button></div>' +
+      (list.map((task) => quadrantTaskHTML(task)).join('') ||
+        '<p class="empty">这些安排已完成或已删除。</p>'),
+  );
 }
 function completeQuadrantTask(id, q) {
   toggle(id);

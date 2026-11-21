@@ -59,10 +59,12 @@ def linked_tasks(tasks, plan_id, items):
     return linked
 
 
-def plan_payload(record,tasks):
+def plan_payload(record,tasks,expired_tasks=None):
     data=unpack(record.data);items=plan_items(data)
     linked=linked_tasks(tasks,record.id,items)
     indices=[index for index in range(len(items)) if index not in data.get('cancelled_indices',[])]
+    expired_indices=list(linked_tasks([item['task'] for item in expired_tasks or []],record.id,items))
+    indices=[index for index in indices if index not in expired_indices]
     calendar_fields=('title','description','date','start','end','duration','ddl','done','location','suggested_sessions')
     calendar={index:{key:linked[index].get(key) for key in calendar_fields} for index in indices if index in linked}
-    return {'id':record.id,'route':'recommend','title':plan_title(data),'dialogue_title':dialogue_title(data),'created_at':data.get('created_at'),'input_source':data.get('input_source',''),'items':[items[index] for index in indices],'proposal_indices':indices,'adopted_indices':list(calendar),'calendar_items':calendar,'sources':data.get('sources',[]),'skills':data.get('skills',[]),'planning':data.get('planning',{}),'search_status':data.get('search_status',{}),'reused':True,'parent_plan_id':data.get('parent_plan_id')}
+    return {'id':record.id,'route':'recommend','title':plan_title(data),'dialogue_title':dialogue_title(data),'created_at':data.get('created_at'),'input_source':data.get('input_source',''),'items':[items[index] for index in indices],'proposal_indices':indices,'expired_indices':expired_indices,'adopted_indices':list(calendar),'calendar_items':calendar,'sources':data.get('sources',[]),'skills':data.get('skills',[]),'planning':data.get('planning',{}),'search_status':data.get('search_status',{}),'reused':True,'parent_plan_id':data.get('parent_plan_id')}

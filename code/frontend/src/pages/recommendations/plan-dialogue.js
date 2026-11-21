@@ -14,6 +14,83 @@ function dialogueShortTitle(title) {
     .join('');
 }
 
+function conversationRowHTML(kind, id, title, selected = false, status = '') {
+  const target = kind === 'job' ? 'data-open-job' : 'data-history-id';
+  return (
+    '<div class="conversation-row" data-record-kind="' +
+    kind +
+    '" data-record-id="' +
+    esc(id) +
+    '" data-record-title="' +
+    esc(title) +
+    '" data-record-status="' +
+    esc(status) +
+    '"><button type="button" class="dialogue-history-item" ' +
+    target +
+    '="' +
+    esc(id) +
+    '" title="' +
+    esc(title) +
+    '"' +
+    (selected ? ' aria-current="true"' : '') +
+    '><span class="conversation-title">' +
+    esc(title + (status ? ' · ' + status : '')) +
+    '</span></button><details class="conversation-menu"><summary aria-label="对话操作" title="对话操作">⋯</summary><div><button type="button" data-conversation-action="rename">重命名</button><button type="button" data-conversation-action="delete">删除</button></div></details></div>'
+  );
+}
+
+function conversationDialog(mode, title, preview = { total: 0 }) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'study-alert';
+    const rename = mode === 'rename';
+    dialog.innerHTML =
+      '<form method="dialog"><h2>' +
+      (rename ? '重命名对话' : '删除对话？') +
+      '</h2><p></p>' +
+      (rename
+        ? '<label>对话名称<input name="title" required maxlength="100"></label>'
+        : '<label class="conversation-delete-tasks"><input name="deleteTasks" type="checkbox" style="width:auto">同时删除此对话关联的日程任务</label>') +
+      '<div class="modal-footer"><button value="cancel" formnovalidate>取消</button><button value="confirm">确认</button></div></form>';
+    dialog.querySelector('p').textContent = rename
+      ? '为这段对话取一个方便查找的名称。'
+      : '删除「' +
+        title +
+        '」及其聊天内容？' +
+        (preview.total
+          ? '关联 ' +
+            preview.total +
+            ' 项日程任务：已完成 ' +
+            preview.completed +
+            ' 项，未完成 ' +
+            preview.pending +
+            ' 项。' +
+            (preview.pending
+              ? '仍有任务未完成，请核对是否一并删除。'
+              : '关联任务均已完成，可选择是否一并删除。')
+          : '没有关联的日程任务。');
+    if (rename) dialog.querySelector('input').value = title;
+    else dialog.querySelector('.conversation-delete-tasks').hidden = !preview.total;
+    dialog.addEventListener(
+      'close',
+      () => {
+        const result =
+          dialog.returnValue === 'confirm'
+            ? rename
+              ? { title: dialog.querySelector('input').value.trim() }
+              : { deleteTasks: dialog.querySelector('input').checked }
+            : null;
+        dialog.remove();
+        resolve(result);
+      },
+      { once: true },
+    );
+    document.body.append(dialog);
+    dialog.showModal();
+    if (rename) dialog.querySelector('input').focus();
+  });
+}
+
 function dialogueReplyHTML(text) {
   const blocks = String(text || '')
     .replace(/\r\n?/g, '\n')
@@ -225,7 +302,7 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       '<nav class="dialogue-switch" aria-label="方案对话切换"><button type="button" class="secondary" data-dialogue-switch aria-expanded="false" aria-controls="dialogue-history">☰ 切换对话</button>' +
       '<button type="button" class="dialogue-new" data-dialogue-new aria-label="新对话" title="新对话">＋</button></nav>' +
       '<aside class="dialogue-history" id="dialogue-history" aria-label="历史对话" hidden><div class="dialogue-history-head"><strong>对话记录</strong><button type="button" data-history-close aria-label="收起对话记录">✕</button></div><div data-history-list><p class="tiny">正在读取对话…</p></div><div data-job-list></div></aside>' +
-      '<p class="desc" data-dialogue-title></p><div class="dialogue-workspace">' +
+      '<div class="dialogue-workspace">' +
       '<section class="dialogue-chat" aria-label="与 Agent 对话"><div class="dialogue-messages" role="log" aria-label="对话记录"></div>' +
       '<p class="tiny" role="status" data-dialogue-status>正在读取对话…</p>' +
       '<form id="dialogue-form"><label class="dialogue-input"><textarea name="message" rows="3" maxlength="3000" placeholder=" " aria-label="简述你的目标以及基本概况"></textarea><span>简述你的目标以及基本概况·······</span></label>' +
@@ -256,6 +333,7 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     { key: session.key, retainNode: true, fresh: true },
   );
   const root = document.getElementById('plan-dialogue');
+  session.root = root;
   const form = root.querySelector('form');
   const input = form.elements.message;
   const skill = form.elements.skill;
@@ -310,15 +388,14 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       jobList.innerHTML = jobs.length
         ? jobs
             .slice(0, 8)
-            .map(
-              (job) =>
-                '<button type="button" class="secondary" data-open-job="' +
-                esc(job.request_id) +
-                '">' +
-                esc((job.text || '对话').slice(0, 24)) +
-                ' · ' +
-                esc(statusLabel[job.status] || job.status) +
-                '</button>',
+            .map((job) =>
+              conversationRowHTML(
+                'job',
+                job.request_id,
+                job.conversation_title || job.text || '对话',
+                false,
+                statusLabel[job.status] || job.status,
+              ),
             )
             .join('')
         : '';
@@ -592,10 +669,6 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
   }
   function display(result, follow = true) {
     current = result;
-    root.querySelector('[data-dialogue-title]').textContent = dialogueShortTitle(
-      result.dialogue_title || result.title,
-    );
-    root.querySelector('[data-dialogue-title]').title = result.title;
     skill.value = result.skill_profile;
     showMessages(result.messages, follow);
     const pending = result.pending;
@@ -634,13 +707,16 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       deadline.value = constraints['截止日期'] || '';
       hours.value = constraints['每周小时'] || '';
       const adopted = new Set(plan.adopted_indices);
-      root.querySelector('[data-dialogue-count]').textContent = '（' + plan.items.length + '）';
-      taskList.innerHTML = plan.items.length
+      const expired = new Set(plan.expired_indices || []);
+      const visibleItems = plan.items
+        .map((item, index) => ({ item, key: plan.proposal_indices[index] }))
+        .filter(({ key }) => !expired.has(key));
+      root.querySelector('[data-dialogue-count]').textContent = '（' + visibleItems.length + '）';
+      taskList.innerHTML = visibleItems.length
         ? '<ul>' +
-          plan.items
-            .map((item, index) => {
-              const key = plan.proposal_indices[index],
-                calendar = plan.calendar_items?.[key];
+          visibleItems
+            .map(({ item, key }) => {
+              const calendar = plan.calendar_items?.[key];
               const time = (
                 calendar
                   ? [calendar.date, calendar.start, calendar.end]
@@ -677,6 +753,7 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       });
       if (activeAccount?.id === owner && result.tasks) {
         tasks = result.tasks;
+        if (Array.isArray(result.expired_tasks)) expiredTaskRecords = result.expired_tasks;
         render();
       }
       if (active()) {
@@ -816,6 +893,26 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
         return;
       }
       flight = null;
+      if (error.code === 'safety_refusal' || error.diagnostic?.code === 'safety_refusal') {
+        failed = null;
+        const detail = error.diagnostic || {};
+        current.messages = [
+          ...current.messages,
+          { role: 'user', text: message },
+          {
+            role: 'assistant',
+            text:
+              (detail.reply || detail.reason || '此类请求无法处理。') +
+              '\n\n' +
+              (detail.action || '请改为学习与时间管理相关的问题。'),
+          },
+        ];
+        attachments.length = 0;
+        showAttachments();
+        showMessages(current.messages);
+        setBusy(false, '本次请求已拒绝，未生成或修改任务。');
+        return;
+      }
       failed = { message, profile, error };
       showMessages(
         [
@@ -956,6 +1053,93 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
   const historySidebar = root.querySelector('.dialogue-history');
   const historyList = root.querySelector('[data-history-list]');
   const settingsSidebar = root.querySelector('.dialogue-sidebar');
+  let conversationActionBusy = false;
+  historySidebar.addEventListener('pointerover', (event) => {
+    const button = event.target.closest('.dialogue-history-item');
+    const text = button?.querySelector('.conversation-title');
+    if (!text) return;
+    const overflow = Math.max(0, text.scrollWidth - button.clientWidth + 24);
+    button.style.setProperty('--title-travel', -overflow + 'px');
+    button.style.setProperty('--title-duration', Math.max(3, overflow / 28) + 's');
+  });
+  historySidebar.addEventListener('click', async (event) => {
+    const actionButton = event.target.closest('[data-conversation-action]');
+    if (!actionButton || conversationActionBusy) return;
+    const row = actionButton.closest('[data-record-id]');
+    const kind = row.dataset.recordKind,
+      recordId = row.dataset.recordId;
+    const resource =
+      (kind === 'job' ? 'agent-jobs/' : 'plans/') + encodeURIComponent(recordId) + '/conversation';
+    row.querySelector('details').open = false;
+    conversationActionBusy = true;
+    try {
+      await saveQueue;
+      if (!active()) return;
+      const action = actionButton.dataset.conversationAction;
+      const preview =
+        action === 'delete' && kind === 'plan'
+          ? await dialogueRequest(resource + '/deletion-preview')
+          : { total: 0 };
+      if (!active()) return;
+      const choice = await conversationDialog(action, row.dataset.recordTitle, preview);
+      if (!choice || !active()) return;
+      if (action === 'rename') {
+        if (!choice.title) return showStudyAlert('对话名称不能为空');
+        await api(resource, { title: choice.title }, 'PATCH');
+        if (!active()) return;
+        for (const cached of workspace.sessions.values()) {
+          cached.root?.querySelectorAll('[data-record-id]').forEach((entry) => {
+            if (entry.dataset.recordId !== recordId || entry.dataset.recordKind !== kind) return;
+            entry.dataset.recordTitle = choice.title;
+            entry.querySelector('.dialogue-history-item').title = choice.title;
+            entry.querySelector('.conversation-title').textContent =
+              choice.title + (entry.dataset.recordStatus ? ' · ' + entry.dataset.recordStatus : '');
+          });
+        }
+      } else {
+        await saveQueue;
+        if (!active()) return;
+        const suffix =
+          kind === 'plan' && choice.deleteTasks
+            ? '?delete_tasks=true&task_version=' + encodeURIComponent(preview.version)
+            : '';
+        const result = await api(resource + suffix, undefined, 'DELETE');
+        if (!active()) return;
+        if (result.deleted_tasks) {
+          tasks = result.tasks;
+          evidence = result.evidence;
+          taskTrashRecords = result.task_trash || [];
+          expiredTaskRecords = result.expired_tasks || [];
+          render();
+        }
+        await animateConversationDeletion(row);
+        if (activeAccount?.id !== owner) return;
+        let deletedCurrent = false;
+        for (const [cacheKey, cached] of workspace.sessions) {
+          cached.root?.querySelectorAll('[data-record-id]').forEach((entry) => {
+            if (entry.dataset.recordId === recordId && entry.dataset.recordKind === kind)
+              entry.remove();
+          });
+          if (
+            kind === 'plan'
+              ? cached.id === recordId || cached.completedId === recordId
+              : cached.requestId === recordId
+          ) {
+            deletedCurrent ||= cached === session;
+            cached.disposed = true;
+            discardModalDraft(cached.key);
+            workspace.sessions.delete(cacheKey);
+            if (workspace.last === cacheKey) workspace.last = null;
+          }
+        }
+        if (deletedCurrent) openPlanDialogue(null, null, { newConversation: true });
+      }
+    } catch (error) {
+      if (active()) showStudyAlert(error.message, '对话操作未完成');
+    } finally {
+      conversationActionBusy = false;
+    }
+  });
   const setHistoryOpen = (open) => {
     if (open) {
       const header = root.querySelector('.modal-head');
@@ -1002,15 +1186,13 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       (!id ? ' aria-current="true"' : '') +
       '>新对话</button>' +
       plans
-        .map(
-          (plan) =>
-            '<button type="button" class="dialogue-history-item" data-history-id="' +
-            esc(plan.id) +
-            '"' +
-            (plan.id === id ? ' aria-current="true"' : '') +
-            '>' +
-            esc(plan.dialogue_title || plan.title || '未命名对话') +
-            '</button>',
+        .map((plan) =>
+          conversationRowHTML(
+            'plan',
+            plan.id,
+            plan.dialogue_title || plan.title || '未命名对话',
+            plan.id === id,
+          ),
         )
         .join('');
   };

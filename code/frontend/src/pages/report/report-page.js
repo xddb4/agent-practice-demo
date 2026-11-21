@@ -4,6 +4,8 @@ report = async function () {
     const latest = await api('state');
     if (Array.isArray(latest?.evidence)) evidence = latest.evidence;
     if (Array.isArray(latest?.tasks)) tasks = latest.tasks;
+    if (Array.isArray(latest?.task_trash)) taskTrashRecords = latest.task_trash;
+    expiredTaskRecords = latest.expired_tasks || [];
     const r = await api('report');
     document.getElementById('content').innerHTML =
       head(
@@ -13,7 +15,23 @@ report = async function () {
       ) +
       '<p class="tiny">报告生成：' +
       esc(new Date(r.generated_at).toLocaleString()) +
-      '</p><div class="report-grid">' +
+      '</p>' +
+      (r.execution_reference
+        ? '<section class="panel execution-reference"><h3>执行节奏参考</h3><p>已完成 ' +
+          r.execution_reference.completed_flexible_tasks +
+          ' 项灵活任务，其中 ' +
+          r.execution_reference.known_elapsed_tasks +
+          ' 项有完整历时记录。</p><p class="tiny">' +
+          esc(r.execution_reference.limitations) +
+          '</p><p>待重新安排的过期任务：' +
+          (r.execution_reference.expired_reference?.total || 0) +
+          ' 项</p><p class="tiny">过期不代表能力不足，可先检查时间预算、任务难度和依赖条件。</p>' +
+          (r.execution_reference.expired_reference?.adjustment_advice || [])
+            .map((text) => '<p>' + esc(text) + '</p>')
+            .join('') +
+          '<button class="secondary" onclick="showDeletedTasks(\'expired\')">查看与调整过期任务</button></section>'
+        : '') +
+      '<div class="report-grid">' +
       r.dimensions
         .map(
           (d) =>

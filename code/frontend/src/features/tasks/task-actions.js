@@ -17,9 +17,10 @@ function toggle(id) {
 function dayTasks() {
   return tasks.filter(
     (t) =>
-      t.date === date ||
-      ((t.repeat === '每周' || t.repeat === '每周六') &&
-        t.date < date &&
-        new Date(t.date).getDay() === new Date(date).getDay()),
+      !taskExpired(t) &&
+      (t.date === date ||
+        ((t.repeat === '每周' || t.repeat === '每周六') &&
+          t.date < date &&
+          new Date(t.date).getDay() === new Date(date).getDay())),
   );
 }

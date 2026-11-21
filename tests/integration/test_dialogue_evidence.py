@@ -83,6 +83,7 @@ def test_task_description_survives_confirmed_plan_and_calendar_changes(monkeypat
     path=f'/api/plans/{plan}/dialogue'
     tasks=[{'id':1,'title':'实验复盘','date':'2090-01-02','agent_run_id':plan,'proposal_index':0}]
     client.put('/api/state',json={'tasks':tasks,'evidence':[]})
+    tasks=client.get('/api/state').json()['tasks']
     monkeypatch.setattr(routes,'runtime_settings',lambda _: {})
     monkeypatch.setattr(routes.dialogue_workflow,'invoke',lambda _:{'result':{'reply':'缩短名称，保留步骤。','changes':[
         {'action':'modify','index':0,'fields':{'title':'误差复盘','description':'用本次两组实验的数据逐项比较误差，并记录局限。'}}]}})
