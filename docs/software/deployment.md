@@ -1,4 +1,4 @@
-# StudyPilot 能力与时间规划智能体 - 阿里云 Docker 部署指南
+# StudyPilot 部署文档
 
 本文档说明如何将本项目（FastAPI 后端 + React 外壳内嵌静态前端 + PostgreSQL 16）用 Docker Compose 部署到阿里云 Linux 服务器（以 Ubuntu 22.04 为例，ECS 与轻量应用服务器均适用），并提供上线前、中、后的检查单。内容按本项目实际文件（`Dockerfile`、`compose.yaml`、`backend/`、`frontend/`）与本次真实部署过程编写。
 
