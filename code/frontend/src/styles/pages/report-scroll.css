@@ -3,8 +3,7 @@
   margin: 24px 0 36px;
 }
 .ability-scroll-pin {
-  position: sticky;
-  top: var(--ability-pin-top, 103px);
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -18,16 +17,8 @@
 }
 .ability-scroll-toolbar h2 {
   margin: 0;
-  font:
-    400 26px/1.4 'Songti SC',
-    'SimSun',
-    serif;
+  font: 400 var(--font-size-readable-title) / 1.4 var(--font-heading);
   color: #29344e;
-}
-.ability-scroll-toolbar p {
-  margin: 5px 0 0;
-  color: #64708a;
-  font-size: 13px;
 }
 .ability-scroll-controls {
   display: flex;
@@ -36,23 +27,25 @@
   flex-shrink: 0;
 }
 .ability-scroll-controls button {
-  width: 40px;
-  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border: 1px solid #7d82a733;
   border-radius: 50%;
   background: #ffffff75;
-  font-size: 21px;
+  line-height: 1;
 }
 .ability-scroll-controls button:disabled {
   opacity: 0.28;
   cursor: default;
 }
 .ability-scroll-count {
-  min-width: 44px;
+  min-width: 60px;
   text-align: center;
-  font:
-    13px/1.5 ui-monospace,
-    monospace;
+  font: 600 16px/1.5 var(--font-mono-latin);
   color: #5e6684;
 }
 .ability-scroll-viewport {
@@ -70,7 +63,7 @@
   gap: 28px;
   height: 100%;
   will-change: transform;
-  transition: none;
+  transition: transform 0.28s ease;
   opacity: 1;
   filter: none;
 }
@@ -157,7 +150,8 @@
   transform-origin: left;
 }
 .ability-scroll-steps {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
   justify-content: space-between;
 }
@@ -166,39 +160,17 @@
   min-width: 0;
   padding: 3px 0;
   color: #777c94;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
+  font-size: var(--font-size-readable-meta);
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .ability-scroll-steps button[aria-pressed='true'] {
   color: #353e62;
   font-weight: 600;
 }
-.ability-scroll.is-reduced-motion .ability-scroll-pin {
-  position: static;
-  height: auto;
-}
-.ability-scroll.is-reduced-motion .ability-scroll-viewport {
-  overflow: visible;
-}
 .ability-scroll.is-reduced-motion .ability-scroll-track {
-  display: grid;
-  height: auto;
-  will-change: auto;
-}
-.ability-scroll.is-reduced-motion .ability {
-  max-width: none;
-  min-height: 330px;
-  height: auto;
-  scroll-margin-top: var(--ability-pin-top);
-}
-.ability-scroll.is-reduced-motion .ability-card-body {
-  overflow: visible;
-}
-.ability-scroll.is-reduced-motion .ability-scroll-footer,
-.ability-scroll.is-reduced-motion .ability-scroll-controls {
-  display: none;
+  transition: none;
 }
 @media (max-width: 760px) {
   .ability-scroll {
@@ -208,18 +180,10 @@
     gap: 14px;
   }
   .ability-scroll-toolbar h2 {
-    font-size: 23px;
-  }
-  .ability-scroll-toolbar p {
-    max-width: 190px;
-    font-size: 12px;
+    font-size: 24px;
   }
   .ability-scroll-controls {
     gap: 6px;
-  }
-  .ability-scroll-controls button {
-    width: 32px;
-    height: 32px;
   }
   .ability-scroll-track.report-grid {
     gap: 18px;
@@ -250,6 +214,6 @@
     gap: 6px;
   }
   .ability-scroll-steps button {
-    font-size: 10px;
+    font-size: 13px;
   }
 }

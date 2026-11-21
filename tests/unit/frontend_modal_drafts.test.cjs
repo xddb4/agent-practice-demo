@@ -35,6 +35,23 @@ test('对话窗口恢复同一节点，保留事件和附件；账号和刷新�
  assert.equal(setup().state.resumeModal('chat'),false,'刷新后是全新内存状态');
 });
 
+test('登录模式切换复用原弹窗，不重新挂载或绑定事件，并保留各模式草稿',()=>{
+ const {state,root}=setup();
+ const first=state.modal('login');first.fields[0].value='登录草稿';
+ const dialog={parentElement:first,set innerHTML(html){first.fields.forEach(field=>field.value='');first.heading.innerHTML=html}};
+ first.addEventListener=()=>{throw Error('不应重复绑定遮罩事件')};
+ const replace=root.replaceChildren.bind(root);let mounts=0;
+ root.replaceChildren=(...nodes)=>{mounts++;replace(...nodes)};
+ assert.equal(state.modal('register',{reuseDialog:dialog}),first);
+ first.fields[0].value='注册草稿';
+ state.modal('login',{reuseDialog:dialog});assert.equal(first.fields[0].value,'登录草稿');
+ state.modal('register',{reuseDialog:dialog});assert.equal(first.fields[0].value,'注册草稿');
+ assert.equal(mounts,0);assert.equal(root.children[0],first);
+ state.closeModal();assert.equal(root.children.length,0);
+ const reopened=state.modal('register');assert.notEqual(reopened,first);
+ assert.equal(reopened.fields[0].value,'注册草稿');assert.equal(mounts,2);
+});
+
 test('成功提交后清理表单草稿，重新打开不会带回已提交内容',()=>{
  const {state}=setup();const first=state.modal('<input>',{key:'edit'});first.fields[0].value='已保存内容';
  state.discardModalDraft();state.closeModal();
@@ -51,7 +68,7 @@ test('恢复编辑窗口时保留原任务标识，不误变成新增任务',()=
 
 test('本次页面内推荐入口恢复原对话，显式新建和新文档使用新入口',()=>{
  const source=readFileSync('code/frontend/src/pages/recommendations/plan-dialogue.js','utf8');
- const state={Map,activeAccount:{id:'owner'},crypto:{randomUUID:()=> 'fresh-id'}};
+ const state={Map,activeAccount:{id:'owner'},crypto:{randomUUID:()=> 'fresh-id'},uiSymbol:()=>'<svg></svg>'};
  vm.createContext(state);vm.runInContext(source,state);
  state.monitorDialogueActivity=()=>{};
  let resumed;state.resumeModal=key=>{resumed=key;return true};

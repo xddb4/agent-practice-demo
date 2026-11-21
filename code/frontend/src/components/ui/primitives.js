@@ -7,6 +7,26 @@ function esc(s) {
   );
 }
 
+// Inline SVG follows the project's existing icon style; geometry is centered in one square.
+function uiSymbol(name) {
+  const paths = {
+    plus: 'M12 5v14M5 12h14',
+    previous: 'm15.5 5-7 7 7 7',
+    next: 'm8.5 5 7 7-7 7',
+    left: 'M20 12H4m7-7-7 7 7 7',
+    right: 'M4 12h16m-7-7 7 7-7 7',
+  };
+  return (
+    '<svg class="ui-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' +
+    paths[name] +
+    '"/></svg>'
+  );
+}
+
+function shredDropHTML() {
+  return '<div class="shred-drop" id="shred-drop" role="region" aria-label="拖到这里，松手删除任务"><svg class="shred-trash-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 11h14l-1 13H8zM12 15v5m4-5v5"/><path class="shred-trash-lid" d="m5 8 15-4m-10 2-1-3 5-1 1 3"/></svg></div>';
+}
+
 function toast(s) {
   document.getElementById('toast-root').innerHTML = '<div class="toast">' + esc(s) + '</div>';
   setTimeout(() => (document.getElementById('toast-root').innerHTML = ''), 3000);
@@ -91,21 +111,26 @@ function modal(html, options = {}) {
   const localKey = options.key || modalHTMLKey(html),
     key = modalDraftKey(localKey);
   const saved = options.fresh ? null : modalDrafts.get(key);
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-  backdrop.innerHTML =
-    '<section role="dialog" aria-modal="true" class="modal">' + html + '</section>';
-  let outside = false;
-  backdrop.addEventListener('pointerdown', (event) => {
-    outside = event.target === backdrop;
-  });
-  backdrop.addEventListener('pointercancel', () => {
-    outside = false;
-  });
-  backdrop.addEventListener('click', (event) => {
-    if (event.target === backdrop && (outside || event.detail === 0)) closeModal();
-    outside = false;
-  });
+  // Mode switches may replace content without remounting the dialog or its animation.
+  const existingDialog = options.reuseDialog;
+  const backdrop = existingDialog?.parentElement || document.createElement('div');
+  if (existingDialog) existingDialog.innerHTML = html;
+  else {
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<section role="dialog" aria-modal="true" class="modal">' + html + '</section>';
+    let outside = false;
+    backdrop.addEventListener('pointerdown', (event) => {
+      outside = event.target === backdrop;
+    });
+    backdrop.addEventListener('pointercancel', () => {
+      outside = false;
+    });
+    backdrop.addEventListener('click', (event) => {
+      if (event.target === backdrop && (outside || event.detail === 0)) closeModal();
+      outside = false;
+    });
+  }
   const entry = {
     html,
     localKey,
@@ -141,7 +166,11 @@ function modal(html, options = {}) {
     });
   }
   currentModalDraft = null;
-  const mounted = mountModalDraft(entry);
+  let mounted;
+  if (existingDialog) {
+    currentModalDraft = entry;
+    mounted = backdrop;
+  } else mounted = mountModalDraft(entry);
   if (saved?.scroll)
     requestAnimationFrame(() => {
       if (!mounted.isConnected) return;

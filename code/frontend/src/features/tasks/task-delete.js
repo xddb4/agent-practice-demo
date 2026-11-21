@@ -178,8 +178,7 @@ function resetShredDeleteZone() {
     dock.classList.remove('is-visible');
     dock.setAttribute('aria-hidden', 'true');
   }
-  let prompt = local?.querySelector('.shred-prompt');
-  if (prompt) prompt.textContent = '拖到这里，松手删除任务';
+  local?.setAttribute('aria-label', '拖到这里，松手删除任务');
 }
 
 function updateShredDeleteZone(d, overQuadrant) {
@@ -214,8 +213,7 @@ function updateShredDeleteZone(d, overQuadrant) {
       n.style.setProperty('--danger', selected ? String(target.progress) : '0');
       n.classList.toggle('is-ready', selected && target.ready);
     }
-  let prompt = local?.querySelector('.shred-prompt');
-  if (prompt) prompt.textContent = target.ready ? '松手删除任务' : '拖到这里，松手删除任务';
+  local?.setAttribute('aria-label', target.ready ? '松手删除任务' : '拖到这里，松手删除任务');
   if (target.ready) {
     d.drop = { shred: true };
     d.shredBox = target.box;

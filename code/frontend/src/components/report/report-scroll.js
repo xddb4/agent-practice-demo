@@ -1,10 +1,6 @@
 let abilityScrollCleanup = null;
 
-function abilityScrollProgress(scrollY, start, distance) {
-  return distance > 0 ? Math.max(0, Math.min(1, (scrollY - start) / distance)) : 0;
-}
-
-function mountAbilityScroll(grid) {
+function mountAbilityScroll(grid, selectedIndex = 0) {
   if (!grid || grid.closest('.ability-scroll')) return;
   const cards = [...grid.querySelectorAll(':scope > .ability')];
   if (!cards.length) return;
@@ -13,10 +9,12 @@ function mountAbilityScroll(grid) {
   const root = document.createElement('section');
   root.className = 'ability-scroll';
   root.setAttribute('aria-label', '六维能力报告');
-  root.style.height =
-    innerHeight + Math.max(0, cards.length - 1) * Math.min(innerWidth * 0.8, 960) + 'px';
   root.innerHTML =
-    '<div class="ability-scroll-pin"><div class="ability-scroll-toolbar"><div><h2>能力画像</h2><p>向下滚动，依次查看每个能力维度</p></div><div class="ability-scroll-controls"><button type="button" class="ability-scroll-prev" aria-label="上一个能力维度">←</button><span class="ability-scroll-count" aria-live="polite" aria-atomic="true"></span><button type="button" class="ability-scroll-next" aria-label="下一个能力维度">→</button></div></div><div class="ability-scroll-viewport" tabindex="0" role="region" aria-label="能力板块，可使用左右方向键切换"></div><div class="ability-scroll-footer"><div class="ability-scroll-progress" aria-hidden="true"><i></i></div><div class="ability-scroll-steps" role="group" aria-label="选择能力维度"></div></div></div>';
+    '<div class="ability-scroll-pin"><div class="ability-scroll-toolbar"><div><h2>能力画像</h2></div><div class="ability-scroll-controls"><button type="button" class="ability-scroll-prev" aria-label="上一个能力维度">' +
+    uiSymbol('left') +
+    '</button><span class="ability-scroll-count" aria-live="polite" aria-atomic="true"></span><button type="button" class="ability-scroll-next" aria-label="下一个能力维度">' +
+    uiSymbol('right') +
+    '</button></div></div><div class="ability-scroll-viewport" tabindex="0" role="region" aria-label="能力板块，可使用左右方向键切换"></div><div class="ability-scroll-footer"><div class="ability-scroll-progress" aria-hidden="true"><i></i></div><div class="ability-scroll-steps" role="group" aria-label="选择能力维度"></div></div></div>';
   grid.before(root);
   const pin = root.querySelector('.ability-scroll-pin');
   const viewport = root.querySelector('.ability-scroll-viewport');
@@ -47,57 +45,38 @@ function mountAbilityScroll(grid) {
   const abort = new AbortController();
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let distance = 0,
-    start = 0,
-    frame = 0,
-    index = -1,
-    lastReduced = null,
+    index = Math.max(0, Math.min(cards.length - 1, selectedIndex)),
     disposed = false;
   function update() {
-    frame = 0;
     if (!root.isConnected) {
       cleanup();
       return;
     }
-    const progress = motion.matches ? 0 : abilityScrollProgress(scrollY, start, distance);
-    grid.style.transform = motion.matches ? '' : 'translate3d(' + -progress * distance + 'px,0,0)';
+    const progress = index / Math.max(1, cards.length - 1);
+    const offset = Math.min(distance, cards[index].offsetLeft - cards[0].offsetLeft);
+    grid.style.transform = 'translate3d(' + -offset + 'px,0,0)';
     root.style.setProperty('--ability-progress', String(progress));
-    const current = Math.round(progress * (cards.length - 1));
-    if (index === current && lastReduced === motion.matches) return;
-    index = current;
-    lastReduced = motion.matches;
-    count.textContent = current + 1 + ' / ' + cards.length;
-    previous.disabled = current === 0;
-    next.disabled = current === cards.length - 1;
+    root.dataset.abilityIndex = String(index);
+    count.textContent = index + 1 + ' / ' + cards.length;
+    previous.disabled = index === 0;
+    next.disabled = index === cards.length - 1;
     cards.forEach((card, i) => {
-      card.inert = !motion.matches && i !== current;
+      card.inert = i !== index;
     });
-    nav.forEach((button, i) => button.setAttribute('aria-pressed', String(i === current)));
-  }
-  function queue() {
-    if (!frame && !disposed) frame = requestAnimationFrame(update);
+    nav.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
   }
   function measure() {
     if (disposed || !root.isConnected) return;
     const offset = (document.querySelector('.app-header')?.offsetHeight || 85) + 18;
     root.classList.toggle('is-reduced-motion', motion.matches);
     root.style.setProperty('--ability-pin-top', offset + 'px');
-    pin.style.height = motion.matches ? '' : Math.max(360, innerHeight - offset - 24) + 'px';
-    // Only resize/content changes measure layout; scrolling updates one composited transform.
-    distance = motion.matches ? 0 : Math.max(0, grid.scrollWidth - viewport.clientWidth);
-    start = scrollY + root.getBoundingClientRect().top - offset;
-    root.style.height = motion.matches ? 'auto' : pin.offsetHeight + distance + 'px';
+    pin.style.height = Math.max(480, innerHeight - offset - 24) + 'px';
+    distance = Math.max(0, grid.scrollWidth - viewport.clientWidth);
     update();
   }
   function goTo(target) {
-    const selected = Math.max(0, Math.min(cards.length - 1, target));
-    if (motion.matches) {
-      cards[selected].scrollIntoView({ block: 'start', behavior: 'auto' });
-      return;
-    }
-    window.scrollTo({
-      top: Math.max(0, start + (distance * selected) / Math.max(1, cards.length - 1)),
-      behavior: 'smooth',
-    });
+    index = Math.max(0, Math.min(cards.length - 1, target));
+    update();
   }
   previous.addEventListener('click', () => goTo(index - 1), { signal: abort.signal });
   next.addEventListener('click', () => goTo(index + 1), { signal: abort.signal });
@@ -123,7 +102,6 @@ function mountAbilityScroll(grid) {
     },
     { signal: abort.signal },
   );
-  window.addEventListener('scroll', queue, { passive: true, signal: abort.signal });
   window.addEventListener('resize', measure, { passive: true, signal: abort.signal });
   motion.addEventListener('change', measure, { signal: abort.signal });
   const resize = new ResizeObserver(measure);
@@ -138,7 +116,6 @@ function mountAbilityScroll(grid) {
     abort.abort();
     resize.disconnect();
     changes.disconnect();
-    cancelAnimationFrame(frame);
   }
   abilityScrollCleanup = cleanup;
   measure();
@@ -148,12 +125,13 @@ function mountAbilityScroll(grid) {
 (() => {
   const renderReport = report;
   report = async function (...args) {
-    const alreadyViewingReport = Boolean(document.querySelector('#content > .ability-scroll'));
+    const existingReport = document.querySelector('#content > .ability-scroll');
+    const selectedIndex = Number(existingReport?.dataset?.abilityIndex || 0);
     const result = await renderReport.apply(this, args);
     const grid = document.querySelector('#content > .report-grid');
     if (grid) {
-      mountAbilityScroll(grid);
-      if (!alreadyViewingReport) window.scrollTo({ top: 0, behavior: 'auto' });
+      mountAbilityScroll(grid, selectedIndex);
+      if (!existingReport) window.scrollTo({ top: 0, behavior: 'auto' });
     }
     return result;
   };

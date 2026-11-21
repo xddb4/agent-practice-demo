@@ -54,9 +54,9 @@ function evidenceInboxHTML() {
     '）</h3>' +
     (groups.pending.map((e) => evidenceRowHTML(e)).join('') ||
       '<p class="tiny">暂无待处理证据。</p>') +
-    '<section class="evidence-watch-section"><h3>待观察（' +
+    '<section class="evidence-watch-section"><div class="evidence-watch-heading"><h3 class="evidence-watch-title" tabindex="0" aria-describedby="evidence-watch-help">待观察（' +
     groups.watch.length +
-    '）</h3><p class="tiny">暂不纳入能力报告，可补充或修改后重新核对。</p>' +
+    '）</h3><p class="tiny evidence-watch-help" id="evidence-watch-help" role="tooltip">暂不纳入能力报告，可补充或修改后重新核对。</p></div>' +
     (groups.watch.map((e) => evidenceRowHTML(e)).join('') ||
       '<p class="tiny">暂无待观察证据。</p>') +
     '</section></section>'

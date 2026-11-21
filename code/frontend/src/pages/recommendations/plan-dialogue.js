@@ -300,7 +300,9 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     '<div class="plan-dialogue" id="plan-dialogue"><div class="modal-head"><h2 class="dialogue-heading">Talk to <span class="brand-wordmark">Study<em>Pilot</em></span></h2>' +
       '<button type="button" onclick="closeModal()" aria-label="关闭方案对话">✕</button></div>' +
       '<nav class="dialogue-switch" aria-label="方案对话切换"><button type="button" class="secondary" data-dialogue-switch aria-expanded="false" aria-controls="dialogue-history">☰ 切换对话</button>' +
-      '<button type="button" class="dialogue-new" data-dialogue-new aria-label="新对话" title="新对话">＋</button></nav>' +
+      '<button type="button" class="dialogue-new" data-dialogue-new aria-label="新对话" title="新对话">' +
+      uiSymbol('plus') +
+      '</button></nav>' +
       '<aside class="dialogue-history" id="dialogue-history" aria-label="历史对话" hidden><div class="dialogue-history-head"><strong>对话记录</strong><button type="button" data-history-close aria-label="收起对话记录">✕</button></div><div data-history-list><p class="tiny">正在读取对话…</p></div><div data-job-list></div></aside>' +
       '<div class="dialogue-workspace">' +
       '<section class="dialogue-chat" aria-label="与 Agent 对话"><div class="dialogue-messages" role="log" aria-label="对话记录"></div>' +
@@ -588,7 +590,7 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
               '</article>',
           )
           .join('')
-      : '<div class="dialogue-start" aria-hidden="true">START</div>';
+      : '<div class="dialogue-start">在下方输入你的问题</div>';
     history.scrollTop = follow ? history.scrollHeight : previousScroll;
   }
   async function reviewDialogueEvidence(candidateId) {

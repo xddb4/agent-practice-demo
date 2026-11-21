@@ -35,7 +35,7 @@ quadHTML = function () {
           esc(label) +
           '</span><span class="sphere-count">' +
           list.length +
-          '<small>项待办</small></span></button><div class="sphere-preview" inert aria-hidden="true"><ul class="sphere-task-list" tabindex="0" aria-label="' +
+          '<small>项</small></span></button><div class="sphere-preview" inert aria-hidden="true"><ul class="sphere-task-list" tabindex="0" aria-label="' +
           esc(label) +
           '待办任务">' +
           (list
@@ -158,7 +158,7 @@ matrix = function () {
   document.getElementById('content').classList?.add('sphere-matrix');
   document.getElementById('content').innerHTML =
     head(
-      '把精力，<br>放在值得的事上。',
+      '',
       '',
       '<button id="recommendation-toggle" class="recommendation-toggle" aria-haspopup="dialog" onclick="openPersonalizedRecommendations()"><svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M16 3c0 9-4 13-13 13 9 0 13 4 13 13 0-9 4-13 13-13-9 0-13-4-13-13Z"/><path d="M26 2v7m-3.5-3.5h7"/></svg><span>推荐任务</span></button>',
     ) +
