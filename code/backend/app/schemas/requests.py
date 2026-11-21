@@ -13,6 +13,9 @@ class Snapshot(BaseModel):
     tasks:list[dict]=Field(max_length=5000)
     evidence:list[dict]=Field(max_length=5000)
 
+class ConversationTitle(BaseModel):
+    title:str=Field(min_length=1,max_length=100)
+
 
 class AgentInput(BaseModel):
     text:str=Field(min_length=1,max_length=30000)

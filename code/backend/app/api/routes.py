@@ -23,6 +23,7 @@ from ..services.stream_events import ensure_stream_active
 from .streaming import stream_response, cancel_stream, job_key, public_job
 from ..services.memory import unpack,pack,record_bytes,cleanup_candidates
 from ..services.completion_stats import merge_completion_ids
+from ..services.completion_evidence import completion_snapshot
 from ..services.model_settings import ModelSettings, read_settings, public_settings, save_settings, runtime_settings, use_settings
 from ..schemas.agent import output_contract
 from pydantic import ValidationError
@@ -32,7 +33,7 @@ from ..core.application import app
 from ..core.auth import uid, digest
 from ..core.config import PROJECT_ROOT
 from ..repositories.records import rows
-from ..schemas.requests import Credentials, Snapshot, AgentInput, CandidateReview, DialogueMessage, DialogueDecision, DialogueWithdrawal, ArchiveInput, MemoryAction
+from ..schemas.requests import Credentials, Snapshot, AgentInput, CandidateReview, DialogueMessage, DialogueDecision, DialogueWithdrawal, ArchiveInput, MemoryAction, ConversationTitle
 router = APIRouter()
 
 @app.exception_handler(RequestValidationError)
@@ -79,19 +80,27 @@ def me(owner=Depends(uid)):
 def get_state(owner=Depends(uid)):
     with Session() as db:
         row=db.get(Record,'state:'+owner)
-        return row.data if row else {'tasks':[],'evidence':[]}
+        if not row:return {'tasks':[],'evidence':[]}
+        data=completion_snapshot(row.data.get('tasks', []), row.data.get('evidence', []))
+        if data != row.data:
+            row.data=data
+            db.commit()
+        return data
 @router.put('/api/state')
 def put_state(body:Snapshot,owner=Depends(uid)):
     validate_tasks(body.tasks)
     for e in body.evidence:
-        if e.get('dim') not in range(6) or e.get('status') not in ['待确认','已接受','已拒绝','待观察']: raise HTTPException(422,'证据维度或状态无效')
+        unknown_completion = e.get('source_type')=='task_completion' and e.get('dim')==-1 and e.get('status')!='已接受'
+        if (e.get('dim') not in range(6) and not unknown_completion) or e.get('status') not in ['待确认','已接受','已拒绝','待观察']: raise HTTPException(422,'证据维度或状态无效')
+        if e.get('source_type')=='task_completion' and e.get('status')=='已接受' and not e.get('completion_details_confirmed'):raise HTTPException(422,'请先补充任务实际成果或过程，再接受为成长证据')
     with Session() as db:
         previous=db.get(Record,'state:'+owner)
         stats=db.get(Record,'completion-stats:'+owner)
         completed=merge_completion_ids(stats.data.get('task_ids',[]) if stats else [],previous.data.get('tasks',[]) if previous else [],body.tasks)
         db.merge(Record(id='completion-stats:'+owner,owner=owner,kind='completion-stats',data={'task_ids':completed}))
-        db.merge(Record(id='state:'+owner,owner=owner,kind='state',data=body.model_dump())); db.commit()
-    return {'ok':True}
+        snapshot=completion_snapshot(body.tasks, body.evidence, previous.data if previous else {})
+        db.merge(Record(id='state:'+owner,owner=owner,kind='state',data=snapshot)); db.commit()
+    return {'ok':True,**snapshot}
 @router.get('/api/completion-stats')
 def completion_stats(owner=Depends(uid)):
     with Session() as db:
@@ -265,7 +274,7 @@ def review(run_id:str,body:CandidateReview,owner=Depends(uid)):
 def list_plans(include_archived:bool=False,owner=Depends(uid)):
     state=get_state(owner)
     with Session() as db:
-        plans=[record for record in rows(db,owner,'run') if record.data.get('route')=='recommend' and (include_archived or not record.data.get('archived'))]
+        plans=[record for record in rows(db,owner,'run') if record.data.get('route')=='recommend' and not record.data.get('conversation_deleted') and (include_archived or not record.data.get('archived'))]
         plans.sort(key=lambda record:record.data.get('created_at') or record.data.get('reviewed_at') or '',reverse=True)
         results=[]
         for record in plans[:50]:
@@ -280,6 +289,33 @@ def get_plan(plan_id:str,owner=Depends(uid)):
         if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'准备方案不存在')
         return plan_payload(record,state['tasks'])
 
+@router.patch('/api/plans/{plan_id}/conversation')
+def rename_conversation(plan_id:str, body:ConversationTitle, owner=Depends(uid)):
+    title=body.title.strip()
+    if not title:raise HTTPException(422,'对话名称不能为空')
+    with Session() as db:
+        record=db.get(Record,plan_id)
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend' or record.data.get('conversation_deleted'):raise HTTPException(404,'对话不存在')
+        record.data={**unpack(record.data),'conversation_title':title}
+        db.commit()
+    return {'title':title}
+
+@router.delete('/api/plans/{plan_id}/conversation')
+def delete_conversation(plan_id:str, owner=Depends(uid)):
+    with Session() as db:
+        record=db.get(Record,plan_id)
+        if not record or record.owner!=owner or record.kind!='run' or record.data.get('route')!='recommend':raise HTTPException(404,'对话不存在')
+        jobs=rows(db,owner,'agent-job')
+        if any(job.data.get('plan_id')==plan_id and job.data.get('status')=='running' for job in jobs):raise HTTPException(409,'对话仍在生成，请先停止生成后再删除')
+        data=unpack(record.data)
+        data.pop('dialogue',None)
+        data.update(conversation_deleted=True)
+        record.data=data
+        for job in jobs:
+            if job.data.get('plan_id')==plan_id:db.delete(job)
+        db.commit()
+    return {'ok':True}
+
 
 
 
@@ -291,6 +327,7 @@ def dialogue_plan(db, owner, plan_id, *, write=False):
     record = db.get(Record, plan_id, with_for_update=write)
     if not record or record.owner != owner or record.kind != 'run' or record.data.get('route') != 'recommend':
         raise HTTPException(404, '准备方案不存在')
+    if record.data.get('conversation_deleted'):raise HTTPException(404,'对话记录已删除')
     return record, unpack(record.data)
 
 
@@ -558,7 +595,29 @@ def dialogue_stream(plan_id:str, body:DialogueMessage, request:Request, owner=De
 def get_agent_jobs(owner=Depends(uid)):
     with Session() as db:
         jobs=db.scalars(select(Record).where(Record.owner==owner,Record.kind=='agent-job').order_by(Record.data['created_at'].as_string().desc()).limit(20))
-        return [{key:data.get(key) for key in ('request_id','status','plan_id','initial','text','created_at')} for data in (public_job(row.data) for row in jobs)]
+        return [{key:data.get(key) for key in ('request_id','status','plan_id','initial','text','created_at','conversation_title')} for data in (public_job(row.data) for row in jobs)]
+
+@router.patch('/api/agent-jobs/{request_id}/conversation')
+def rename_job_conversation(request_id:uuid.UUID, body:ConversationTitle, owner=Depends(uid)):
+    title=body.title.strip()
+    if not title:raise HTTPException(422,'对话名称不能为空')
+    with Session() as db:
+        row=db.get(Record,job_key(owner,request_id))
+        if not row or row.owner!=owner:raise HTTPException(404,'对话记录不存在')
+        if public_job(row.data).get('status')=='running':raise HTTPException(409,'请等待生成结束后再重命名')
+        row.data={**row.data,'conversation_title':title}
+        db.commit()
+    return {'title':title}
+
+@router.delete('/api/agent-jobs/{request_id}/conversation')
+def delete_job_conversation(request_id:uuid.UUID, owner=Depends(uid)):
+    with Session() as db:
+        row=db.get(Record,job_key(owner,request_id))
+        if not row or row.owner!=owner:raise HTTPException(404,'对话记录不存在')
+        if public_job(row.data).get('status')=='running':raise HTTPException(409,'请先停止生成后再删除')
+        db.delete(row)
+        db.commit()
+    return {'ok':True}
 
 
 @router.get('/api/agent-jobs/{request_id}')

@@ -178,7 +178,9 @@ def test_dialogue_persists_and_changes_only_confirmed_plan_items(monkeypatch):
     assert response.status_code == 200, response.text
     pending = response.json()['pending']
     assert calls[0]['skills'] == ['task-breakdown', 'english-prep']
-    assert client.get('/api/state').json()['tasks'] == tasks
+    snapshot=client.get('/api/state').json()
+    assert [{key:value for key,value in task.items() if key!='completion_evidence_id'} for task in snapshot['tasks']] == tasks
+    assert any(item.get('source_type')=='task_completion' and item.get('task_id')==2 for item in snapshot['evidence'])
     assert client.get(path).json()['pending'] == pending
     assert client.get(f'/api/plans/{other_id}/dialogue').json()['messages'] == []
     stranger, _ = account()
@@ -188,7 +190,7 @@ def test_dialogue_persists_and_changes_only_confirmed_plan_items(monkeypatch):
     response = client.post(path + '/decision', json=decision)
     assert response.status_code == 200, response.text
     assert response.json()['tasks'] == [{**tasks[0], 'date': '2090-01-08',
-                                        'suggested_sessions': [], 'suggest': '未设置'}, tasks[1]]
+                                        'suggested_sessions': [], 'suggest': '未设置'}, snapshot['tasks'][1]]
     assert client.post(path + '/decision', json=decision).status_code == 409
     plan = client.get(f'/api/plans/{plan_id}').json()
     assert plan['proposal_indices'] == [0, 2, 3]

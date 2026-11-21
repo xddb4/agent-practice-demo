@@ -9,15 +9,13 @@ function openImport(tab = 'text', options = {}) {
       importTabs(tab) +
       (tab === 'text'
         ? '<div class="form-group"><label>粘贴通知或课程安排</label><textarea id="raw" style="min-height:160px" placeholder="例如：10月24日14:00-15:30，图书馆203开展数学建模小组讨论。每行一条安排。"></textarea></div><button class="tiny" onclick="document.getElementById(\'raw\').value=\'10月24日14:00-15:30，图书馆203开展数学建模小组讨论\\n10月25日前提交比赛报名表\'">填入示例文本 ↗</button><div class="modal-footer"><button class="primary" onclick="parseText()">识别并预览 →</button></div>'
-        : '<form onsubmit="manualSubmit(event)"><div class="form-group"><label>任务名称</label><input id="f-title" required placeholder="你准备完成什么？"></div><div class="form-grid"><div class="form-group"><label>任务类型</label><select id="f-type" onchange="document.getElementById(\'fixed-fields\').classList.toggle(\'hidden\',this.value!==\'fixed\');document.getElementById(\'flex-fields\').classList.toggle(\'hidden\',this.value===\'fixed\')"><option value="flex">灵活待办</option><option value="fixed">固定时间安排</option></select></div><div class="form-group"><label>计划日期</label><input type="date" id="f-date" value="' +
+        : '<form onsubmit="manualSubmit(event)"><div class="task-title-quadrant"><div class="form-group"><label>任务名称</label><input id="f-title" required placeholder="你准备完成什么？"></div><div class="form-group"><label>四象限</label>' +
+          quadrantPicker(1, '', 'f-q') +
+          '</div></div><div class="form-grid"><div class="form-group"><label>任务类型</label><select id="f-type" onchange="document.getElementById(\'fixed-fields\').classList.toggle(\'hidden\',this.value!==\'fixed\');document.getElementById(\'flex-fields\').classList.toggle(\'hidden\',this.value===\'fixed\')"><option value="flex">灵活待办</option><option value="fixed">固定时间安排</option></select></div><div class="form-group"><label>计划日期</label><input type="date" id="f-date" value="' +
           date +
           '" required></div></div><div id="fixed-fields" class="hidden"><div class="form-grid"><div class="form-group"><label>开始时间</label><input type="time" id="f-start" value="14:00"></div><div class="form-group"><label>结束时间</label><input type="time" id="f-end" value="15:00"></div><div class="form-group"><label>地点</label><input id="f-location" placeholder="教室 / 线上会议"></div><div class="form-group"><label>重复规则</label><select id="f-repeat"><option>不重复</option><option>每周</option></select></div></div></div><div id="flex-fields"><div class="form-grid"><div class="form-group"><label>DDL</label><input id="f-ddl" type="date" value="' +
           date +
-          '"></div><div class="form-group"><label>预计时长（分钟）</label><input id="f-duration" type="number" min="1" value="60"></div><div class="form-group"><label>建议时间</label><input id="f-suggest" placeholder="例如 16:00 – 17:00"></div><div class="form-group"><label>能力关联</label><select id="f-ability">' +
-          abilities.map((x, i) => '<option value="' + i + '">' + x + '</option>').join('') +
-          '</select></div></div></div><div class="form-group"><label>四象限分类（可自行调整）</label><select id="f-q">' +
-          labels.map((x, i) => '<option value="' + i + '">' + x + '</option>').join('') +
-          '</select></div><div class="modal-footer"><button type="button" class="secondary" onclick="closeModal()">取消</button><button class="primary" type="submit">添加到计划</button></div></form>'),
+          '"></div><div class="form-group"><label>预计时长（分钟）</label><input id="f-duration" type="number" min="1" value="60"></div></div></div><div class="form-group"><label for="f-description">执行说明</label><textarea id="f-description" maxlength="3000" placeholder="补充具体做法、材料或完成要求"></textarea></div><input type="hidden" id="f-suggest"><input type="hidden" id="f-ability" value="-1"><div class="modal-footer"><button type="button" class="secondary" onclick="closeModal()">取消</button><button class="primary" type="submit">识别并核对</button></div></form>'),
     { key },
   );
 }
@@ -33,6 +31,7 @@ function manualSubmit(e) {
   let t = {
     id: Date.now(),
     title: val('f-title'),
+    description: val('f-description').trim(),
     date: val('f-date'),
     q: +val('f-q'),
     done: false,
@@ -51,8 +50,11 @@ function manualSubmit(e) {
           standard: '' || '完成任务并检查结果',
         }),
   };
-  parsed = [t];
-  commitParsed();
+  askAgent(
+    'schedule',
+    '这是用户手动填写的一项任务，请保留任务名称、类型、日期、时长和四象限分类。只补充执行说明、建议完成时间与能力关联；依据不足时留空，不虚构约束。能力关联仅表示任务涉及的方向，不代表用户能力水平。任务：' +
+      JSON.stringify(t),
+  );
 }
 
 function parseText() {

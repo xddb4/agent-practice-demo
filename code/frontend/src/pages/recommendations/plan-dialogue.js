@@ -1,3 +1,13 @@
+function dialogueDefaultDeadline(today = new Date()) {
+  const next = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+  next.setDate(Math.min(today.getDate(), next.getDate()));
+  return [
+    next.getFullYear(),
+    String(next.getMonth() + 1).padStart(2, '0'),
+    String(next.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 function dialogueShortTitle(title) {
   return Array.from(String(title || '新对话').trim())
     .slice(0, 10)
@@ -166,8 +176,7 @@ function monitorDialogueActivity() {
   button.hidden = true;
   button.onclick = () => {
     openPlanDialogue();
-    const jobs = document.querySelector('#plan-dialogue [data-background-jobs]');
-    if (jobs) jobs.open = true;
+    document.querySelector('#plan-dialogue [data-dialogue-switch]')?.click();
   };
   document.body.append(button);
   let loading = false;
@@ -213,9 +222,9 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
   modal(
     '<div class="plan-dialogue" id="plan-dialogue"><div class="modal-head"><h2 class="dialogue-heading">Talk to <span class="brand-wordmark">Study<em>Pilot</em></span></h2>' +
       '<button type="button" onclick="closeModal()" aria-label="关闭方案对话">✕</button></div>' +
-      '<nav class="dialogue-switch" aria-label="方案对话切换"><label class="tiny">切换对话 <select data-dialogue-switch><option value="">新对话</option></select></label>' +
+      '<nav class="dialogue-switch" aria-label="方案对话切换"><button type="button" class="secondary" data-dialogue-switch aria-expanded="false" aria-controls="dialogue-history">☰ 切换对话</button>' +
       '<button type="button" class="dialogue-new" data-dialogue-new aria-label="新对话" title="新对话">＋</button></nav>' +
-      '<details data-background-jobs class="dialogue-background-jobs"><summary>后台生成记录</summary><div data-job-list>正在读取…</div></details>' +
+      '<aside class="dialogue-history" id="dialogue-history" aria-label="历史对话" hidden><div class="dialogue-history-head"><strong>对话记录</strong><button type="button" data-history-close aria-label="收起对话记录">✕</button></div><div data-history-list><p class="tiny">正在读取对话…</p></div><div data-job-list></div></aside>' +
       '<p class="desc" data-dialogue-title></p><div class="dialogue-workspace">' +
       '<section class="dialogue-chat" aria-label="与 Agent 对话"><div class="dialogue-messages" role="log" aria-label="对话记录"></div>' +
       '<p class="tiny" role="status" data-dialogue-status>正在读取对话…</p>' +
@@ -231,12 +240,12 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
       '<label class="tiny">辅导方向 <select name="skill" form="dialogue-form"><option value="auto">自动判断</option><option value="time-management">时间管理</option>' +
       '<option value="english-prep">英语备考</option><option value="research-growth">科研成长</option></select></label>' +
       '<label class="tiny">目标截止日期<input name="deadline" type="date" form="dialogue-form" ' +
-      (creating ? 'required' : 'readonly') +
+      (creating ? 'value="' + dialogueDefaultDeadline() + '"' : 'readonly') +
       '></label>' +
       '<label class="tiny">每周可投入（小时）<input name="hours" type="number" min="1" max="80" value="' +
-      (creating ? '6' : '') +
+      (creating ? '3' : '') +
       '" form="dialogue-form" ' +
-      (creating ? 'required' : 'readonly') +
+      (creating ? '' : 'readonly') +
       '></label>' +
       (creating
         ? ''
@@ -287,7 +296,9 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
   const jobList = root.querySelector('[data-job-list]');
   async function refreshBackgroundJobs() {
     try {
-      const jobs = await dialogueRequest('agent-jobs');
+      const jobs = (await dialogueRequest('agent-jobs')).filter(
+        (job) => job.status !== 'completed',
+      );
       if (!active()) return;
       const statusLabel = {
         running: '生成中',
@@ -310,14 +321,11 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
                 '</button>',
             )
             .join('')
-        : '暂无后台生成记录';
+        : '';
     } catch (error) {
       if (active()) jobList.textContent = error.message;
     }
   }
-  root.querySelector('[data-background-jobs]').addEventListener('toggle', (event) => {
-    if (event.target.open) refreshBackgroundJobs();
-  });
   jobList.addEventListener('click', (event) => {
     const button = event.target.closest('[data-open-job]');
     if (button) openDialogueJob(button.dataset.openJob);
@@ -755,8 +763,8 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
                 dialogue_message: message,
                 text: JSON.stringify({
                   目标: reference?.title || message,
-                  截止日期: deadline.value,
-                  每周小时: hours.value,
+                  截止日期: deadline.value || dialogueDefaultDeadline(),
+                  每周小时: hours.value || '3',
                   情况备注: reference ? message : '',
                 }),
                 skill_profile: profile,
@@ -945,27 +953,83 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     .querySelector('[data-dialogue-new]')
     .addEventListener('click', () => openPlanDialogue(null, null, { newConversation: true }));
   const switcher = root.querySelector('[data-dialogue-switch]');
-  if (id) switcher.add(new Option('当前对话', id, true, true));
-  switcher.addEventListener('change', () =>
-    openPlanDialogue(switcher.value || null, null, { newConversation: !switcher.value }),
+  const historySidebar = root.querySelector('.dialogue-history');
+  const historyList = root.querySelector('[data-history-list]');
+  const settingsSidebar = root.querySelector('.dialogue-sidebar');
+  const setHistoryOpen = (open) => {
+    if (open) {
+      const header = root.querySelector('.modal-head');
+      root.style.setProperty(
+        '--dialogue-history-top',
+        header.getBoundingClientRect().bottom - root.getBoundingClientRect().top + 12 + 'px',
+      );
+      refreshBackgroundJobs();
+    }
+    root.classList.toggle('is-history-open', open);
+    historySidebar.hidden = !open;
+    settingsSidebar.hidden = open;
+    switcher.setAttribute('aria-expanded', String(open));
+    if (open) historySidebar.querySelector('button')?.focus();
+    else switcher.focus();
+  };
+  root.addEventListener('pointerdown', (event) => {
+    if (
+      switcher.getAttribute('aria-expanded') === 'true' &&
+      !historySidebar.contains(event.target) &&
+      !switcher.contains(event.target)
+    )
+      setHistoryOpen(false);
+  });
+  const backdrop = root.closest('.modal-backdrop');
+  backdrop?.addEventListener(
+    'click',
+    (event) => {
+      if (event.target === backdrop && switcher.getAttribute('aria-expanded') === 'true') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setHistoryOpen(false);
+      }
+    },
+    true,
   );
+  switcher.addEventListener('click', () =>
+    setHistoryOpen(switcher.getAttribute('aria-expanded') !== 'true'),
+  );
+  root.querySelector('[data-history-close]').addEventListener('click', () => setHistoryOpen(false));
+  const renderHistory = (plans) => {
+    historyList.innerHTML =
+      '<button type="button" class="dialogue-history-item" data-history-id=""' +
+      (!id ? ' aria-current="true"' : '') +
+      '>新对话</button>' +
+      plans
+        .map(
+          (plan) =>
+            '<button type="button" class="dialogue-history-item" data-history-id="' +
+            esc(plan.id) +
+            '"' +
+            (plan.id === id ? ' aria-current="true"' : '') +
+            '>' +
+            esc(plan.dialogue_title || plan.title || '未命名对话') +
+            '</button>',
+        )
+        .join('');
+  };
+  historyList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-history-id]');
+    if (!button) return;
+    const nextId = button.dataset.historyId || null;
+    if (nextId === id) return setHistoryOpen(false);
+    openPlanDialogue(nextId, null, { newConversation: !nextId });
+  });
   dialogueRequest('plans')
     .then((plans) => {
       if (!active()) return;
-      const currentOption = Array.from(switcher.options).find((option) => option.value === id);
-      for (const plan of plans) {
-        if (plan.id === id) {
-          currentOption.textContent = dialogueShortTitle(plan.dialogue_title || plan.title);
-          currentOption.title = plan.title;
-          continue;
-        }
-        const option = new Option(dialogueShortTitle(plan.dialogue_title || plan.title), plan.id);
-        option.title = plan.title;
-        switcher.add(option);
-      }
+      renderHistory(plans);
     })
     .catch(() => {
-      if (active()) switcher.title = '暂时无法读取其他对话，请重新打开个性化推荐';
+      if (active())
+        historyList.innerHTML =
+          '<p class="tiny" role="status">暂时无法读取对话记录，请重新打开个性化推荐。</p>';
     });
   if (creating) {
     root.querySelector('.dialogue-plan-summary').hidden = true;
@@ -982,8 +1046,8 @@ function openPlanDialogue(id = null, reference = null, view = {}) {
     if (view.job) {
       try {
         const constraints = JSON.parse(view.job.constraints || '{}');
-        deadline.value = constraints['截止日期'] || '';
-        hours.value = constraints['每周小时'] || 6;
+        deadline.value = constraints['截止日期'] || dialogueDefaultDeadline();
+        hours.value = constraints['每周小时'] || '3';
       } catch {}
       sendMessage(view.job.text || '继续生成', 'auto', view.job);
     }

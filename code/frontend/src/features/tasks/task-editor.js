@@ -8,8 +8,11 @@ function editTask(id) {
   let form = document.querySelector('#modal-root form');
   form.dataset.editId = String(id);
   document.querySelector('#modal-root h2').textContent = '编辑任务';
+  document.querySelector('#modal-root .tabs')?.remove();
+  document.querySelector('#modal-root .desc')?.remove();
   let fields = {
     'f-title': t.title,
+    'f-description': t.description || '',
     'f-type': t.start ? 'fixed' : 'flex',
     'f-date': t.date,
     'f-start': t.start || '09:00',
@@ -34,6 +37,8 @@ function editTask(id) {
     }
     field.value = value;
   }
+  const quadrant = document.getElementById('f-q')?.closest('.quadrant-picker');
+  if (quadrant) quadrant.querySelector('summary').innerHTML = pill(t.q);
   document.getElementById('fixed-fields').classList.toggle('hidden', !t.start);
   document.getElementById('flex-fields').classList.toggle('hidden', !!t.start);
   form.querySelector('button[type="submit"]').textContent = '保存修改';
@@ -58,7 +63,7 @@ manualSubmit = function (e) {
   let old = tasks[index],
     candidate = {
       id: old.id,
-      ...(old.description ? { description: old.description } : {}),
+      description: val('f-description').trim(),
       ...(old.agent_run_id
         ? { agent_run_id: old.agent_run_id, proposal_index: old.proposal_index }
         : {}),

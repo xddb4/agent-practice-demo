@@ -2,11 +2,37 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {readFileSync}=require('node:fs');
 const vm=require('node:vm');
+const {namedFunction}=require('./frontend-source.cjs');
 function setup(api){
  const nodes={'review-error':{textContent:'',isConnected:true},'review-confirm':{},'review-select-all':{}};
  const state={Intl,Date,structuredClone,labels:['重要且紧急','重要不紧急','不重要但紧急','不重要不紧急'],esc:value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])),modal:html=>state.html=html,closeModal(){nodes['review-error'].isConnected=false},showStudyAlert:message=>state.popup=message,document:{getElementById:id=>nodes[id],querySelectorAll:()=>[]},api:api||(async()=>{}),commitParsed(){state.saved=state.parsed},evidence:[],abilities:[],save(){},render(){}};
- vm.createContext(state);vm.runInContext(readFileSync('code/frontend/src/features/agent/candidate-review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
+ state.Date=class extends Date {constructor(...args){super(...(args.length?args:['2026-11-02T01:00:00Z']))}static now(){return Date.parse('2026-11-02T01:00:00Z')}};
+ vm.createContext(state);
+ const ui=readFileSync('code/frontend/src/components/ui/primitives.js','utf8');
+ for(const name of ['pill','quadrantPicker'])vm.runInContext(namedFunction(ui,name),state);
+ vm.runInContext(readFileSync('code/frontend/src/features/agent/candidate-review.js','utf8'),state);return {state,nodes,run:source=>vm.runInContext(source,state)};
 }
+
+test('过期候选标红且默认不勾选，未来任务仍默认选中，确认只保存选中项',async()=>{
+ const {state,run}=setup();
+ state.handleAgentResult({route:'schedule',items:[{title:'旧任务',date:'2026-11-01'},{title:'近期任务',date:'2026-11-03',description:'整理报名资料'}]});
+ assert.equal(run('reviewRows[0].selected'),false);
+ assert.equal(run('reviewRows[1].selected'),true);
+ assert.match(state.html,/task-expired[^>]*>已过期/);
+ assert.doesNotMatch(state.html,/预计时长（分钟，可不填）/);
+ assert.match(state.html,/review-instructions/);
+ await state.confirmTaskReview();
+ assert.equal(state.saved.length,1);assert.equal(state.saved[0].title,'近期任务');
+});
+
+test('文字识别的建议时间、执行说明和能力方向在确认后保留',async()=>{
+ const {state}=setup();state.abilities=['计算与系统思维'];
+ state.handleAgentResult({id:'manual',route:'schedule',items:[{title:'复习递归',date:'2026-11-03',estimated_minutes:30,description:'画出递归调用树',dimension:'计算与系统思维',suggested_finish:'2026-11-03T15:00:00+08:00'}]});
+ await state.confirmTaskReview();
+ assert.equal(state.saved[0].ability,0);
+ assert.equal(state.saved[0].suggest,'建议完成 2026-11-03 15:00');
+ assert.equal(state.saved[0].description,'画出递归调用树');
+});
 
 test('短任务名与执行说明分别保存，加入日程后仍保留完整做法',async()=>{
  const {state,run}=setup();
@@ -22,7 +48,7 @@ test('直接显示唯一的任务核对表单，不展示模型说明或JSON编�
  const {state}=setup();
  state.handleAgentResult({id:'run1',route:'schedule',notice:'internal-model-notice',items:[{title:'讨论',start:'2026-11-02T18:30:00+08:00',end:null},{title:'准备材料',date:'2026-11-03'}]});
  assert.match(state.html,/核对识别结果/);assert.match(state.html,/选择第1项任务/);assert.match(state.html,/选择第2项任务/);assert.match(state.html,/灵活任务/);assert.match(state.html,/结束时间/);
- assert.doesNotMatch(state.html,/internal-model-notice|textarea|JSON|null/);
+ assert.doesNotMatch(state.html,/internal-model-notice|JSON|null/);
 });
 test('仅保存勾选条目，并将固定任务切换为灵活任务后清除具体时段',async()=>{
  const calls=[];const {state,run}=setup(async(path,body)=>calls.push({path,body}));

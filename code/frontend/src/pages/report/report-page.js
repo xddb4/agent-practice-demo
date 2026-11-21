@@ -1,5 +1,9 @@
 report = async function () {
   try {
+    if (typeof saveQueue !== 'undefined') await saveQueue;
+    const latest = await api('state');
+    if (Array.isArray(latest?.evidence)) evidence = latest.evidence;
+    if (Array.isArray(latest?.tasks)) tasks = latest.tasks;
     const r = await api('report');
     document.getElementById('content').innerHTML =
       head(

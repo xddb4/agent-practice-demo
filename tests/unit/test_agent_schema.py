@@ -4,6 +4,14 @@ from pydantic import ValidationError
 from backend.app.schemas.agent import ScheduleOutput, EvidenceOutput, CourseOutput, RecommendationOutput
 
 def parse(cls,item):return cls.model_validate_json(json.dumps({'items':[item],'notice':''}))
+
+def test_schedule_assistance_fields_are_validated():
+    task=parse(ScheduleOutput,{'title':'复习递归','description':'画出递归调用树','dimension':'计算与系统思维','suggested_finish':'2026-11-23T15:00:00+08:00'}).items[0]
+    assert task.dimension=='计算与系统思维'
+    assert task.description=='画出递归调用树'
+    assert task.suggested_finish.hour==15
+    with pytest.raises(ValidationError):parse(ScheduleOutput,{'title':'复习','dimension':'能力优秀'})
+    with pytest.raises(ValidationError):parse(ScheduleOutput,{'title':'复习','suggested_finish':'2026-11-23T15:00:00'})
 def test_schedule_valid_and_missing_time():
     x=parse(ScheduleOutput,{'title':'读文献','start':None,'end':None})
     assert x.items[0].start is None

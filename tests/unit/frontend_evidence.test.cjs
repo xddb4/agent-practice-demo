@@ -5,6 +5,16 @@ function setup(){
  const state={structuredClone,Date,evidence:[{id:1,title:'新证据',body:'内容',dim:0,status:'待确认'},{id:2,title:'观察证据',dim:1,status:'待观察'},{id:3,title:'已接受证据',dim:2,status:'已接受'},{id:4,title:'已拒绝证据',dim:3,status:'已拒绝'}],abilities:['一','二','三','四','五','六'],esc:s=>String(s),saveQueue:Promise.resolve(),save(){state.persisted=structuredClone(state.evidence);return true},async report(){state.reportCount=(state.reportCount||0)+1},modal:html=>state.html=html,closeModal(){state.closed=true},toast(){},showStudyAlert(){},async confirmStudyAction(){return true},val:key=>fields[key]};
  vm.createContext(state);vm.runInContext(readFileSync('code/frontend/src/features/evidence/evidence-inbox.js','utf8'),state);return state;
 }
+
+test('完成记录需补充实际成果和能力方向后才能接受，修改后仍须确认',async()=>{
+ const state=setup();
+ state.evidence=[{id:9,title:'精听',body:'用户标记完成',dim:-1,status:'待确认',source_type:'task_completion',completion_details_confirmed:false}];
+ await state.evidenceState(9,'已接受');assert.equal(state.evidence[0].status,'待确认');
+ state.editEvidence(9);assert.match(state.html,/请选择关联能力/);
+ await state.saveEditedEvidence(9);
+ const updated=state.evidence[0];assert.equal(updated.status,'待确认');assert.equal(updated.completion_details_confirmed,true);
+ await state.evidenceState(updated.id,'已接受');assert.equal(state.evidence[0].status,'已接受');
+});
 test('收件箱仅显示待确认及单独分组的待观察，已处理证据在弹窗中',()=>{
  const state=setup(),html=state.evidenceInboxHTML();assert.match(html,/新证据|观察证据|待观察（1）|已处理证据（2）/);assert.doesNotMatch(html,/已接受证据|已拒绝证据/);
  state.showProcessedEvidence();assert.match(state.html,/已接受证据/);assert.match(state.html,/已拒绝证据/);assert.doesNotMatch(state.html,/观察证据/);assert.match(state.html,/删除/);
