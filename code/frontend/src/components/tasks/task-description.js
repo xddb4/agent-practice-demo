@@ -21,7 +21,9 @@ function taskDetailBodyHTML(task) {
         esc(task.description) +
         '</p></section>'
       : '') +
-    '<div class="task-detail-quadrant">' + pill(task.q) + '</div>'
+    '<div class="task-detail-quadrant">' +
+    pill(task.q) +
+    '</div>'
   );
 }
 
