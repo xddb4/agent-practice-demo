@@ -1,9 +1,12 @@
 // 象限只展示已有任务，推荐目标不绑定任何象限。
 function quadrantPending(q) {
+  const expiryDay = typeof taskExpiryDay === 'function' ? taskExpiryDay() : undefined;
   return tasks
     .filter(
       (task) =>
-        task.q === q && !task.done && !(typeof taskExpired === 'function' && taskExpired(task)),
+        task.q === q &&
+        !task.done &&
+        !(typeof taskExpired === 'function' && taskExpired(task, expiryDay)),
     )
     .sort(taskPriority);
 }

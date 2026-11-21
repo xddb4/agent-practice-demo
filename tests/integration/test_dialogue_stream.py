@@ -99,6 +99,23 @@ def test_initial_recommendation_uses_same_stream_protocol(monkeypatch):
     assert events[-1]['result']['id']
 
 
+def test_duplicate_stream_request_does_not_start_second_worker(monkeypatch):
+    client,path=setup(monkeypatch)
+    calls=[]
+    def invoke(_):
+        calls.append(True)
+        return {'result':{'reply':'分析完成。','changes':[]}}
+    monkeypatch.setattr(routes.dialogue_workflow,'invoke',invoke)
+    request_id=str(uuid.uuid4())
+    body={'text':'帮我分析','request_id':request_id}
+    first=client.post(path+'/stream',json=body)
+    assert frames(first)[-1]['type']=='complete'
+    second=client.post(path+'/stream',json=body)
+    assert second.status_code==409
+    assert calls==[True]
+    assert client.get('/api/agent-jobs/'+request_id).json()['status']=='completed'
+
+
 def test_http_client_receives_reply_while_generation_is_still_running(monkeypatch):
     client,path=setup(monkeypatch)
     release=threading.Event();model_finished=threading.Event()

@@ -14,13 +14,14 @@ function addDays(key, n) {
   d.setDate(d.getDate() + n);
   return localDateKey(d);
 }
+const taskExpiryFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 function taskExpiryDay() {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
+  return taskExpiryFormatter.format(new Date());
 }
 function taskExpired(task, day = taskExpiryDay()) {
   const deadline = String(task.ddl || '').slice(0, 10);

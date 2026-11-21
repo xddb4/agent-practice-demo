@@ -1,0 +1,3 @@
+[tool.pylint.main]
+source-roots = ["code"]
+persistent = false

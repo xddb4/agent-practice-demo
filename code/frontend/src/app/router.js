@@ -16,6 +16,7 @@ const StudyPilotRouter = (() => {
     // Keep the existing login gate and render/transition lifecycle.
     if (name === 'personal') return openPersonal();
     page = name;
+    if (typeof updateTopNavigation === 'function') updateTopNavigation();
     return render();
   }
 

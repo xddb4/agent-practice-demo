@@ -45,6 +45,11 @@
   left: 0;
   pointer-events: none;
 }
+@media (prefers-reduced-motion: reduce) {
+  .app-nav .gooey-nav__stage .gooey-nav__fallback {
+    transition: none;
+  }
+}
 .gooey-nav__fallback {
   position: absolute;
   top: 0;

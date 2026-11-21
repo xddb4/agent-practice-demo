@@ -27,6 +27,10 @@ function updateTopNavigation() {
       day: 'numeric',
       weekday: 'long',
     });
+  if (topNavEngine) {
+    topNavEngine.go(current);
+    return;
+  }
   if (topNavScheduled) return;
   topNavScheduled = true;
   requestAnimationFrame(() => {

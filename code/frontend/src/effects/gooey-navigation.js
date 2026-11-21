@@ -244,6 +244,8 @@ void main() {
     let raf = 0;
     let last = 0;
     let disposed = false;
+    let settleAt = 0;
+    let motionTime = 0;
 
     const measure = () => {
       const box = stage.getBoundingClientRect();
@@ -268,58 +270,6 @@ void main() {
         const rect = item.getBoundingClientRect();
         return { x: rect.left - box.left, y: rect.top - box.top, w: rect.width, h: rect.height };
       });
-    };
-
-    const trace = (boxes, blobs, smooth) => {
-      const field = (x, y) => {
-        let d = 1e5;
-        const merge = (value) => {
-          const h = clamp01(0.5 + (0.5 * (value - d)) / smooth);
-          d = value + (d - value) * h - smooth * h * (1 - h);
-        };
-        for (const box of boxes) {
-          const r = Math.min(box.hw, box.hh);
-          const qx = Math.abs(x - box.cx) - box.hw + r;
-          const qy = Math.abs(y - box.cy) - box.hh + r;
-          merge(Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r);
-        }
-        for (const blob of blobs) {
-          const px = x - blob.x;
-          const py = y - blob.y;
-          const bx = -blob.tx;
-          const by = -blob.ty;
-          const span = bx * bx + by * by;
-          const h = span > 0.0001 ? clamp01((px * bx + py * by) / span) : 0;
-          const value = Math.hypot(px - bx * h, py - by * h) - blob.r;
-          if (value > d + smooth) continue;
-          merge(value);
-        }
-        return d;
-      };
-      const step = 2;
-      const parts = [];
-      for (let y = 0; y < view.height; y += 1) {
-        const cy = y + 0.5;
-        let previous = field(0, cy);
-        let start = previous < 0 ? 0 : null;
-        for (let x = step; x <= view.width + step; x += step) {
-          const value = field(Math.min(x, view.width), cy);
-          if (previous < 0 !== value < 0) {
-            const cross = x - step + (step * previous) / (previous - value);
-            if (value < 0) start = cross;
-            else if (start !== null) {
-              parts.push(
-                `M${start.toFixed(1)},${y}H${cross.toFixed(1)}V${y + 1}H${start.toFixed(1)}Z`,
-              );
-              start = null;
-            }
-          }
-          previous = value;
-        }
-        if (start !== null)
-          parts.push(`M${start.toFixed(1)},${y}H${view.width}V${y + 1}H${start.toFixed(1)}Z`);
-      }
-      return parts.join('');
     };
 
     const pill = (index) => {
@@ -433,14 +383,13 @@ void main() {
         });
       }
 
-      const settledPill = boxes.length === 1 && !blobs.length;
-      if (settledPill) {
-        const box = boxes[0];
-        overlay.style.clipPath = `path('${pillPath(box.cx - box.hw, box.cy - box.hh, box.hw * 2, box.hh * 2)}')`;
-      } else {
-        overlay.style.clipPath = `path('${trace(boxes, blobs, smooth) || 'M0,0Z'}')`;
-      }
-      overlay.style.visibility = 'visible';
+      // Text only needs the pill silhouettes; tracing every particle on the CPU
+      // duplicated the GPU field calculation and forced a large clip-path update.
+      const clip = boxes
+        .map((box) => pillPath(box.cx - box.hw, box.cy - box.hh, box.hw * 2, box.hh * 2))
+        .join('');
+      overlay.style.clipPath = clip ? `path('${clip}')` : 'inset(100%)';
+      overlay.style.visibility = clip ? 'visible' : 'hidden';
 
       if (!pipeline || !gl) {
         const box = shape(target, 1);
@@ -508,11 +457,19 @@ void main() {
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
 
-    const frame = (now) => {
+    const frame = (timestamp) => {
       raf = 0;
+      if (disposed) return;
       const s = settingsRef.current;
-      const dt = Math.min(0.05, (now - last) / 1000 || 0);
-      last = now;
+      const dt = Math.min(0.05, (timestamp - last) / 1000 || 0);
+      last = timestamp;
+      // Advance the effect by rendered time so a busy page render cannot skip it.
+      motionTime += dt * 1000;
+      const now = motionTime;
+      if (settleAt && now >= settleAt) {
+        settle(target);
+        return;
+      }
       const emergeTime = 0.09;
       const absorbTime = 0.12;
 
@@ -592,10 +549,11 @@ void main() {
       const host = pills.get(target);
       const resting =
         drops.length === 0 &&
-        pills.size === 1 &&
-        host &&
-        Math.abs(host.mass - host.scale) < 0.0008 &&
-        Math.abs(host.velocity) < 0.004;
+        (pills.size === 0 ||
+          (pills.size === 1 &&
+            host &&
+            Math.abs(host.mass - host.scale) < 0.0008 &&
+            Math.abs(host.velocity) < 0.004));
       const hoverRect = rects[hover.index];
       const hovering =
         Math.abs(hoverGoal - hover.alpha) > 0.003 ||
@@ -604,9 +562,12 @@ void main() {
             0.1);
       if (!resting || hovering) raf = requestAnimationFrame(frame);
       else {
-        host.mass = 1;
-        host.scale = 1;
-        host.velocity = 0;
+        if (host) {
+          host.mass = 1;
+          host.scale = 1;
+          host.velocity = 0;
+        }
+        settleAt = 0;
         hover.alpha = hoverGoal;
         render();
       }
@@ -619,13 +580,21 @@ void main() {
     };
 
     const settle = (index) => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      settleAt = 0;
       pills.clear();
       drops.length = 0;
-      target = index;
-      const state = pill(index);
-      state.mass = 1;
-      state.scale = 1;
-      state.velocity = 0;
+      target = rects[index] ? index : -1;
+      indexRef.current = target;
+      hover.index = -1;
+      hover.alpha = 0;
+      if (target >= 0) {
+        const state = pill(target);
+        state.mass = 1;
+        state.scale = 1;
+        state.velocity = 0;
+      }
       render();
     };
 
@@ -635,7 +604,11 @@ void main() {
         settle(index);
         return;
       }
-      const now = performance.now();
+      const now = motionTime;
+      indexRef.current = index;
+      settleAt = now + 900;
+      hover.index = -1;
+      hover.alpha = 0;
       target = index;
       pill(index);
       for (const drop of drops) {
@@ -676,8 +649,9 @@ void main() {
     };
 
     const resizeObserver = new ResizeObserver(() => {
+      if (disposed) return;
       measure();
-      if (!drops.length) settle(target < 0 ? indexRef.current : target);
+      if (!drops.length) settle(target);
       else render();
     });
     resizeObserver.observe(stage);
@@ -685,6 +659,10 @@ void main() {
 
     list.addEventListener('pointerover', onOver);
     list.addEventListener('pointerleave', onLeave);
+    const onVisibility = () => {
+      if (document.hidden && !disposed) settle(target);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     measure();
     settle(indexRef.current);
@@ -708,7 +686,16 @@ void main() {
       resizeObserver.disconnect();
       list.removeEventListener('pointerover', onOver);
       list.removeEventListener('pointerleave', onLeave);
+      document.removeEventListener('visibilitychange', onVisibility);
+      pills.clear();
+      drops.length = 0;
+      overlay.style.visibility = 'hidden';
+      overlay.style.clipPath = 'inset(100%)';
+      fallback.style.opacity = '0';
+      canvas.style.display = 'none';
       if (gl && pipeline) {
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
         gl.deleteBuffer(pipeline.buffer);
         gl.deleteProgram(pipeline.program);
       }

@@ -233,6 +233,8 @@ document.addEventListener('pointerup', (e) => {
     cleanTaskDrag();
     return;
   }
+  d.x = e.clientX;
+  d.y = e.clientY;
   updateTaskDrag();
   let target = d.drop,
     id = d.task.id,

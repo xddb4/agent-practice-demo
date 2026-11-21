@@ -15,9 +15,10 @@ function toggle(id) {
 }
 
 function dayTasks() {
+  const expiryDay = taskExpiryDay();
   return tasks.filter(
     (t) =>
-      !taskExpired(t) &&
+      !taskExpired(t, expiryDay) &&
       (t.date === date ||
         ((t.repeat === '每周' || t.repeat === '每周六') &&
           t.date < date &&

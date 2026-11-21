@@ -149,14 +149,13 @@ function shredTargetAt(x, y, localBox, dockBox) {
     if (y >= localBox.top - 80 && y <= localBox.bottom)
       candidates.push({
         progress,
-        ready: y >= localBox.top + 15 && y <= localBox.bottom,
+        ready: y >= localBox.top && y <= localBox.bottom,
         box: localBox,
       });
   }
-  if (dockBox && x >= dockBox.left && x <= dockBox.right && y <= innerHeight) {
+  if (dockBox && x >= dockBox.left && x <= dockBox.right && y <= dockBox.bottom) {
     let progress = Math.max(0, Math.min(1, (y - (dockBox.top - 85)) / 100));
-    if (y >= dockBox.top - 85)
-      candidates.push({ progress, ready: y >= dockBox.top + 15, box: dockBox });
+    if (y >= dockBox.top - 85) candidates.push({ progress, ready: y >= dockBox.top, box: dockBox });
   }
   return (
     candidates.sort((a, b) => Number(b.ready) - Number(a.ready) || b.progress - a.progress)[0] || {
@@ -189,20 +188,31 @@ function updateShredDeleteZone(d, overQuadrant) {
     return;
   }
   let local = document.getElementById('shred-drop'),
-    dock = document.getElementById('task-delete-dock');
-  dock.classList.add('is-visible');
-  dock.setAttribute('aria-hidden', 'false');
+    dock = document.getElementById('task-delete-dock'),
+    localBox = local?.getBoundingClientRect();
+  const localVisible =
+    localBox &&
+    localBox.width > 0 &&
+    localBox.height > 0 &&
+    localBox.top >= 0 &&
+    localBox.bottom <= innerHeight &&
+    localBox.left >= 0 &&
+    localBox.right <= innerWidth;
+  // Use one destination: the bottom dock is only a fallback for an offscreen sidebar.
+  dock?.classList.toggle('is-visible', !localVisible);
+  dock?.setAttribute('aria-hidden', String(!!localVisible));
   let target = shredTargetAt(
     d.x,
     d.y,
-    local?.getBoundingClientRect(),
-    dock.getBoundingClientRect(),
+    localVisible ? localBox : null,
+    localVisible ? null : dock?.getBoundingClientRect(),
   );
   if (overQuadrant) target = { progress: 0, ready: false };
   for (let n of [local, dock])
     if (n) {
-      n.style.setProperty('--danger', String(target.progress));
-      n.classList.toggle('is-ready', target.ready);
+      const selected = n === (localVisible ? local : dock);
+      n.style.setProperty('--danger', selected ? String(target.progress) : '0');
+      n.classList.toggle('is-ready', selected && target.ready);
     }
   let prompt = local?.querySelector('.shred-prompt');
   if (prompt) prompt.textContent = target.ready ? '松手删除任务' : '拖到这里，松手删除任务';

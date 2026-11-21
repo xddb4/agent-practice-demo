@@ -73,13 +73,35 @@ def test_run_uses_own_configuration_and_resets_context(monkeypatch):
 def test_connection_test_sanitizes_provider_errors(monkeypatch):
     import backend.app.integrations.model as model
     c=client();c.put('/api/model-settings',json=config())
+    invoked=[]
     class Fake:
         def invoke(self,_):
+            invoked.append(True)
             assert model_env('MODEL_API_KEY')=='dummy-private-key'
             raise RuntimeError('dummy-private-key must never be returned')
     monkeypatch.setattr(model,'create_model',lambda:Fake())
     result=c.post('/api/model-settings/test',json={})
     assert result.status_code==502 and 'dummy-private-key' not in result.text
+    assert invoked==[True]
+    assert model_env('MODEL_API_KEY') is None
+
+
+def test_connection_success_uses_saved_model_and_resets_context(monkeypatch):
+    import backend.app.integrations.model as model
+    c=client()
+    assert c.put('/api/model-settings',json=config()).status_code==200
+    invoked=[]
+    class Fake:
+        def invoke(self,message):
+            assert model_env('MODEL_API_KEY')=='dummy-private-key'
+            invoked.append(message)
+    monkeypatch.setattr(model,'create_model',lambda:Fake())
+    response=c.post('/api/model-settings/test',json={})
+    assert response.status_code==200,response.text
+    assert response.json()['ok'] is True
+    assert len(invoked)==1
+    assert model_env('MODEL_API_KEY') is None
+    assert 'dummy-private-key' not in response.text
 
 def test_configuration_reaches_langgraph_nodes(monkeypatch):
     import core_engine.ai.workflows.pilot as pilot
