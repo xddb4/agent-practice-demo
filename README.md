@@ -327,18 +327,79 @@ API 层：用户、任务、日历、反馈、报告
 
 验收标准：推荐必须包含理由、预计投入、影响能力和用户确认步骤。
 
-## 9. 首选技术方案
+## 9. 技术栈与开发环境
 
-如果以 Web 应用起步，建议采用：
+### 9.1 当前实现与版本声明
 
-- 前端：React + TypeScript + Vite，日历和图表使用成熟组件。
-- 后端：FastAPI 或 NestJS，按领域模块拆分 API。
-- 数据库：PostgreSQL，任务、日程、能力和证据使用结构化表。
-- 文档与文件：对象存储保存原始作品，数据库保存解析结果和引用位置。
-- 智能体编排：先使用显式工作流；只有在需要理解自然语言材料时调用大模型。
-- 检索：第二阶段再加入向量检索，优先检索用户自己的资料和已确认证据。
+下表记录项目依赖声明与构建配置；已核验的本机版本及前端锁定版本见下方对应表格。
 
-初期不建议把所有逻辑交给大模型。排程、四象限和分数更新应由确定性代码完成，大模型负责解析、解释和生成候选方案。
+| 类别 | 技术 | 版本声明 | 用途 |
+| --- | --- | --- | --- |
+| 后端语言 | Python | 容器使用 3.12 | 业务服务与智能体逻辑 |
+| 前端语言 | JavaScript、JSX | ES Modules；另有 TypeScript 类型声明 | 页面交互 |
+| 前端界面 | React、React DOM | ^19.0.0 | 应用外层与逐步组件化 |
+| 前端构建 | Vite | ^6.0.0 | 开发与资源构建 |
+| 构建环境 | Node.js | 容器使用 22-alpine | 安装依赖、构建前端 |
+| API 框架 | FastAPI | >=0.115，<1 | 业务接口与请求校验 |
+| Web 服务 | Uvicorn | >=0.30，<1 | 运行后端服务 |
+| 智能体编排 | LangGraph | >=1，<2 | 状态图与任务路由 |
+| 模型接入 | langchain-openai | >=1，<2 | 模型接入与工具调用 |
+| 数据访问 | SQLAlchemy | >=2，<3 | 数据模型与持久化访问 |
+| 数据库驱动 | psycopg[binary] | >=3.2，<4 | PostgreSQL 连接支持，不代表当前部署已启用 |
+| 后端测试 | pytest | >=8 | Python 自动化测试 |
+| 前端格式检查 | Prettier | 3.6.2 | 代码格式检查 |
+| 部署工具 | Docker CLI、Docker Compose | 29.9.2、5.6.1 | 镜像构建与服务编排 |
+| IDE / 编辑器 | Visual Studio Code| 1.96.4 | 开发与调试 |
+
+版本依据：
+
+- `code/frontend/package.json`
+- `code/frontend/package-lock.json`
+- `code/backend/requirements.txt`
+- `Dockerfile`
+
+前端当前由 React 外层与工作台脚本共同运行，尚未全部迁移为 React 页面组件。
+
+### 9.2 技术选型说明
+
+- **Python 与 FastAPI**：将业务 API 与 Python 智能体代码放在同一技术体系中，使用类型化请求模型进行校验。
+- **React 与 Vite**：保留工作台交互实现，逐步推进组件化，统一前端开发与构建流程。
+- **LangGraph**：使用显式状态图组织任务路由，使处理流程与边界清晰。
+- **langchain-openai**：统一模型接入，支持工具绑定与结构化输出。
+- **SQLAlchemy**：集中管理数据模型与数据库访问逻辑。
+- **Docker 多阶段构建**：先构建前端，再将静态资源放入 Python 运行镜像，统一交付。
+
+### 本机验证环境
+
+以下版本由本机 Docker 命令及运行容器内的查询结果确认，记录日期为 2026-11-21。
+
+| 技术 | 实际版本 |
+| --- | --- |
+| Python | 3.12.16 |
+| FastAPI | 0.162.7 |
+| Uvicorn | 0.54.0 |
+| LangGraph | 1.2.22 |
+| langchain-openai | 1.8.0 |
+| SQLAlchemy | 2.1.8 |
+| psycopg | 3.3.9 |
+| PostgreSQL | 16.15 |
+| Docker CLI | 29.9.2 |
+| Docker Compose | 5.6.1 |
+| Visual Studio Code | 1.96.4 |
+
+### 前端依赖锁定版本
+
+以下版本读取自本地项目的 `code/frontend/package-lock.json`。
+
+| 技术 | 锁定版本 |
+| --- | --- |
+| React | 19.3.1 |
+| React DOM | 19.3.1 |
+| Vite | 6.4.6 |
+| Prettier | 3.6.2 |
+
+Dockerfile 声明前端构建环境为 `node:22-alpine`。
+
 
 ## 10. 论文依据如何落地
 
